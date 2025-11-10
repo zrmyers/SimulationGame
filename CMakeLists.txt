@@ -13,4 +13,10 @@ set (CMAKE_EXPORT_COMPILE_COMMANDS On)
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 set(CMAKE_ALL_ERRORS_FATAL TRUE)
 
+include (cmake/CPM.cmake)
+
+set(CPM_SOURCE_CACHE "./cpm-cache")
+
+CPMAddPackage("gh:libsdl-org/SDL#release-3.2.26")
+
 add_subdirectory(game)

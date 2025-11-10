@@ -1,11 +1,22 @@
-
-#include <vector>
-#include <iostream>
+#include "core/Engine.hpp"
+#include "core/Logger.hpp"
 
 int main(int argc, const char** argv) {
 
-    (void) argc;
-    (void) argv;
+    Core::Logger::SetLevel(Core::Logger::Level::INFO);
 
-    std::cout << "Hello World!" << std::endl;
+    try {
+
+        Core::Engine engine(argc, argv);
+
+        engine.Run();
+
+        Core::Logger::Info("Done Running. Shutdown.");
+
+    } catch (Core::EngineException& error) {
+
+        Core::Logger::Error("Caught Core::EngineException. Shutdown.");
+        Core::Logger::Error(error.what());
+    }
+
 }

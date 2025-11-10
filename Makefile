@@ -17,4 +17,4 @@ clean:
 
 .PHONY:
 run:
-	./build/Release/SimulationGame.exe
+	./build/Release/SimulationGame.exe gamePath=$(CURDIR)/deploy
