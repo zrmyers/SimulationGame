@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 
 namespace Core {
@@ -28,19 +29,19 @@ namespace Core {
             static Level GetLevel();
 
             static void Error(const std::string& message) {
-                return Write(Level::ERROR, message);
+                Write(Level::ERROR, message);
             };
 
             static void Warning(const std::string& message) {
-                return Write(Level::WARNING, message);
+                Write(Level::WARNING, message);
             };
 
             static void Info(const std::string& message) {
-                return Write(Level::INFO, message);
+                Write(Level::INFO, message);
             };
 
             static void Trace(const std::string& message) {
-                return Write(Level::TRACE, message);
+                Write(Level::TRACE, message);
             };
 
         private:

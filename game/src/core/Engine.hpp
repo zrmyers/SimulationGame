@@ -1,8 +1,10 @@
+#pragma once
 
-#include <SDL3/SDL_video.h>
 #include <exception>
 #include <unordered_map>
 #include <string>
+#include <span>
+#include "sdl/SDL.hpp"
 
 namespace Core {
 
@@ -26,12 +28,11 @@ namespace Core {
             //! Command line arguments that are passed in to the engine. These are parsed into globally accessible
             //! environment variables that are accessible through the application.
             //!
-            //! @param[in] arg pass-through from command line.
-            //! @param[in] argv pass-through from command line.
-            Engine(int argc, const char** argv);
+            //! @param[in] args pass-through from command line.
+            Engine(std::span<const char*> args);
 
             Engine(const Engine& other) = delete;
-            Engine(Engine&& other) = default;
+            Engine(Engine&& other) noexcept = default;
             Engine& operator=(const Engine& other) = delete;
             Engine& operator=(Engine&& other) = default;
 
@@ -51,13 +52,19 @@ namespace Core {
         private:
 
             //! Initialize the global environment variables.
-            void InitEnv(int argc, const char** argv);
+            void InitEnv(std::span<const char*> args);
 
             //! Environment variables.
             std::unordered_map<std::string, std::string> m_environment;
 
+            //! SDL context
+            SDL::Context m_sdl;
+
             //! Window used for rendering graphics to screen.
             SDL_Window* m_p_window;
+
+            //! Handle to GPU used for graphics processing
+            SDL_GPUDevice* m_p_gpu;
     };
 
 }

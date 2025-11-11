@@ -1,5 +1,6 @@
 #include "core/Engine.hpp"
 #include "core/Logger.hpp"
+#include <span>
 
 int main(int argc, const char** argv) {
 
@@ -7,7 +8,7 @@ int main(int argc, const char** argv) {
 
     try {
 
-        Core::Engine engine(argc, argv);
+        Core::Engine engine(std::span<const char*>(argv, argc));
 
         engine.Run();
 

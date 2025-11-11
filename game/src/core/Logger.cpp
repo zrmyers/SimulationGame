@@ -2,7 +2,6 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
-#include "Engine.hpp"
 
 Core::Logger::Level Core::Logger::s_level = Core::Logger::Level::INFO;
 
@@ -10,7 +9,8 @@ void Core::Logger::Write(Level level, const std::string& message) {
 
     if (static_cast<int32_t>(level) <= static_cast<int32_t>(s_level)) {
 
-        std::cout << std::string(LevelToString(level)) << ": " << message << std::endl;
+        std::cout << std::string(LevelToString(level)) << ": " << message << "\n";
+        std::cout.flush();
     }
 }
 
