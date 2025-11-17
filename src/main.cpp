@@ -6,9 +6,15 @@ int main(int argc, const char** argv) {
 
     Core::Logger::SetLevel(Core::Logger::Level::INFO);
 
+    std::list<const char*> args;
+
+    for (int index = 1; index < argc; index++) {
+        args.push_back(argv[index]); // NOLINT
+    }
+
     try {
 
-        Core::Engine engine(std::span<const char*>(argv, argc));
+        Core::Engine engine(args);
 
         engine.Run();
 
