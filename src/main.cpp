@@ -1,5 +1,6 @@
 #include "core/Engine.hpp"
 #include "core/Logger.hpp"
+#include <exception>
 #include <span>
 
 int main(int argc, const char** argv) {
@@ -23,6 +24,10 @@ int main(int argc, const char** argv) {
     } catch (Core::EngineException& error) {
 
         Core::Logger::Error("Caught Core::EngineException. Shutdown.");
+        Core::Logger::Error(error.what());
+    } catch (std::exception& error) {
+
+        Core::Logger::Error("Unhandled exception.");
         Core::Logger::Error(error.what());
     }
 

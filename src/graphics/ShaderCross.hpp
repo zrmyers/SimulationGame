@@ -81,12 +81,8 @@ namespace Graphics {
                 const std::string& includeDir,
                 const std::list<Define>& defines);
 
-            //! Compile the ByteCode to a GPU shader.
-            SDL::Shader CompileSpirvToGraphicsShader(const ByteCode& code, SDL::GpuDevice& gpu);
-
             //! Reflect metadata from the bytecode. This is used to compile the SPIRV to the GPU shader.
             SDL::Alloc<GraphicsShaderMetadata> ReflectGraphicsMetadata(const ByteCode& code);
-
 
     };
 

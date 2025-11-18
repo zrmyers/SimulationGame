@@ -5,11 +5,12 @@
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_video.h>
 #include <cstddef>
-#include <cstdint>
 #include <exception>
-#include <stdexcept>
 #include <string>
-#include <unordered_map>
+
+namespace Graphics {
+    class ByteCode;
+}
 
 // Light-weight RAII wrapper for SDL library.
 namespace SDL {
@@ -87,9 +88,6 @@ namespace SDL {
             Context& operator=(const Context& other) = delete;
             Context& operator=(Context&& other) = default;
             ~Context();
-
-            // Filesystem related commands.
-            Alloc<Uint8> LoadFile(const std::string& filename);
     };
 
     class Window {
@@ -104,9 +102,9 @@ namespace SDL {
 
             Window(Context& context, const char* title, int width, int height, SDL_WindowFlags flags);
             Window(const Window& other) = delete;
-            Window(Window&& other) = default;
+            Window(Window&& other) noexcept;
             Window& operator=(const Window& other) = delete;
-            Window& operator=(Window&& other) = default;
+            Window& operator=(Window&& other) noexcept;
             ~Window();
 
             SDL_Window* Get();
@@ -125,9 +123,9 @@ namespace SDL {
 
             GpuDevice(Context& context, SDL_GPUShaderFormat format, bool debug, const char* driver);
             GpuDevice(const GpuDevice& other) = delete;
-            GpuDevice(GpuDevice&& other) noexcept = default;
+            GpuDevice(GpuDevice&& other) noexcept;
             GpuDevice& operator=(const GpuDevice& other) = delete;
-            GpuDevice& operator=(GpuDevice&& other) = default;
+            GpuDevice& operator=(GpuDevice&& other) noexcept;
             ~GpuDevice();
 
             const char* GetDriver();
@@ -153,19 +151,41 @@ namespace SDL {
             Shader();
             //! Initialize with existing pointer.
             //!
-            //! @param[in] p_shader The shader resource.
+            //! @param[in] bytecode The bytecode with which to create the shader.
             //! @param[in] gpu    The parent gpu of the shader.
-            Shader(SDL_GPUShader* p_shader, GpuDevice& gpu);
+            Shader(const Graphics::ByteCode& bytecode, GpuDevice& gpu);
             Shader(const Shader& other) = delete;
-            Shader(Shader&& other) = default;
+            Shader(Shader&& other) noexcept;
             Shader& operator=(const Shader& other) = delete;
-            Shader& operator=(Shader&& other) = default;
+            Shader& operator=(Shader&& other) noexcept;
             ~Shader();
 
             SDL_GPUShader* Get();
         private:
 
             SDL_GPUShader* m_p_shader;
+            GpuDevice* m_p_gpu;
+    };
+
+    class GraphicsPipeline {
+
+        public:
+
+            GraphicsPipeline();
+            //! Initialize with existing pointer.
+            //!
+            //! @param[in] gpu    The parent gpu of the shader.
+            GraphicsPipeline(GpuDevice& gpu, SDL_GPUGraphicsPipelineCreateInfo& createinfo);
+            GraphicsPipeline(const GraphicsPipeline& other) = delete;
+            GraphicsPipeline(GraphicsPipeline&& other) noexcept;
+            GraphicsPipeline& operator=(const GraphicsPipeline& other) = delete;
+            GraphicsPipeline& operator=(GraphicsPipeline&& other) noexcept;
+            ~GraphicsPipeline();
+
+            SDL_GPUGraphicsPipeline* Get();
+        private:
+
+            SDL_GPUGraphicsPipeline* m_p_pipeline;
             GpuDevice* m_p_gpu;
     };
 }

@@ -56,8 +56,11 @@ namespace Core {
             //! Handle Shader computation.
             Graphics::ShaderCross m_shader_cross;
 
-            //! Set of shaders.
-            std::list<SDL::Shader> m_shaders;
+            //! Fill draw mode
+            SDL::GraphicsPipeline m_fill;
+
+            //! Wireframe draw mode.
+            SDL::GraphicsPipeline m_wire;
     };
 
 }

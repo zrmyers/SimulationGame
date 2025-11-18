@@ -8,6 +8,8 @@
 #include <stdexcept>
 #include <sstream>
 
+#include "graphics/ShaderCross.hpp"
+
 //----------------------------------------------------------------------------------------------------------------------
 // SDL Error
 
@@ -39,16 +41,6 @@ SDL::Context::~Context() {
     SDL_Quit();
 }
 
-SDL::Alloc<Uint8> SDL::Context::LoadFile(const std::string& filename) { // NOLINT
-    size_t datasize = 0;
-    void* p_data = SDL_LoadFile(filename.c_str(), &datasize);
-    if (p_data == nullptr) {
-        throw Error("SDL_LoadFile() failed!");
-    }
-
-    return SDL::Alloc<Uint8>(p_data, datasize);
-}
-
 //----------------------------------------------------------------------------------------------------------------------
 // SDL Window
 
@@ -65,9 +57,26 @@ SDL::Window::Window(Context& context, const char* title, int width, int height, 
     }
 }
 
-SDL::Window::~Window() {
 
-    SDL_DestroyWindow(m_p_window);
+SDL::Window::Window(Window&& other) noexcept
+    : m_p_window(other.m_p_window) {
+    other.m_p_window = nullptr;
+}
+
+SDL::Window& SDL::Window::operator=(Window&& other) noexcept {
+
+    //! swap
+    SDL_Window* p_window = m_p_window;
+    m_p_window = other.m_p_window;
+    other.m_p_window = p_window;
+
+    return *this;
+}
+
+SDL::Window::~Window() {
+    if (m_p_window != nullptr) {
+        SDL_DestroyWindow(m_p_window);
+    }
 }
 
 SDL_Window* SDL::Window::Get() {
@@ -90,6 +99,19 @@ SDL::GpuDevice::GpuDevice(Context& context, SDL_GPUShaderFormat format, bool deb
     if (m_p_gpu == nullptr) {
         throw Error("SDL_CreateGPUDevice() failed!");
     }
+}
+
+SDL::GpuDevice::GpuDevice(GpuDevice&& other) noexcept
+    : m_p_gpu(other.m_p_gpu) {
+    other.m_p_gpu = nullptr;
+}
+
+SDL::GpuDevice& SDL::GpuDevice::operator=(GpuDevice&& other) noexcept {
+    SDL_GPUDevice* p_device = m_p_gpu;
+    m_p_gpu = other.m_p_gpu;
+    other.m_p_gpu = p_device;
+
+    return *this;
 }
 
 SDL::GpuDevice::~GpuDevice() {
@@ -124,26 +146,54 @@ SDL_GPUDevice* SDL::GpuDevice::Get() {
 
 
 //----------------------------------------------------------------------------------------------------------------------
-// SDL GPU
+// SDL Shader
 
 SDL::Shader::Shader()
     : m_p_shader(nullptr)
     , m_p_gpu(nullptr) {
 }
 
-SDL::Shader::Shader(SDL_GPUShader* p_shader, GpuDevice& gpu)
-    : m_p_shader(p_shader)
+SDL::Shader::Shader(const Graphics::ByteCode& bytecode, GpuDevice& gpu)
+    : m_p_shader(nullptr)
     , m_p_gpu(&gpu) {
 
-    if (m_p_gpu != nullptr) {
-        throw std::runtime_error("Cannot initialize shader without gpu!");
-    }
+    SDL_GPUShaderCreateInfo shaderInfo = {
+        bytecode.GetSize(),
+        static_cast<const Uint8*>(bytecode.Get()),
+        bytecode.GetEntrypoint(),
+        bytecode.GetFormat(),
+        bytecode.GetStage(),
+        0,
+        0,
+        0,
+        0,
+    };
 
-    if (m_p_shader != nullptr) {
-        throw std::runtime_error("Cannot initialize shader without p shader!");
+    m_p_shader = SDL_CreateGPUShader(m_p_gpu->Get(), &shaderInfo);
+    if (m_p_shader == nullptr) {
+        throw SDL::Error("SDL_CreateGPUShader() failed!");
     }
 }
 
+SDL::Shader::Shader(Shader&& other) noexcept
+    : m_p_shader(other.m_p_shader)
+    , m_p_gpu(other.m_p_gpu) {
+    other.m_p_shader = nullptr;
+    other.m_p_gpu = nullptr;
+}
+
+SDL::Shader& SDL::Shader::operator=(Shader&& other) noexcept {
+    SDL_GPUShader* p_shader = m_p_shader;
+    GpuDevice* p_gpu = m_p_gpu;
+
+    m_p_gpu = other.m_p_gpu;
+    m_p_shader = other.m_p_shader;
+
+    other.m_p_gpu = p_gpu;
+    other.m_p_shader = p_shader;
+
+    return *this;
+}
 
 SDL::Shader::~Shader() {
 
@@ -151,4 +201,55 @@ SDL::Shader::~Shader() {
 
         SDL_ReleaseGPUShader(m_p_gpu->Get(), m_p_shader);
     }
+}
+
+SDL_GPUShader* SDL::Shader::Get() {
+    return m_p_shader;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// SDL Graphics Pipeline
+
+SDL::GraphicsPipeline::GraphicsPipeline()
+    : m_p_gpu(nullptr)
+    , m_p_pipeline(nullptr) {
+}
+
+SDL::GraphicsPipeline::GraphicsPipeline(GpuDevice& gpu, SDL_GPUGraphicsPipelineCreateInfo& createinfo)
+    : m_p_pipeline(SDL_CreateGPUGraphicsPipeline(gpu.Get(), &createinfo))
+    , m_p_gpu(&gpu) {
+
+    if (m_p_pipeline == nullptr) {
+        throw SDL::Error("SDL_CreateGPUGraphicsPipeline() failed!");
+    }
+}
+
+SDL::GraphicsPipeline::GraphicsPipeline(GraphicsPipeline&& other) noexcept
+    : m_p_pipeline(other.m_p_pipeline)
+    , m_p_gpu(other.m_p_gpu) {
+    other.m_p_pipeline = nullptr;
+    other.m_p_gpu = nullptr;
+}
+
+SDL::GraphicsPipeline& SDL::GraphicsPipeline::operator=(GraphicsPipeline&& other) noexcept {
+
+    SDL_GPUGraphicsPipeline* p_pipeline = m_p_pipeline;
+    GpuDevice* p_device = m_p_gpu;
+
+    m_p_pipeline = other.m_p_pipeline;
+    m_p_gpu = other.m_p_gpu;
+    other.m_p_pipeline = p_pipeline;
+    other.m_p_gpu = p_device;
+
+    return *this;
+}
+
+SDL::GraphicsPipeline::~GraphicsPipeline() {
+    if (m_p_pipeline != nullptr) {
+        SDL_ReleaseGPUGraphicsPipeline(m_p_gpu->Get(), m_p_pipeline);
+    }
+}
+
+SDL_GPUGraphicsPipeline* SDL::GraphicsPipeline::Get() {
+    return m_p_pipeline;
 }

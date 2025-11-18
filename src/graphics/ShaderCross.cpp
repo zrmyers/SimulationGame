@@ -9,7 +9,6 @@
 #include <ios>
 #include <memory>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 #include <array>
 #include "core/Filesystem.hpp"
@@ -45,7 +44,7 @@ const void* Graphics::ByteCode::Get() const {
 
 //! Get the size of the byte code.
 size_t Graphics::ByteCode::GetSize() const {
-    return m_code.size();
+    return m_code.size()*sizeof(m_code[0]);
 }
 
 //! Get the entrypoint for the byte code.
@@ -90,7 +89,9 @@ Graphics::ByteCode Graphics::ShaderCross::CompileToSpirv( // NOLINT
 
     // Process file
     std::string filedata = Core::Filesystem::LoadFileAsString(filename);
-
+    if (filedata.empty()) {
+        throw Core::EngineException("Failed to load file " + filename);
+    }
     // Setup includes
     ShaderIncluder include(includeDir);
 
@@ -103,7 +104,7 @@ Graphics::ByteCode Graphics::ShaderCross::CompileToSpirv( // NOLINT
     // source language
     shader.setEnvInput(glslang::EShSourceGlsl, stage, glslang::EShClientVulkan, 100);// NOLINT
     shader.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_4);
-    shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_6);
+    shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_0);
 
     std::array<const char*,1> textArray = {filedata.c_str()};
     std::array<const char*,1> fileNameList = {filename.c_str()};
@@ -125,8 +126,11 @@ Graphics::ByteCode Graphics::ShaderCross::CompileToSpirv( // NOLINT
         throw Core::EngineException("Failed to link " + filename);
     }
 
-    program.buildReflection(EShReflectionOptions::EShReflectionDefault);
-    program.dumpReflection();
+    if(program.buildReflection(EShReflectionOptions::EShReflectionDefault)) {
+
+        program.dumpReflection();
+    }
+
 
     glslang::TIntermediate* p_intermediat = program.getIntermediate(stage);
 
@@ -147,10 +151,6 @@ Graphics::ByteCode Graphics::ShaderCross::CompileToSpirv( // NOLINT
     return ByteCode(format, sdlStage, std::move(spv), entryPoint);
 }
 
-SDL::Shader Graphics::ShaderCross::CompileSpirvToGraphicsShader(const ByteCode& code, SDL::GpuDevice& gpu) {
-
-    return {};
-}
 
 SDL::Alloc<Graphics::GraphicsShaderMetadata> Graphics::ShaderCross::ReflectGraphicsMetadata(const ByteCode& code) { // NOLINT(readability-convert-member-functions-to-static)
 
