@@ -11,6 +11,8 @@ namespace Core {
 
             std::string GetShaderDir();
 
+            std::string GetFontDir();
+
         private:
 
             std::string m_content_dir;

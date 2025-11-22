@@ -54,12 +54,14 @@ add_executable(${PROJECT_NAME}
     ./src/graphics/Renderer.cpp
     ./src/graphics/ShaderCross.cpp
     ./src/sdl/SDL.cpp
+    ./src/sdl/TTF.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ./src)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     SDL3::SDL3
+    SDL3_ttf::SDL3_ttf
     SPIRV
     glslang
     glslang-default-resource-limits

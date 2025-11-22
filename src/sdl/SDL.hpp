@@ -206,6 +206,7 @@ namespace SDL {
             GpuBuffer& operator=(GpuBuffer&& other) noexcept;
             ~GpuBuffer();
 
+            SDL_GPUBuffer* Get();
 
         private:
             SDL_GPUBuffer* m_p_buffer;
@@ -223,6 +224,11 @@ namespace SDL {
             GpuTransferBuffer& operator=(GpuTransferBuffer&& other) noexcept;
             ~GpuTransferBuffer();
 
+            SDL_GPUTransferBuffer* Get();
+            //! Make gpu memory accessible to CPU.
+            void* Map();
+            void Unmap();
+
         private:
             SDL_GPUTransferBuffer* m_p_buffer;
             GpuDevice* m_p_device;
@@ -239,6 +245,7 @@ namespace SDL {
             GpuSampler& operator=(GpuSampler&& other) noexcept;
             ~GpuSampler();
 
+            SDL_GPUSampler* Get();
         private:
 
             SDL_GPUSampler* m_p_sampler;

@@ -308,6 +308,10 @@ SDL::GpuBuffer::~GpuBuffer() {
     }
 }
 
+SDL_GPUBuffer* SDL::GpuBuffer::Get() {
+
+    return m_p_buffer;
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 // SDL GPU Buffer
@@ -353,6 +357,22 @@ SDL::GpuTransferBuffer::~GpuTransferBuffer() {
     }
 }
 
+SDL_GPUTransferBuffer* SDL::GpuTransferBuffer::Get() {
+    return m_p_buffer;
+}
+
+void* SDL::GpuTransferBuffer::Map() {
+    void* p_mapped = SDL_MapGPUTransferBuffer(m_p_device->Get(), m_p_buffer, false);
+    if (p_mapped == nullptr) {
+        throw SDL::Error("SDL_MapGPUTransferBuffer() failed!");
+    }
+    return p_mapped;
+}
+
+void SDL::GpuTransferBuffer::Unmap() {
+    SDL_UnmapGPUTransferBuffer(m_p_device->Get(), m_p_buffer);
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // SDL GPU Sampler
 
@@ -394,4 +414,9 @@ SDL::GpuSampler::~GpuSampler() {
     if (m_p_sampler != nullptr) {
         SDL_ReleaseGPUSampler(m_p_device->Get(), m_p_sampler);
     }
+}
+
+
+SDL_GPUSampler* SDL::GpuSampler::Get() {
+    return m_p_sampler;
 }

@@ -4,12 +4,22 @@
 #include "core/Logger.hpp"
 #include "ShaderCross.hpp"
 #include <SDL3/SDL_gpu.h>
+#include <SDL3/SDL_stdinc.h>
+#include <SDL3_ttf/SDL_ttf.h>
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/scalar_constants.hpp>
+#include <glm/fwd.hpp>
+#include <glm/trigonometric.hpp>
 #include <vector>
 
 #include "sdl/SDL.hpp"
+#include "sdl/TTF.hpp"
 
 static const constexpr uint32_t MAX_VERTEX_COUNT = 4000;
 static const constexpr uint32_t MAX_INDEX_COUNT = 6000;
@@ -49,6 +59,15 @@ Graphics::Renderer::Renderer(SDL::Context& context, Core::AssetLoader& asset_loa
     m_geometry_data.vertices.resize(MAX_VERTEX_COUNT);
     m_geometry_data.indices.resize(MAX_INDEX_COUNT);
 
+    m_font = SDL::TTF::Font(asset_loader.GetFontDir() + "/Oblegg-Regular.otf", 50.0F); // NOLINT
+
+    m_font.SetHorizontalAlignment(TTF_HORIZONTAL_ALIGN_CENTER);
+
+    m_textengine = SDL::TTF::TextEngine(m_gpu);
+
+    m_text = SDL::TTF::Text(m_textengine, m_font, "Hello Text!");
+
+    m_uniform.projview = glm::perspective(glm::pi<float>() / 2.0f, 1024.0F / 768.0F, 0.1F, 100.0F);
 }
 
 Graphics::Renderer::~Renderer() {
@@ -75,14 +94,107 @@ void Graphics::Renderer::Draw() {
         colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
 
-        SDL_GPURenderPass* p_renderPass = SDL_BeginGPURenderPass(p_cmdbuf, &colorTargetInfo, 1U, nullptr);
-        SDL_BindGPUGraphicsPipeline(p_renderPass, m_fillpipeline.Get());
+        int textWidth = 0;
+        int textHeight = 0;
+        m_text.GetSize(textWidth, textHeight);
+        // text pipeline
+        m_uniform.model = glm::mat4(1.0F);
+        m_uniform.model = glm::translate(m_uniform.model, glm::vec3(0.0F, 0.0F, -80.0F)); // NOLINT
+        m_uniform.model = glm::scale(m_uniform.model, glm::vec3(0.3F, 0.3F, 0.3F)); // NOLINT
+        m_uniform.model = glm::translate(m_uniform.model,
+            glm::vec3(static_cast<float>(-textWidth) / 2.0F, static_cast<float>(textHeight) / 2.0F, 0.0F)); // NOLINT
 
+        // Update Text Geometry Buffer.
+        TTF_GPUAtlasDrawSequence* p_sequence = m_text.GetGpuDrawData();
+        TTF_GPUAtlasDrawSequence* p_current = p_sequence;
+        while (p_current != nullptr) {
+
+            for (int i = 0; i < p_current->num_vertices; i++) {
+                Vertex vert = {};
+                SDL_FPoint& pos = p_current->xy[i]; // NOLINT
+                SDL_FPoint& uv = p_current->uv[i]; // NOLINT
+                vert.position = glm::vec3(pos.x, pos.y, 0.0F);
+                vert.color = glm::vec4(0.0F, 1.0F, 0.0F, 1.0F);
+                vert.texcoord = glm::vec2(uv.x, uv.y);
+
+                m_geometry_data.vertices[m_geometry_data.vertexCount + i] = vert;
+            }
+
+            memcpy(
+                &m_geometry_data.indices.at(m_geometry_data.indexCount),
+                p_current->indices,
+                p_current->num_indices * sizeof(int));
+            m_geometry_data.vertexCount += p_current->num_vertices;
+            m_geometry_data.indexCount += p_current->num_indices;
+
+            p_current = p_current->next;
+        }
+
+        // copy the geometry data to the transfer buffer.
+        Vertex* p_data = reinterpret_cast<Vertex*>(m_transferbuffer.Map()); // NOLINT
+
+        memcpy(p_data, m_geometry_data.vertices.data(), sizeof(Vertex)*m_geometry_data.vertexCount);
+        memcpy(&(p_data[MAX_VERTEX_COUNT]), m_geometry_data.indices.data(), sizeof(int) * m_geometry_data.indexCount); // NOLINT
+
+        m_transferbuffer.Unmap();
+
+        // upload to the GPU.
+        SDL_GPUCopyPass* p_copyPass = SDL_BeginGPUCopyPass(p_cmdbuf);
+        SDL_GPUTransferBufferLocation source = {};
+        source.transfer_buffer = m_transferbuffer.Get();
+        source.offset = 0;
+        SDL_GPUBufferRegion destination = {};
+        destination.buffer = m_vertexbuffer.Get();
+        destination.offset = 0;
+        destination.size = sizeof(Vertex) * m_geometry_data.vertexCount;
+
+        SDL_UploadToGPUBuffer(p_copyPass, &source, &destination, false);
+        source.offset = sizeof(Vertex) * MAX_VERTEX_COUNT;
+        destination.buffer = m_indexbuffer.Get();
+        destination.offset = 0;
+        destination.size = sizeof(int) * m_geometry_data.indexCount;
+        SDL_UploadToGPUBuffer(p_copyPass, &source, &destination, false);
+        SDL_EndGPUCopyPass(p_copyPass);
+
+        // Draw commands
+        SDL_GPURenderPass* p_renderPass = SDL_BeginGPURenderPass(p_cmdbuf, &colorTargetInfo, 1U, nullptr);
+
+        // simple pipeline
+        SDL_BindGPUGraphicsPipeline(p_renderPass, m_fillpipeline.Get());
         SDL_DrawGPUPrimitives(p_renderPass, 3, 1, 0, 0);
+
+        // text pipeline
+        SDL_BindGPUGraphicsPipeline(p_renderPass, m_textpipeline.Get());
+        SDL_GPUBufferBinding binding = {};
+        binding.buffer = m_vertexbuffer.Get();
+        binding.offset = 0;
+        SDL_BindGPUVertexBuffers(p_renderPass, 0, &binding, 1U);
+        binding.buffer = m_indexbuffer.Get();
+        binding.offset = 0;
+        SDL_BindGPUIndexBuffer(p_renderPass, &binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+        SDL_PushGPUVertexUniformData(p_cmdbuf, 0U, &m_uniform, sizeof(m_uniform));
+
+        int indexOffset = 0;
+        int vertexOffset = 0;
+        for (; p_sequence != nullptr; p_sequence = p_sequence->next) {
+            SDL_GPUTextureSamplerBinding samplerBinding = {};
+            samplerBinding.sampler = m_sampler.Get();
+            samplerBinding.texture = p_sequence->atlas_texture;
+            SDL_BindGPUFragmentSamplers(p_renderPass, 0U, &samplerBinding, 1U);
+
+            SDL_DrawGPUIndexedPrimitives(p_renderPass, p_sequence->num_indices, 1, indexOffset, vertexOffset, 0);
+
+            indexOffset += p_sequence->num_indices;
+            vertexOffset += p_sequence->num_vertices;
+        }
+
         SDL_EndGPURenderPass(p_renderPass);
     }
 
     SDL_SubmitGPUCommandBuffer(p_cmdbuf);
+
+    m_geometry_data.indexCount = 0;
+    m_geometry_data.vertexCount = 0;
 }
 
 void Graphics::Renderer::BuildSimplePipeline(const std::string& shader_path) {

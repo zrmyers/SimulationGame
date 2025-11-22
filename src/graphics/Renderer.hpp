@@ -7,6 +7,9 @@
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
 #include "glm/vec4.hpp"
+#include "glm/mat4x4.hpp"
+
+#include "sdl/TTF.hpp"
 
 namespace Graphics {
 
@@ -18,7 +21,14 @@ namespace Graphics {
 
     struct GeometryData {
         std::vector<Vertex> vertices;
+        int vertexCount = 0;
         std::vector<int> indices;
+        int indexCount = 0;
+    };
+
+    struct UniformData {
+        glm::mat4 projview;
+        glm::mat4 model;
     };
 
     class Renderer {
@@ -73,5 +83,20 @@ namespace Graphics {
 
             //! Geometry data
             GeometryData m_geometry_data;
+
+            //! TTF Context.
+            SDL::TTF::Context m_ttf;
+
+            //! Font
+            SDL::TTF::Font m_font;
+
+            //! Text Engine
+            SDL::TTF::TextEngine m_textengine;
+
+            //! Text
+            SDL::TTF::Text m_text;
+
+            //! Uniforms
+            UniformData m_uniform;
     };
 }

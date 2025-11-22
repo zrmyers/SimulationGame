@@ -8,3 +8,7 @@ Core::AssetLoader::AssetLoader(const std::string& content_dir)
 std::string Core::AssetLoader::GetShaderDir() {
     return m_content_dir + "/content/shaders";
 }
+
+std::string Core::AssetLoader::GetFontDir() {
+    return m_content_dir + "/content/fonts";
+}
