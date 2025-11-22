@@ -1,10 +1,14 @@
 #pragma once
 
 #include <exception>
+#include <memory>
 #include <string>
+#include "AssetLoader.hpp"
 #include "Environment.hpp"
+#include "IGame.hpp"
 #include "sdl/SDL.hpp"
-#include "graphics/ShaderCross.hpp"
+
+#include "graphics/Renderer.hpp"
 
 namespace Core {
 
@@ -36,10 +40,19 @@ namespace Core {
             Engine& operator=(Engine&& other) = delete;
             ~Engine();
 
+            //! Set the Game Instance.
+            void SetGameInstance(std::unique_ptr<IGame>&& game);
+
             //! Main Game loop.
             void Run();
 
+            //! Get the latest delta time.
+            float GetDeltaTimeSec() const;
+
         private:
+
+            //! update the delta time.
+            void UpdateDeltaTimeSec();
 
             //! Environment variables.
             Environment m_env;
@@ -47,20 +60,20 @@ namespace Core {
             //! SDL context
             SDL::Context m_sdl;
 
-            //! Window used for rendering graphics to screen.
-            SDL::Window m_window;
+            //! Asset loading
+            AssetLoader m_assetLoader;
 
-            //! Handle to GPU used for graphics processing
-            SDL::GpuDevice m_gpu;
+            //! Renderer
+            Graphics::Renderer m_renderer;
 
-            //! Handle Shader computation.
-            Graphics::ShaderCross m_shader_cross;
+            //! Game instance
+            std::unique_ptr<IGame> m_game_instance;
 
-            //! Fill draw mode
-            SDL::GraphicsPipeline m_fill;
+            //! The latest delta frame time, in seconds.
+            float m_delta_time_sec;
 
-            //! Wireframe draw mode.
-            SDL::GraphicsPipeline m_wire;
+            //! The last frame time, in seconds.
+            float m_last_time_sec;
     };
 
 }

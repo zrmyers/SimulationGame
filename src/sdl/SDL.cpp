@@ -4,6 +4,7 @@
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_iostream.h>
 #include <SDL3/SDL_stdinc.h>
+#include <SDL3/SDL_timer.h>
 #include <SDL3/SDL_video.h>
 #include <stdexcept>
 #include <sstream>
@@ -39,6 +40,11 @@ SDL::Context::Context(SDL_InitFlags flags) {
 
 SDL::Context::~Context() {
     SDL_Quit();
+}
+
+
+Uint64 SDL::Context::GetTicks() { // NOLINT depends on SDL_Init
+    return SDL_GetTicks();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -139,6 +145,9 @@ void SDL::GpuDevice::ReleaseWindow(Window& window) {
     SDL_ReleaseWindowFromGPUDevice(m_p_gpu, window.Get());
 }
 
+SDL_GPUTextureFormat SDL::GpuDevice::GetSwapchainTextureFormat(Window& window) {
+    return SDL_GetGPUSwapchainTextureFormat(m_p_gpu, window.Get());
+}
 
 SDL_GPUDevice* SDL::GpuDevice::Get() {
     return m_p_gpu;
@@ -163,10 +172,10 @@ SDL::Shader::Shader(const Graphics::ByteCode& bytecode, GpuDevice& gpu)
         bytecode.GetEntrypoint(),
         bytecode.GetFormat(),
         bytecode.GetStage(),
+        bytecode.GetNumSamplers(),
         0,
         0,
-        0,
-        0,
+        bytecode.GetNumUniformBuffers(),
     };
 
     m_p_shader = SDL_CreateGPUShader(m_p_gpu->Get(), &shaderInfo);
@@ -252,4 +261,137 @@ SDL::GraphicsPipeline::~GraphicsPipeline() {
 
 SDL_GPUGraphicsPipeline* SDL::GraphicsPipeline::Get() {
     return m_p_pipeline;
+}
+
+
+//----------------------------------------------------------------------------------------------------------------------
+// SDL GPU Buffer
+
+SDL::GpuBuffer::GpuBuffer()
+    : m_p_device(nullptr)
+    , m_p_buffer(nullptr) {
+}
+
+SDL::GpuBuffer::GpuBuffer(GpuDevice& gpu, const SDL_GPUBufferCreateInfo& createinfo)
+    : m_p_buffer(SDL_CreateGPUBuffer(gpu.Get(), &createinfo))
+    , m_p_device(&gpu) {
+
+    if (m_p_buffer == nullptr) {
+        throw SDL::Error("SDL_CreateGPUBuffer() failed.");
+    }
+}
+
+SDL::GpuBuffer::GpuBuffer(GpuBuffer&& other) noexcept
+    : m_p_buffer(other.m_p_buffer)
+    , m_p_device(other.m_p_device) {
+    other.m_p_buffer = nullptr;
+    other.m_p_device = nullptr;
+}
+
+SDL::GpuBuffer& SDL::GpuBuffer::operator=(GpuBuffer&& other) noexcept {
+    SDL_GPUBuffer* p_buffer = other.m_p_buffer;
+    GpuDevice* p_device = other.m_p_device;
+
+    other.m_p_device = m_p_device;
+    other.m_p_buffer = m_p_buffer;
+
+    m_p_buffer = p_buffer;
+    m_p_device = p_device;
+
+    return *this;
+}
+
+SDL::GpuBuffer::~GpuBuffer() {
+
+    if (m_p_buffer != nullptr) {
+        SDL_ReleaseGPUBuffer(m_p_device->Get(), m_p_buffer);
+    }
+}
+
+
+//----------------------------------------------------------------------------------------------------------------------
+// SDL GPU Buffer
+
+SDL::GpuTransferBuffer::GpuTransferBuffer()
+    : m_p_buffer(nullptr)
+    , m_p_device(nullptr) {
+}
+
+SDL::GpuTransferBuffer::GpuTransferBuffer(GpuDevice& gpu, const SDL_GPUTransferBufferCreateInfo& createinfo)
+    : m_p_buffer(SDL_CreateGPUTransferBuffer(gpu.Get(), &createinfo))
+    , m_p_device(&gpu) {
+    if (m_p_buffer == nullptr) {
+        throw Error("SDL_CreateGPUTransferBuffer() failed.");
+    }
+}
+
+SDL::GpuTransferBuffer::GpuTransferBuffer(GpuTransferBuffer&& other) noexcept
+    : m_p_buffer(other.m_p_buffer)
+    , m_p_device(other.m_p_device) {
+    other.m_p_buffer = nullptr;
+    other.m_p_device = nullptr;
+}
+
+SDL::GpuTransferBuffer& SDL::GpuTransferBuffer::operator=(SDL::GpuTransferBuffer&& other) noexcept {
+
+    SDL_GPUTransferBuffer* p_buffer = other.m_p_buffer;
+    GpuDevice* p_device = other.m_p_device;
+
+    other.m_p_device = m_p_device;
+    other.m_p_buffer = m_p_buffer;
+
+    m_p_buffer = p_buffer;
+    m_p_device = p_device;
+
+    return *this;
+}
+
+SDL::GpuTransferBuffer::~GpuTransferBuffer() {
+
+    if (m_p_buffer != nullptr) {
+        SDL_ReleaseGPUTransferBuffer(m_p_device->Get(), m_p_buffer);
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// SDL GPU Sampler
+
+SDL::GpuSampler::GpuSampler()
+    : m_p_sampler(nullptr)
+    , m_p_device(nullptr) {
+}
+
+SDL::GpuSampler::GpuSampler(GpuDevice& device, const SDL_GPUSamplerCreateInfo& createinfo)
+    : m_p_sampler(SDL_CreateGPUSampler(device.Get(), &createinfo))
+    , m_p_device(&device) {
+
+    if (m_p_sampler == nullptr) {
+        throw Error("SDL_CreateGPUSampler() failed.");
+    }
+}
+
+SDL::GpuSampler::GpuSampler(GpuSampler&& other) noexcept
+    : m_p_sampler(other.m_p_sampler)
+    , m_p_device(other.m_p_device) {
+
+    other.m_p_device = nullptr;
+    other.m_p_sampler = nullptr;
+}
+
+SDL::GpuSampler& SDL::GpuSampler::operator=(GpuSampler&& other) noexcept {
+    SDL_GPUSampler* p_sampler = other.m_p_sampler;
+    GpuDevice* p_device = other.m_p_device;
+    other.m_p_sampler = m_p_sampler;
+    other.m_p_device = m_p_device;
+    m_p_sampler = p_sampler;
+    m_p_device = p_device;
+
+    return *this;
+}
+
+SDL::GpuSampler::~GpuSampler() {
+
+    if (m_p_sampler != nullptr) {
+        SDL_ReleaseGPUSampler(m_p_device->Get(), m_p_sampler);
+    }
 }

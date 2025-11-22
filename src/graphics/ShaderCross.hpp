@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <list>
 #include <memory>
 #include <string>
@@ -20,7 +21,13 @@ namespace Graphics {
 
             //! Compiled bytecode.
             ByteCode();
-            ByteCode(SDL_GPUShaderFormat format, SDL_GPUShaderStage stage, std::vector<uint32_t> code, std::string entry_point);
+            ByteCode(
+                SDL_GPUShaderFormat format,
+                SDL_GPUShaderStage stage,
+                std::vector<uint32_t> code,
+                std::string entry_point,
+                uint32_t num_uniform_buffers,
+                uint32_t num_samplers);
 
             //! The format of the compiled shader code.
             SDL_GPUShaderFormat GetFormat() const;
@@ -37,6 +44,12 @@ namespace Graphics {
             //! Get the entrypoint for the byte code.
             const char* GetEntrypoint() const;
 
+            //! Metadata set after compilation of shader to SPIR-V.
+            uint32_t GetNumUniformBuffers() const;
+
+            //! Metadata set automatically after compilation of shader to SPIR-V.
+            uint32_t GetNumSamplers() const;
+
         private:
 
             //! The format.
@@ -50,6 +63,12 @@ namespace Graphics {
 
             //! The entry point of the program.
             std::string m_entry;
+
+            //! Number of uniform buffers.
+            uint32_t m_num_uniform_buffers;
+
+            //! Number of samplers.
+            uint32_t m_num_samplers;
     };
 
     struct GraphicsShaderMetadata {

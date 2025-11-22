@@ -4,9 +4,13 @@
 #include <SPIRV/Logger.h>
 #include <algorithm>
 #include <fstream>
+#include <cassert>
+#include <glslang/Include/BaseTypes.h>
 #include <glslang/Public/ResourceLimits.h>
 #include <glslang/Public/ShaderLang.h>
+#include <glslang/Include/Types.h>
 #include <ios>
+#include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -20,14 +24,24 @@
 
 Graphics::ByteCode::ByteCode()
     : m_format(0)
-    , m_stage(SDL_GPU_SHADERSTAGE_VERTEX) {
+    , m_stage(SDL_GPU_SHADERSTAGE_VERTEX)
+    , m_num_uniform_buffers(0)
+    , m_num_samplers(0) {
 }
 
-Graphics::ByteCode::ByteCode(SDL_GPUShaderFormat format, SDL_GPUShaderStage stage, std::vector<uint32_t> code, std::string entry_point)
+Graphics::ByteCode::ByteCode(
+    SDL_GPUShaderFormat format,
+    SDL_GPUShaderStage stage,
+    std::vector<uint32_t> code,
+    std::string entry_point,
+    uint32_t num_uniform_buffers,
+    uint32_t num_samplers)
     : m_format(format)
     , m_stage(stage)
     , m_code(std::move(code))
-    , m_entry(std::move(entry_point)) {
+    , m_entry(std::move(entry_point))
+    , m_num_uniform_buffers(num_uniform_buffers)
+    , m_num_samplers(num_samplers) {
 }
 
 SDL_GPUShaderFormat Graphics::ByteCode::GetFormat() const {
@@ -52,6 +66,14 @@ const char* Graphics::ByteCode::GetEntrypoint() const {
     return m_entry.c_str();
 }
 
+uint32_t Graphics::ByteCode::GetNumUniformBuffers() const {
+    return m_num_uniform_buffers;
+}
+
+uint32_t Graphics::ByteCode::GetNumSamplers() const {
+    return m_num_samplers;
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // Shader Cross Compiler
 
@@ -72,6 +94,8 @@ Graphics::ByteCode Graphics::ShaderCross::CompileToSpirv( // NOLINT
     const std::string& entryPoint,
     const std::string& includeDir,
     const std::list<Define>& defines) {
+
+    Core::Logger::Info("Compiling " + filename);
 
     // Process #define macros
     std::string preamble;
@@ -103,7 +127,7 @@ Graphics::ByteCode Graphics::ShaderCross::CompileToSpirv( // NOLINT
 
     // source language
     shader.setEnvInput(glslang::EShSourceGlsl, stage, glslang::EShClientVulkan, 100);// NOLINT
-    shader.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_4);
+    shader.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_0);
     shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_0);
 
     std::array<const char*,1> textArray = {filedata.c_str()};
@@ -126,9 +150,26 @@ Graphics::ByteCode Graphics::ShaderCross::CompileToSpirv( // NOLINT
         throw Core::EngineException("Failed to link " + filename);
     }
 
+    uint32_t num_uniform_buffers= 0;
+    uint32_t num_samplers = 0;
     if(program.buildReflection(EShReflectionOptions::EShReflectionDefault)) {
 
-        program.dumpReflection();
+        // number of samplers
+        int uniformCount = program.getNumUniformVariables();
+        for (int uniformIndex = 0U; uniformIndex < uniformCount; uniformIndex++) {
+            const glslang::TObjectReflection& object = program.getUniform(uniformIndex);
+
+            const glslang::TType* p_type = object.getType();
+            if(p_type->containsBasicType(glslang::TBasicType::EbtSampler)) {
+                num_samplers++;
+            }
+        }
+        // number of uniform buffers
+        num_uniform_buffers = program.getNumUniformBlocks();
+
+        std::cout << "num_uniform_buffers: " << num_uniform_buffers << "\n";
+        std::cout << "num_samplers: " << num_samplers << "\n";
+
     }
 
 
@@ -148,7 +189,7 @@ Graphics::ByteCode Graphics::ShaderCross::CompileToSpirv( // NOLINT
     SDL_GPUShaderFormat format = SDL_GPU_SHADERFORMAT_SPIRV;
     SDL_GPUShaderStage sdlStage = (stage == EShLangVertex)? SDL_GPU_SHADERSTAGE_VERTEX : SDL_GPU_SHADERSTAGE_FRAGMENT;
 
-    return ByteCode(format, sdlStage, std::move(spv), entryPoint);
+    return ByteCode(format, sdlStage, std::move(spv), entryPoint, num_uniform_buffers, num_samplers);
 }
 
 

@@ -22,6 +22,9 @@ CPMAddPackage(
     URI "gh:libsdl-org/SDL#release-3.2.26"
 )
 CPMAddPackage(
+    URI "gh:libsdl-org/SDL_ttf#release-3.2.2"
+)
+CPMAddPackage(
     URI "gh:KhronosGroup/SPIRV-Headers#vulkan-sdk-1.4.328.1"
 )
 set(SPIRV_WERROR OFF)
@@ -35,22 +38,29 @@ CPMAddPackage(
     URI "gh:KhronosGroup/SPIRV-Cross#vulkan-sdk-1.4.328.1"
 )
 
+CPMAddPackage(
+    URI "gh:g-truc/glm#1.0.2")
+
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
 add_executable(${PROJECT_NAME}
     ./src/main.cpp
+    ./src/SimulationGame.cpp
+    ./src/core/AssetLoader.cpp
     ./src/core/Engine.cpp
     ./src/core/Environment.cpp
     ./src/core/Filesystem.cpp
     ./src/core/Logger.cpp
+    ./src/graphics/Renderer.cpp
     ./src/graphics/ShaderCross.cpp
     ./src/sdl/SDL.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ./src)
 
-target_link_libraries(${PROJECT_NAME}
-    PRIVATE SDL3::SDL3
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    SDL3::SDL3
     SPIRV
     glslang
-    glslang-default-resource-limits)
+    glslang-default-resource-limits
+    glm)

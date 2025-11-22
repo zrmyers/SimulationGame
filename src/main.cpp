@@ -1,6 +1,8 @@
+#include "SimulationGame.hpp"
 #include "core/Engine.hpp"
 #include "core/Logger.hpp"
 #include <exception>
+#include <memory>
 #include <span>
 
 int main(int argc, const char** argv) {
@@ -17,6 +19,9 @@ int main(int argc, const char** argv) {
 
         Core::Engine engine(args);
 
+        std::unique_ptr<SimulationGame> p_game = std::make_unique<SimulationGame>(engine);
+
+        engine.SetGameInstance(std::move(p_game));
         engine.Run();
 
         Core::Logger::Info("Done Running. Shutdown.");

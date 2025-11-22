@@ -88,6 +88,10 @@ namespace SDL {
             Context& operator=(const Context& other) = delete;
             Context& operator=(Context&& other) = default;
             ~Context();
+
+            //! Get the total amount of time in milliseconds that has elapsed since initialization.
+            Uint64 GetTicks();
+
     };
 
     class Window {
@@ -135,6 +139,8 @@ namespace SDL {
 
             //! Release the window from the GPU.
             void ReleaseWindow(Window& window);
+
+            SDL_GPUTextureFormat GetSwapchainTextureFormat(Window& window);
 
             //! Get the SDL pointer.
             SDL_GPUDevice* Get();
@@ -187,5 +193,55 @@ namespace SDL {
 
             SDL_GPUGraphicsPipeline* m_p_pipeline;
             GpuDevice* m_p_gpu;
+    };
+
+    class GpuBuffer {
+
+        public:
+            GpuBuffer();
+            GpuBuffer(GpuDevice& gpu, const SDL_GPUBufferCreateInfo& createinfo);
+            GpuBuffer(const GpuBuffer& other) = delete;
+            GpuBuffer(GpuBuffer&& other) noexcept;
+            GpuBuffer& operator=(const GpuBuffer& other) = delete;
+            GpuBuffer& operator=(GpuBuffer&& other) noexcept;
+            ~GpuBuffer();
+
+
+        private:
+            SDL_GPUBuffer* m_p_buffer;
+            GpuDevice* m_p_device;
+    };
+
+    class GpuTransferBuffer {
+
+        public:
+            GpuTransferBuffer();
+            GpuTransferBuffer(GpuDevice& gpu, const SDL_GPUTransferBufferCreateInfo& createinfo);
+            GpuTransferBuffer(const GpuTransferBuffer& other) = delete;
+            GpuTransferBuffer(GpuTransferBuffer&& other) noexcept;
+            GpuTransferBuffer& operator=(const GpuTransferBuffer& other) = delete;
+            GpuTransferBuffer& operator=(GpuTransferBuffer&& other) noexcept;
+            ~GpuTransferBuffer();
+
+        private:
+            SDL_GPUTransferBuffer* m_p_buffer;
+            GpuDevice* m_p_device;
+    };
+
+    class GpuSampler {
+
+        public:
+            GpuSampler();
+            GpuSampler(GpuDevice& device, const SDL_GPUSamplerCreateInfo& createinfo);
+            GpuSampler(const GpuSampler& other) = delete;
+            GpuSampler(GpuSampler&& other) noexcept;
+            GpuSampler& operator=(const GpuSampler& other) = delete;
+            GpuSampler& operator=(GpuSampler&& other) noexcept;
+            ~GpuSampler();
+
+        private:
+
+            SDL_GPUSampler* m_p_sampler;
+            GpuDevice* m_p_device;
     };
 }

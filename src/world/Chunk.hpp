@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <array>
 
-//! This class represents the high level types that are used to run the simulation.
-namespace Simulation {
+//! This class represents the high level types that are used to represent the world.
+namespace World {
 
     //! Type of blocks in simulation.
     enum class BlockType : uint8_t {
