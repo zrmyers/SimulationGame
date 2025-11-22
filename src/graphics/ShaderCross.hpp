@@ -126,7 +126,7 @@ namespace Graphics {
         private:
 
             struct IncludeIndex {
-                std::vector<char> buffer;
+                std::string filedata;
                 std::unique_ptr<IncludeResult> p_result;
             };
 

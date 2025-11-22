@@ -215,17 +215,15 @@ glslang::TShader::Includer::IncludeResult* Graphics::ShaderIncluder::includeLoca
 
     std::string resolve = m_include_dir + "/" + std::string(p_header_name);
     std::replace(resolve.rbegin(), resolve.rend(), '\\', '/');
-    std::ifstream file(resolve, std::ios_base::binary | std::ios_base::ate);
 
-    if (file) {
+    if (Core::Filesystem::FileExists(resolve)) {
 
-        IncludeIndex index;
-        std::ifstream::pos_type fileSize = file.tellg();
-        index.buffer.resize(fileSize);
+        m_include_index.emplace_back();
+        IncludeIndex& index = m_include_index.back();
 
-        file.read(index.buffer.data(), fileSize);
+        index.filedata = Core::Filesystem::LoadFileAsString(resolve);
 
-        index.p_result = std::make_unique<IncludeResult>(p_header_name, index.buffer.data(), index.buffer.size(), nullptr);
+        index.p_result = std::make_unique<IncludeResult>(p_header_name, index.filedata.c_str(), index.filedata.length(), nullptr);
         p_result = index.p_result.get();
     }
 
