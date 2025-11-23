@@ -89,6 +89,10 @@ SDL_Window* SDL::Window::Get() {
     return m_p_window;
 }
 
+const SDL_Window* SDL::Window::Get() const {
+    return m_p_window;
+}
+
 void SDL::Window::SetPosition(int width, int height) {
 
     if (!SDL_SetWindowPosition(m_p_window, width, height)) {

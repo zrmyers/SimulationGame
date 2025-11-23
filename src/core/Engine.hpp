@@ -9,6 +9,7 @@
 #include "sdl/SDL.hpp"
 
 #include "graphics/Renderer.hpp"
+#include "graphics/TextRenderer.hpp"
 
 namespace Core {
 
@@ -40,6 +41,15 @@ namespace Core {
             Engine& operator=(Engine&& other) = delete;
             ~Engine();
 
+            //! Get the Asset loader instance
+            AssetLoader& GetAssetLoader();
+
+            //! Get the Renderer instance
+            Graphics::Renderer& GetRenderer();
+
+            //! Get the TextRenderer instance
+            Graphics::TextRenderer& GetTextRenderer();
+
             //! Set the Game Instance.
             void SetGameInstance(std::unique_ptr<IGame>&& game);
 
@@ -65,6 +75,9 @@ namespace Core {
 
             //! Renderer
             Graphics::Renderer m_renderer;
+
+            //! TextRenderer
+            Graphics::TextRenderer m_textrenderer;
 
             //! Game instance
             std::unique_ptr<IGame> m_game_instance;

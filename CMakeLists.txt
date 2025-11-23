@@ -53,6 +53,7 @@ add_executable(${PROJECT_NAME}
     ./src/core/Logger.cpp
     ./src/graphics/Renderer.cpp
     ./src/graphics/ShaderCross.cpp
+    ./src/graphics/TextRenderer.cpp
     ./src/sdl/SDL.cpp
     ./src/sdl/TTF.cpp
 )

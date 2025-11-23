@@ -112,6 +112,7 @@ namespace SDL {
             ~Window();
 
             SDL_Window* Get();
+            const SDL_Window* Get() const;
 
             //! Set the position of the window.
             void SetPosition(int width, int height);

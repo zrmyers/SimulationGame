@@ -1,8 +1,14 @@
 #pragma once
 
+#include "Renderable.hpp"
 #include "core/AssetLoader.hpp"
+#include "graphics/ShaderCross.hpp"
 #include "sdl/SDL.hpp"
+#include <SDL3/SDL_gpu.h>
+#include <SDL3/SDL_stdinc.h>
+#include <cstdint>
 #include <string>
+#include <unordered_map>
 
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
@@ -27,76 +33,55 @@ namespace Graphics {
     };
 
     struct UniformData {
-        glm::mat4 projview;
-        glm::mat4 model;
+        glm::mat4 projview{};
+        glm::mat4 model{};
     };
+
 
     class Renderer {
 
         public:
 
             //! Initialize the renderer.
-            Renderer(SDL::Context& context, Core::AssetLoader& asset_loader);
+            Renderer(SDL::Context& context);
             Renderer(const Renderer& other) = delete;
             Renderer(Renderer&& other) = delete;
             Renderer& operator=(const Renderer& other) = delete;
             Renderer& operator=(Renderer&& other) = delete;
             ~Renderer();
 
-            //! Draws all visible objects.
-            void Draw();
+            SDL::GpuDevice& GetGpuDevice();
+
+            //! Get Swap chain texture format.
+            SDL_GPUTextureFormat GetSwapchainTextureFormat();
+
+            //! Create a shader.
+            SDL::Shader CreateShader(Graphics::ByteCode& code);
+
+            //! Create a pipeline for the GPU.
+            SDL::GraphicsPipeline CreatePipeline(SDL_GPUGraphicsPipelineCreateInfo& pipeline_info);
+
+            //! Create a buffer on the GPU.
+            SDL::GpuBuffer CreateBuffer(SDL_GPUBufferUsageFlags usage, uint32_t size);
+
+            //! Create a transfer buffer on the GPU.
+            SDL::GpuTransferBuffer CreateTransferBuffer(SDL_GPUTransferBufferUsage usage, uint32_t size);
+
+            //! Create a sampler on the GPU.
+            SDL::GpuSampler CreateSampler(SDL_GPUSamplerCreateInfo& sampler_info);
+
+            //! Main update loop.
+            //!
+            //! - perform transfers
+            //! - draw
+            void Update(std::vector<Renderable>& renderables, const Graphics::UniformData& uniform);
 
         private:
-
-            // Build a simple pipeline.
-            void BuildSimplePipeline(const std::string& shader_path);
-
-            // Build a pipeline for rendering 3D text.
-            void Build3DTextPipeline(const std::string& shader_path);
 
             //! Window used for rendering graphics to screen.
             SDL::Window m_window;
 
             //! Handle to GPU used for graphics processing
             SDL::GpuDevice m_gpu;
-
-            //! Fill draw mode
-            SDL::GraphicsPipeline m_fillpipeline;
-
-            //! Wireframe draw mode.
-            SDL::GraphicsPipeline m_wirepipeline;
-
-            //! Text Rendering Pipeline.
-            SDL::GraphicsPipeline m_textpipeline;
-
-            //! Vertex Buffer.
-            SDL::GpuBuffer m_vertexbuffer;
-
-            //! Index Buffer.
-            SDL::GpuBuffer m_indexbuffer;
-
-            //! Transfer Buffer.
-            SDL::GpuTransferBuffer m_transferbuffer;
-
-            //! Sampler
-            SDL::GpuSampler m_sampler;
-
-            //! Geometry data
-            GeometryData m_geometry_data;
-
-            //! TTF Context.
-            SDL::TTF::Context m_ttf;
-
-            //! Font
-            SDL::TTF::Font m_font;
-
-            //! Text Engine
-            SDL::TTF::TextEngine m_textengine;
-
-            //! Text
-            SDL::TTF::Text m_text;
-
-            //! Uniforms
-            UniformData m_uniform;
     };
 }
