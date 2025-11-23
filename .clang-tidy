@@ -5,6 +5,7 @@ Checks:
     - "clang-analyzer-*"
     - "concurrency-*"
     - "cppcoreguidelines-*"
+    - "-cppcoreguidelines-pro-type-union-access"
     - "performance-*"
     - "readability-*"
     - "portability-*"

@@ -4,16 +4,16 @@
 #include "core/AssetLoader.hpp"
 #include "sdl/TTF.hpp"
 #include <glm/ext/matrix_float4x4.hpp>
+#include <glm/ext/vector_float2.hpp>
 
 #include "graphics/Renderer.hpp"
 
 namespace Graphics {
 
-
-    //! Everything necessary for rendering text.
+    //! Everything necessary for rendering text in 3D
     struct TextComponent {
         SDL::TTF::Text text;
-        glm::mat4 world_transform;
+        glm::mat4 model;
         SDL::TTF::Font* p_font;
     };
 

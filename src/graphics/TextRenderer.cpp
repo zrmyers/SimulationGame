@@ -1,5 +1,6 @@
 #include "TextRenderer.hpp"
 #include "core/AssetLoader.hpp"
+#include "graphics/Renderable.hpp"
 #include "sdl/TTF.hpp"
 
 #include <array>
@@ -54,6 +55,7 @@ Graphics::TextComponent Graphics::TextRenderer::CreateText(
         &font};
     return component;
 }
+
 
 std::vector<Graphics::Renderable> Graphics::TextRenderer::BuildRenderables(std::list<TextComponent*>& textComponents) {
 
