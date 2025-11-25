@@ -46,6 +46,9 @@ int main(int argc, const char** argv) {
             | registry.GetComponentSignature<Components::Transform>()
         );
 
+        // setup dependencies
+        registry.SetSystemDependency<Systems::RenderSystem, Systems::TextSystem>();
+
         // instantiate the game.
         std::unique_ptr<SimulationGame> p_game = std::make_unique<SimulationGame>(engine);
 

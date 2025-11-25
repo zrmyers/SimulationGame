@@ -46,6 +46,9 @@ namespace ECS {
     // Maximum number of systems
     const SystemTypeCode_t MAX_SYSTEMS = 256;
 
+    //! System Signature
+    using SystemDependencies = std::bitset<MAX_SYSTEMS>;
+
     // Error type
     class Exception : public std::exception {
 
@@ -373,10 +376,13 @@ namespace ECS {
             std::set<EntityID_t>& GetEntities() { return m_entities;};
             Signature_t& GetSignature() {return m_signature;};
 
+            SystemDependencies& GetDependencies() {return m_dependencies;};
+
         private:
             Core::Engine* m_p_engine;
             std::set<EntityID_t> m_entities;
             Signature_t m_signature;
+            SystemDependencies m_dependencies;
     };
 
     class SystemManager {
@@ -425,6 +431,13 @@ namespace ECS {
                 m_systems.at(typecode)->GetSignature() = signature;
             }
 
+            template<typename T>
+            SystemDependencies& GetDependencies() {
+                SystemTypeCode_t typecode = GetTypeCode<T>();
+
+                return m_systems.at(typecode)->GetDependencies();
+            }
+
             void EntityDestroyed(EntityID_t entity) {
 
                 for (auto& systemIter : m_systems) {
@@ -454,16 +467,8 @@ namespace ECS {
                 }
             }
 
-        private:
-
-            // System index
-            std::unordered_map<const char*, SystemTypeCode_t> m_system_index;
-
-            // Map from system type string to system pointer.
-            std::vector<std::unique_ptr<System>> m_systems;
-
             template<typename T>
-            SystemTypeCode_t GetTypeCode() {
+            SystemTypeCode_t GetTypeCode() const {
                 const char* typeName = typeid(T).name();
                 auto typecodeIter = m_system_index.find(typeName);
                 if (typecodeIter == m_system_index.end()) {
@@ -471,6 +476,14 @@ namespace ECS {
                 }
                 return typecodeIter->second;
             }
+
+        private:
+
+            // System index
+            std::unordered_map<const char*, SystemTypeCode_t> m_system_index;
+
+            // Map from system type string to system pointer.
+            std::vector<std::unique_ptr<System>> m_systems;
     };
 
     class Registry {
@@ -585,6 +598,13 @@ namespace ECS {
             template<typename T>
             void SetSystemSignature(const Signature_t& signature) {
                 m_system_manager.SetSignature<T>(signature);
+            }
+
+            template<typename Target, typename Dependency>
+            void SetSystemDependency() {
+                SystemTypeCode_t typecode = m_system_manager.GetTypeCode<Dependency>();
+                SystemDependencies& dependencies = m_system_manager.GetDependencies<Target>();
+                dependencies.set(typecode);
             }
 
             void Update() {
