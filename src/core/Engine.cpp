@@ -74,7 +74,6 @@ void Core::Engine::Run() {
     }
 }
 
-
 float Core::Engine::GetDeltaTimeSec() const {
     return m_delta_time_sec;
 }

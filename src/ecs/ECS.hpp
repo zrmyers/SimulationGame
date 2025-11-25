@@ -14,6 +14,7 @@
 #include <vector>
 #include <memory>
 #include <sstream>
+#include "math/Graph.hpp"
 
 namespace Core {
     class Engine;
@@ -392,6 +393,11 @@ namespace ECS {
                 m_systems.reserve(MAX_SYSTEMS);
             };
 
+            SystemManager(const SystemManager& other) = delete;
+            SystemManager(SystemManager&& other) noexcept = default;
+            SystemManager& operator=(const SystemManager& other) = delete;
+            SystemManager& operator=(SystemManager&& other) = default;
+
             ~SystemManager() {
 
                 // Ensure that the last system added is the first one deleted. This
@@ -415,6 +421,8 @@ namespace ECS {
 
                 m_system_index[typeName] = m_systems.size();
                 m_systems.push_back(std::move(system));
+
+                m_update_run_order = true;
             }
 
             template<typename T>
@@ -432,10 +440,17 @@ namespace ECS {
             }
 
             template<typename T>
-            SystemDependencies& GetDependencies() {
+            const SystemDependencies& GetDependencies() const {
                 SystemTypeCode_t typecode = GetTypeCode<T>();
 
                 return m_systems.at(typecode)->GetDependencies();
+            }
+
+            template<typename T>
+            void SetDependencies(const SystemDependencies& dependencies) {
+                SystemTypeCode_t typecode = GetTypeCode<T>();
+
+                m_systems.at(typecode)->GetDependencies() = dependencies;
             }
 
             void EntityDestroyed(EntityID_t entity) {
@@ -462,8 +477,49 @@ namespace ECS {
             }
 
             void Update() {
-                for (auto& systemIter : m_systems) {
-                    systemIter->Update();
+                if (m_update_run_order) {
+
+                    Math::Graph<SystemTypeCode_t> systemGraph;
+                    std::vector<SystemTypeCode_t> typecodes;
+                    std::unordered_map<SystemTypeCode_t, const char*> names;
+
+                    typecodes.reserve(m_system_index.size());
+                    // Add nodes to graph
+                    for (auto& typecodeIter : m_system_index) {
+
+                        systemGraph.AddNode(typecodeIter.second);
+                        typecodes.push_back(typecodeIter.second);
+                        names[typecodeIter.second] = typecodeIter.first;
+                    }
+
+                    // Add edges to graph
+                    for (auto& typecodeIter : m_system_index) {
+
+                        SystemDependencies incoming = m_systems.at(typecodeIter.second)->GetDependencies();
+
+                        for (SystemTypeCode_t dependency : typecodes) {
+                            if (incoming.test(dependency)) {
+
+                                systemGraph.AddTransition(dependency, typecodeIter.second);
+                            }
+                        }
+                    }
+
+                    // Run topological sort to get a sorted list of typecodes
+                    m_run_order = Math::TopologicalSort(systemGraph);
+
+                    std::stringstream msg;
+                    for (SystemTypeCode_t typecode : m_run_order) {
+                        msg << "    - " << names[typecode] << "\n";
+                    }
+                    Core::Logger::Info("System Run Order: \n" + msg.str());
+                    m_update_run_order = false;
+                }
+
+                for (SystemTypeCode_t typeCode : m_run_order) {
+
+                    // can start adding parallelization here...
+                    m_systems.at(typeCode)->Update();
                 }
             }
 
@@ -484,6 +540,12 @@ namespace ECS {
 
             // Map from system type string to system pointer.
             std::vector<std::unique_ptr<System>> m_systems;
+
+            // Whether the system run order needs to be re-evaluated.
+            bool m_update_run_order{true};
+
+            // The order in which systems should be run.
+            std::list<SystemTypeCode_t> m_run_order;
     };
 
     class Registry {
@@ -603,8 +665,9 @@ namespace ECS {
             template<typename Target, typename Dependency>
             void SetSystemDependency() {
                 SystemTypeCode_t typecode = m_system_manager.GetTypeCode<Dependency>();
-                SystemDependencies& dependencies = m_system_manager.GetDependencies<Target>();
+                SystemDependencies dependencies = m_system_manager.GetDependencies<Target>();
                 dependencies.set(typecode);
+                m_system_manager.SetDependencies<Target>(dependencies);
             }
 
             void Update() {

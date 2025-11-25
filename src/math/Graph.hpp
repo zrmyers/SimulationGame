@@ -11,8 +11,8 @@ namespace Math {
     //! A node in a graph.
     template<typename T>
     struct Node {
-        std::list<T> incomingTransitions;
-        std::list<T> outgoingTransitions;
+        std::list<T> in;
+        std::list<T> out;
     };
 
     //! Graph data structure.
@@ -25,7 +25,7 @@ namespace Math {
 
             //! Add a new node to the graph.
             void AddNode(T value) {
-                m_node_map.emplace(value, {});
+                m_node_map.emplace(value, Node<T>());
             }
 
             //! Get a node from the graph
@@ -35,30 +35,26 @@ namespace Math {
 
             //! Adds an incoming transition to the graph.
             //!
-            //! @param[in] src The node that is transitioning to the target.
-            //! @param[in] dst The node that is being transitioned to.
-            void AddIncomingTransition(T src, T dst) {
-                Node<T>& srcNode = m_node_map[src];
-                Node<T>& dstNode = m_node_map[dst];
-                srcNode.outgoingTransitions.push_back(dst);
-                dstNode.incomingTransitions.push_back(src);
+            //! @param[in] start The node that is transitioning to the target.
+            //! @param[in] end The node that is being transitioned to.
+            void AddTransition(T start, T end) {
+                Node<T>& startNode = m_node_map[start];
+                Node<T>& endNode = m_node_map[end];
+                startNode.out.push_back(end);
+                endNode.in.push_back(start);
                 m_num_transitions++;
             }
 
-            void AddOutgoingTransition(T src, T dst) {
-                AddIncomingTransition(dst, src); // NOLINT(readability-suspicious-call-argument) swapping is on purpose.
-            }
-
-            void RemoveIncomingTransition(T src, T dst) {
-                Node<T>& srcNode = m_node_map[src];
-                Node<T>& dstNode = m_node_map[dst];
-                std::remove(srcNode.outgoingTransitions.begin(), srcNode.outgoingTransitions.end(), dst);
-                std::remove(dstNode.incomingTransitions.begin(), dstNode.incomingTransitions.end(), src);
+            void RemoveTransition(T start, T end) {
+                Node<T>& startNode = m_node_map[start];
+                Node<T>& endNode = m_node_map[end];
+                startNode.out.erase(
+                    std::remove(startNode.out.begin(), startNode.out.end(), end),
+                    startNode.out.end());
+                endNode.in.erase(
+                    std::remove(endNode.in.begin(), endNode.in.end(), start),
+                    endNode.in.end());
                 m_num_transitions--;
-            }
-
-            void RemoveOutgoingTransition(T src, T dst) {
-                RemoveIncomingTransition(dst, src); // NOLINT swapping is on purpose, since changing from outgoing to incoming.
             }
 
             //! Check the total number of nodes.
@@ -85,7 +81,7 @@ namespace Math {
         private:
 
             std::unordered_map<T, Node<T>> m_node_map;
-            size_t m_num_transitions;
+            size_t m_num_transitions{0};
     };
 
     //! Implementing Kahn's algorithm for topological sorting:
@@ -96,7 +92,7 @@ namespace Math {
         std::list<T> sorted;
         std::list<T> startNodes = graph.GetNodeIDs(
             [](const Node<T>& node) {
-                return node.incoming_transitions.empty();
+                return node.in.empty();
             });
 
         while (!startNodes.empty()) {
@@ -105,12 +101,12 @@ namespace Math {
             sorted.push_back(nodeN_id);
 
             Node<T>& nodeN = graph.GetNode(nodeN_id);
-            std::list<T> outgoing = nodeN.outgoingTransitions;
+            std::list<T> outgoing = nodeN.out;
             for (T& nodeM_id : outgoing) {
-                graph.RemoveOutgoingTransition(nodeN, nodeM_id);
+                graph.RemoveTransition(nodeN_id, nodeM_id);
                 Node<T>& nodeM = graph.GetNode(nodeM_id);
-                if (nodeM.incomingTransitions.empty()) {
-                    startNodes.push_back();
+                if (nodeM.in.empty()) {
+                    startNodes.push_back(nodeM_id);
                 }
             }
         }
