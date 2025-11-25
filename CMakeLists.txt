@@ -37,6 +37,7 @@ CPMAddPackage(
 CPMAddPackage(
     URI "gh:KhronosGroup/SPIRV-Cross#vulkan-sdk-1.4.328.1"
 )
+set(GLM_BUILD_LIBRARY OFF)
 CPMAddPackage(
     URI "gh:g-truc/glm#1.0.2"
 )

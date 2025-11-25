@@ -1,4 +1,7 @@
 
+# setup the visual studios build environment.
+SHELL_CMD="C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\common7\Tools\VsDevCmd.bat"
+
 .PHONY: default
 default: build-release
 
@@ -27,7 +30,7 @@ run:
 
 .PHONY:
 shell:
-	VsDevCmd.bat
+	$(SHELL_CMD) -arch=amd64 && powershell.exe -NoLogo -ExecutionPolicy Bypass
 
 .PHONY:
 list-targets: build/build.ninja
