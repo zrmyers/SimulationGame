@@ -7,12 +7,8 @@
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_timer.h>
 #include <SDL3/SDL_video.h>
-#include <cstddef>
 #include <glslang/Public/ShaderLang.h>
-#include <sstream>
 #include <string>
-#include "Logger.hpp"
-#include "graphics/ShaderCross.hpp"
 #include "sdl/SDL.hpp"
 
 Core::EngineException::EngineException(const std::string& msg)
@@ -27,26 +23,19 @@ Core::Engine::Engine(const std::list<const char*>& args)
     : m_env(args)
     , m_sdl(SDL_INIT_VIDEO)
     , m_assetLoader(m_env.Get("gamePath"))
-    , m_renderer(m_sdl)
-    , m_textrenderer(m_renderer, m_assetLoader)
     , m_delta_time_sec(0.0F)
     , m_last_time_sec(0.0F) {
-
 }
 
 Core::Engine::~Engine() {
 }
 
-Graphics::Renderer& Core::Engine::GetRenderer() {
-    return m_renderer;
-}
-
-Graphics::TextRenderer& Core::Engine::GetTextRenderer() {
-    return m_textrenderer;
-}
-
 Core::AssetLoader& Core::Engine::GetAssetLoader() {
     return m_assetLoader;
+}
+
+ECS::Registry& Core::Engine::GetEcsRegistry() {
+    return m_registry;
 }
 
 void Core::Engine::SetGameInstance(std::unique_ptr<IGame>&& p_game) {
@@ -78,6 +67,8 @@ void Core::Engine::Run() {
 
             m_game_instance->Update();
         }
+
+        m_registry.Update();
 
         UpdateDeltaTimeSec();
     }

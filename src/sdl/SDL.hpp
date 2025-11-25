@@ -104,7 +104,7 @@ namespace SDL {
                 SDL_WindowFlags flags;
             };
 
-            Window(Context& context, const char* title, int width, int height, SDL_WindowFlags flags);
+            Window(const char* title, int width, int height, SDL_WindowFlags flags);
             Window(const Window& other) = delete;
             Window(Window&& other) noexcept;
             Window& operator=(const Window& other) = delete;
@@ -126,7 +126,7 @@ namespace SDL {
 
         public:
 
-            GpuDevice(Context& context, SDL_GPUShaderFormat format, bool debug, const char* driver);
+            GpuDevice(SDL_GPUShaderFormat format, bool debug, const char* driver);
             GpuDevice(const GpuDevice& other) = delete;
             GpuDevice(GpuDevice&& other) noexcept;
             GpuDevice& operator=(const GpuDevice& other) = delete;
@@ -232,6 +232,26 @@ namespace SDL {
 
         private:
             SDL_GPUTransferBuffer* m_p_buffer;
+            GpuDevice* m_p_device;
+    };
+
+    class GpuTexture {
+
+        public:
+            GpuTexture();
+
+            GpuTexture(GpuDevice& device, const SDL_GPUTextureCreateInfo& createinfo); // owning constructor
+            GpuTexture(SDL_GPUTexture* p_texture); // non-owning constructor
+            GpuTexture(const GpuTexture& other) = delete;
+            GpuTexture(GpuTexture&& other) noexcept;
+            GpuTexture& operator=(const GpuTexture& other) = delete;
+            GpuTexture& operator=(GpuTexture&& other) noexcept;
+            ~GpuTexture();
+
+            SDL_GPUTexture* Get();
+        private:
+
+            SDL_GPUTexture* m_p_texture;
             GpuDevice* m_p_device;
     };
 

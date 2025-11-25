@@ -1,54 +1,29 @@
 #pragma once
 
-#include "Renderable.hpp"
-#include "core/AssetLoader.hpp"
+#include "core/Engine.hpp"
+#include "ecs/ECS.hpp"
 #include "graphics/ShaderCross.hpp"
 #include "sdl/SDL.hpp"
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_stdinc.h>
 #include <cstdint>
-#include <string>
-#include <unordered_map>
 
-#include "glm/vec2.hpp"
-#include "glm/vec3.hpp"
-#include "glm/vec4.hpp"
 #include "glm/mat4x4.hpp"
 
-#include "sdl/TTF.hpp"
 
-namespace Graphics {
+namespace Systems {
 
-    struct Vertex {
-        glm::vec3 position;
-        glm::vec4 color;
-        glm::vec2 texcoord;
-    };
-
-    struct GeometryData {
-        std::vector<Vertex> vertices;
-        int vertexCount = 0;
-        std::vector<int> indices;
-        int indexCount = 0;
-    };
-
-    struct UniformData {
-        glm::mat4 projview{};
-        glm::mat4 model{};
-    };
-
-
-    class Renderer {
+    class RenderSystem : public ECS::System {
 
         public:
 
             //! Initialize the renderer.
-            Renderer(SDL::Context& context);
-            Renderer(const Renderer& other) = delete;
-            Renderer(Renderer&& other) = delete;
-            Renderer& operator=(const Renderer& other) = delete;
-            Renderer& operator=(Renderer&& other) = delete;
-            ~Renderer();
+            RenderSystem(Core::Engine& engine);
+            RenderSystem(const RenderSystem& other) = delete;
+            RenderSystem(RenderSystem&& other) = delete;
+            RenderSystem& operator=(const RenderSystem& other) = delete;
+            RenderSystem& operator=(RenderSystem&& other) = delete;
+            ~RenderSystem() override;
 
             SDL::GpuDevice& GetGpuDevice();
 
@@ -74,7 +49,7 @@ namespace Graphics {
             //!
             //! - perform transfers
             //! - draw
-            void Update(std::vector<Renderable>& renderables, const Graphics::UniformData& uniform);
+            void Update() override;
 
         private:
 

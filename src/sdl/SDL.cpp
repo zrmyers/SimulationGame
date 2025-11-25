@@ -50,7 +50,7 @@ Uint64 SDL::Context::GetTicks() { // NOLINT depends on SDL_Init
 //----------------------------------------------------------------------------------------------------------------------
 // SDL Window
 
-SDL::Window::Window(Context& context, const char* title, int width, int height, SDL_WindowFlags flags)
+SDL::Window::Window(const char* title, int width, int height, SDL_WindowFlags flags)
     : m_p_window(
         SDL_CreateWindow(
             title,
@@ -104,7 +104,7 @@ void SDL::Window::SetPosition(int width, int height) {
 //----------------------------------------------------------------------------------------------------------------------
 // SDL GPU
 
-SDL::GpuDevice::GpuDevice(Context& context, SDL_GPUShaderFormat format, bool debug, const char* driver)
+SDL::GpuDevice::GpuDevice(SDL_GPUShaderFormat format, bool debug, const char* driver)
     : m_p_gpu(SDL_CreateGPUDevice(format, debug, driver)) {
     if (m_p_gpu == nullptr) {
         throw Error("SDL_CreateGPUDevice() failed!");
@@ -318,7 +318,7 @@ SDL_GPUBuffer* SDL::GpuBuffer::Get() {
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// SDL GPU Buffer
+// SDL GPU Transfer Buffer
 
 SDL::GpuTransferBuffer::GpuTransferBuffer()
     : m_p_buffer(nullptr)
@@ -378,6 +378,59 @@ void SDL::GpuTransferBuffer::Unmap() {
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+// SDL GPU Texture
+
+SDL::GpuTexture::GpuTexture()
+    : m_p_texture(nullptr)
+    , m_p_device(nullptr) {
+}
+
+SDL::GpuTexture::GpuTexture(GpuDevice& device, const SDL_GPUTextureCreateInfo& createinfo)
+    : m_p_texture(SDL_CreateGPUTexture(device.Get(), &createinfo))
+    , m_p_device(&device) {
+
+    if (m_p_texture == nullptr) {
+        throw Error("SDL_CreateGPUTexture() failed.");
+    }
+}
+
+SDL::GpuTexture::GpuTexture(SDL_GPUTexture* p_texture)
+    : m_p_texture(p_texture)
+    , m_p_device(nullptr) {
+}
+
+SDL::GpuTexture::GpuTexture(GpuTexture&& other) noexcept
+    : m_p_texture(other.m_p_texture)
+    , m_p_device(other.m_p_device) {
+
+    other.m_p_device = nullptr;
+    other.m_p_texture = nullptr;
+}
+
+SDL::GpuTexture& SDL::GpuTexture::operator=(GpuTexture&& other) noexcept {
+    SDL_GPUTexture* p_texture = other.m_p_texture;
+    GpuDevice* p_device = other.m_p_device;
+    other.m_p_texture = m_p_texture;
+    other.m_p_device = m_p_device;
+    m_p_texture = p_texture;
+    m_p_device = p_device;
+
+    return *this;
+}
+
+SDL::GpuTexture::~GpuTexture() {
+
+    if ((m_p_texture != nullptr) && (m_p_device != nullptr)) {
+        SDL_ReleaseGPUTexture(m_p_device->Get(), m_p_texture);
+    }
+}
+
+
+SDL_GPUTexture* SDL::GpuTexture::Get() {
+    return m_p_texture;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 // SDL GPU Sampler
 
 SDL::GpuSampler::GpuSampler()
@@ -419,7 +472,6 @@ SDL::GpuSampler::~GpuSampler() {
         SDL_ReleaseGPUSampler(m_p_device->Get(), m_p_sampler);
     }
 }
-
 
 SDL_GPUSampler* SDL::GpuSampler::Get() {
     return m_p_sampler;

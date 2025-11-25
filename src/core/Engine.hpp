@@ -7,9 +7,7 @@
 #include "Environment.hpp"
 #include "IGame.hpp"
 #include "sdl/SDL.hpp"
-
-#include "graphics/Renderer.hpp"
-#include "graphics/TextRenderer.hpp"
+#include "ecs/ECS.hpp"
 
 namespace Core {
 
@@ -44,11 +42,8 @@ namespace Core {
             //! Get the Asset loader instance
             AssetLoader& GetAssetLoader();
 
-            //! Get the Renderer instance
-            Graphics::Renderer& GetRenderer();
-
-            //! Get the TextRenderer instance
-            Graphics::TextRenderer& GetTextRenderer();
+            //! Get the ECS registry
+            ECS::Registry& GetEcsRegistry();
 
             //! Set the Game Instance.
             void SetGameInstance(std::unique_ptr<IGame>&& game);
@@ -73,11 +68,8 @@ namespace Core {
             //! Asset loading
             AssetLoader m_assetLoader;
 
-            //! Renderer
-            Graphics::Renderer m_renderer;
-
-            //! TextRenderer
-            Graphics::TextRenderer m_textrenderer;
+            //! ECS registry.
+            ECS::Registry m_registry;
 
             //! Game instance
             std::unique_ptr<IGame> m_game_instance;

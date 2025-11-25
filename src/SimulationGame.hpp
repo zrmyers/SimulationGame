@@ -1,11 +1,9 @@
 #pragma once
 
+#include "components/Renderable.hpp"
 #include "core/Engine.hpp"
 #include "core/IGame.hpp"
-#include "graphics/Renderable.hpp"
-#include "graphics/Renderer.hpp"
-#include "graphics/TextRenderer.hpp"
-#include "sdl/SDL.hpp"
+#include "ecs/ECS.hpp"
 #include "sdl/TTF.hpp"
 
 class SimulationGame : public Core::IGame {
@@ -18,10 +16,11 @@ class SimulationGame : public Core::IGame {
 
     private:
 
-        SDL::TTF::Font m_font;
-        Graphics::TextComponent m_text;
+        std::shared_ptr<SDL::TTF::Font> m_font;
+        ECS::Entity m_text_entity;
 
-        //! Uniforms
-        Graphics::UniformData m_uniform;
+        ECS::Entity m_camera_entity;
+
+        float m_rotateAngle{0.0F};
 
 };

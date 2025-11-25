@@ -37,9 +37,9 @@ CPMAddPackage(
 CPMAddPackage(
     URI "gh:KhronosGroup/SPIRV-Cross#vulkan-sdk-1.4.328.1"
 )
-
 CPMAddPackage(
-    URI "gh:g-truc/glm#1.0.2")
+    URI "gh:g-truc/glm#1.0.2"
+)
 
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
@@ -51,11 +51,11 @@ add_executable(${PROJECT_NAME}
     ./src/core/Environment.cpp
     ./src/core/Filesystem.cpp
     ./src/core/Logger.cpp
-    ./src/graphics/Renderer.cpp
     ./src/graphics/ShaderCross.cpp
-    ./src/graphics/TextRenderer.cpp
     ./src/sdl/SDL.cpp
     ./src/sdl/TTF.cpp
+    ./src/systems/RenderSystem.cpp
+    ./src/systems/TextSystem.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ./src)

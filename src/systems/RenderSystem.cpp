@@ -1,14 +1,13 @@
-#include "Renderer.hpp"
+#include "RenderSystem.hpp"
 
-#include "Renderable.hpp"
-#include "core/AssetLoader.hpp"
+#include "components/Renderable.hpp"
+#include "core/Engine.hpp"
 #include "core/Logger.hpp"
-#include "ShaderCross.hpp"
+#include "ecs/ECS.hpp"
+#include "graphics/ShaderCross.hpp"
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3_ttf/SDL_ttf.h>
-#include <algorithm>
-#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -20,12 +19,11 @@
 #include <vector>
 
 #include "sdl/SDL.hpp"
-#include "sdl/TTF.hpp"
 
-
-Graphics::Renderer::Renderer(SDL::Context& context)
-    : m_window(context, "Simulation Game", 1024, 768, SDL_WINDOW_VULKAN)
-    , m_gpu(context, SDL_GPU_SHADERFORMAT_SPIRV, true, NULL) {
+Systems::RenderSystem::RenderSystem(Core::Engine& engine)
+    : ECS::System(engine)
+    , m_window("Simulation Game", 1024, 768, SDL_WINDOW_VULKAN)
+    , m_gpu(SDL_GPU_SHADERFORMAT_SPIRV, true, NULL) {
 
     m_window.SetPosition( SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
@@ -35,42 +33,42 @@ Graphics::Renderer::Renderer(SDL::Context& context)
 }
 
 
-Graphics::Renderer::~Renderer() {
+Systems::RenderSystem::~RenderSystem() {
     m_gpu.ReleaseWindow(m_window);
 }
 
-SDL::GpuDevice& Graphics::Renderer::GetGpuDevice() {
+SDL::GpuDevice& Systems::RenderSystem::GetGpuDevice() {
     return m_gpu;
 }
 
-SDL_GPUTextureFormat Graphics::Renderer::GetSwapchainTextureFormat() {
+SDL_GPUTextureFormat Systems::RenderSystem::GetSwapchainTextureFormat() {
     return m_gpu.GetSwapchainTextureFormat(m_window);
 }
 
-SDL::Shader Graphics::Renderer::CreateShader(Graphics::ByteCode& code) {
+SDL::Shader Systems::RenderSystem::CreateShader(Graphics::ByteCode& code) {
     return SDL::Shader(code, m_gpu);
 }
 
-SDL::GraphicsPipeline Graphics::Renderer::CreatePipeline(SDL_GPUGraphicsPipelineCreateInfo& pipeline_info) {
+SDL::GraphicsPipeline Systems::RenderSystem::CreatePipeline(SDL_GPUGraphicsPipelineCreateInfo& pipeline_info) {
     return SDL::GraphicsPipeline(m_gpu, pipeline_info);
 }
 
-SDL::GpuBuffer Graphics::Renderer::CreateBuffer(SDL_GPUBufferUsageFlags usage, uint32_t size) {
+SDL::GpuBuffer Systems::RenderSystem::CreateBuffer(SDL_GPUBufferUsageFlags usage, uint32_t size) {
     SDL_GPUBufferCreateInfo createinfo = { usage, size, 0};
     return SDL::GpuBuffer(m_gpu, createinfo);
 }
 
-SDL::GpuTransferBuffer Graphics::Renderer::CreateTransferBuffer(SDL_GPUTransferBufferUsage usage, uint32_t size) {
+SDL::GpuTransferBuffer Systems::RenderSystem::CreateTransferBuffer(SDL_GPUTransferBufferUsage usage, uint32_t size) {
     SDL_GPUTransferBufferCreateInfo createinfo = {usage, size, 0};
     return SDL::GpuTransferBuffer(m_gpu, createinfo);
 }
 
-SDL::GpuSampler Graphics::Renderer::CreateSampler(SDL_GPUSamplerCreateInfo& sampler_info) {
+SDL::GpuSampler Systems::RenderSystem::CreateSampler(SDL_GPUSamplerCreateInfo& sampler_info) {
     return SDL::GpuSampler(m_gpu, sampler_info);
 }
 
 
-void Graphics::Renderer::Update(std::vector<Renderable>& renderables, const Graphics::UniformData& uniform) {
+void Systems::RenderSystem::Update() {
 
     SDL_GPUCommandBuffer* p_cmdbuf = SDL_AcquireGPUCommandBuffer(m_gpu.Get());
     if (p_cmdbuf == nullptr) {
@@ -84,10 +82,14 @@ void Graphics::Renderer::Update(std::vector<Renderable>& renderables, const Grap
 
     if (p_swapchainTexture != nullptr) {
 
+        ECS::Registry& registry = GetEngine().GetEcsRegistry();
+        std::set<ECS::EntityID_t> entities = GetEntities();
+
         SDL_GPUCopyPass* p_copyPass = SDL_BeginGPUCopyPass(p_cmdbuf);
         // Process uploads.
-        for (Renderable& renderable : renderables) {
+        for (ECS::EntityID_t entity : entities) {
 
+            Components::Renderable& renderable = registry.GetComponent<Components::Renderable>(entity);
             if (!renderable.is_loaded) {
 
                 // Process transfer.
@@ -109,17 +111,17 @@ void Graphics::Renderer::Update(std::vector<Renderable>& renderables, const Grap
         // Draw commands
         SDL_GPURenderPass* p_renderPass = SDL_BeginGPURenderPass(p_cmdbuf, &colorTargetInfo, 1U, nullptr);
 
-        SDL_PushGPUVertexUniformData(p_cmdbuf, 0U, &uniform, sizeof(uniform));
+        for (ECS::EntityID_t entity : entities) {
 
-        for (Renderable& renderable : renderables) {
-
+            Components::Renderable& renderable = registry.GetComponent<Components::Renderable>(entity);
             if (renderable.is_loaded && renderable.is_visible) {
 
                 SDL_BindGPUGraphicsPipeline(p_renderPass, renderable.m_p_pipeline->Get());
                 SDL_BindGPUVertexBuffers(p_renderPass, 0, &renderable.m_vertex_buffer_binding, 1U);
                 SDL_BindGPUIndexBuffer(p_renderPass, &renderable.m_index_buffer_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+                SDL_PushGPUVertexUniformData(p_cmdbuf, 0U, &renderable.uniform_data, sizeof(renderable.uniform_data));
 
-                for (DrawCommand& command : renderable.m_drawcommands) {
+                for (Components::DrawCommand& command : renderable.m_drawcommands) {
 
                     SDL_BindGPUFragmentSamplers(p_renderPass, 0U, &command.textureSampler, 1U);
                     SDL_DrawGPUIndexedPrimitives(

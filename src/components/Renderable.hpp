@@ -1,13 +1,19 @@
 #pragma once
 #include "sdl/SDL.hpp"
 #include <SDL3/SDL_gpu.h>
-#include <cstddef>
 #include <cstdint>
 #include <vector>
-#include <memory>
+#include <glm/mat4x4.hpp>
 
-namespace Graphics {
+namespace Components {
 
+    //! Uniform data.
+    struct UniformData {
+        glm::mat4 projview{};
+        glm::mat4 model{};
+    };
+
+    // @nested part of Renderable
     struct DrawCommand {
         // per draw resources.
         SDL_GPUTextureSamplerBinding textureSampler;
@@ -42,6 +48,9 @@ namespace Graphics {
 
             //! Whether the renderable is ready for drawing.
             bool is_visible;
+
+            //! Vertex uniform data.
+            UniformData uniform_data;
 
             //! Which pipeline to bind.
             SDL::GraphicsPipeline* m_p_pipeline;
