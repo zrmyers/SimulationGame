@@ -37,6 +37,7 @@ namespace SDL::TTF {
 
             //! Used to enable or disable signed distance field.
             void SetSDF(bool use_sdf);
+            bool GetSDF() const;
 
             //! Used to configure alignment when rendering horizontal text.
             void SetHorizontalAlignment(TTF_HorizontalAlignment wrap_alignment);

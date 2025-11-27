@@ -8,6 +8,8 @@
 #include <memory>
 #include <vector>
 
+#include "UploadData.hpp"
+
 namespace Graphics {
 
     enum class RGResourceType : uint8_t {
@@ -34,41 +36,6 @@ namespace Graphics {
         private:
 
             RGResourceType m_type;
-    };
-
-    // Common Interface for upload data.
-    class IRGUploadData {
-
-        public:
-            IRGUploadData() = default;
-            IRGUploadData(const IRGUploadData&) = default;
-            IRGUploadData(IRGUploadData&&) = default;
-            IRGUploadData& operator=(const IRGUploadData&) = default;
-            IRGUploadData& operator=(IRGUploadData&&) = default;
-            virtual ~IRGUploadData() = default;
-
-            virtual size_t GetDataLength() = 0;
-            virtual void* GetDataPtr() = 0;
-    };
-
-    template<typename T>
-    class RGUploadData {
-
-        public:
-            RGUploadData(std::vector<T>&& data) {
-                m_data(std::move(data));
-            }
-
-            size_t GetDataLength() const {
-                return m_data.size();
-            }
-
-            void* GetDataSize() const {
-                return static_cast<void*>(m_data.data());
-            }
-
-        private:
-            std::vector<T> m_data;
     };
 
     // Buffer resource

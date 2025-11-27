@@ -4,7 +4,8 @@
 #include <cstdint>
 #include <vector>
 #include <glm/mat4x4.hpp>
-
+#include "graphics/pipelines/PipelineCache.hpp"
+#include "systems/RenderSystem.hpp"
 namespace Components {
 
     //! Uniform data.
@@ -36,28 +37,22 @@ namespace Components {
 
     struct Renderable {
 
-            //! Whether the renderable is loaded. If not loaded, the transfer information must be used to upload data
-            //! before drawing.
-            bool is_loaded;
-
-            //! Transfer information.
-            SDL_GPUTransferBufferLocation m_vertex_src;
-            SDL_GPUTransferBufferLocation m_index_src;
-            SDL_GPUBufferRegion m_vertex_dst;
-            SDL_GPUBufferRegion m_index_dst;
-
             //! Whether the renderable is ready for drawing.
             bool is_visible;
 
             //! Vertex uniform data.
-            UniformData uniform_data;
+            UniformData uniform_data; // todo, this should come from camera in render system. model data should be stored in seperate buffer.
 
             //! Which pipeline to bind.
-            SDL::GraphicsPipeline* m_p_pipeline;
+            Graphics::IPipeline* m_p_pipeline;
 
             //! Which vertex buffer to bind.
             SDL_GPUBufferBinding m_vertex_buffer_binding;
             SDL_GPUBufferBinding m_index_buffer_binding;
+            SDL_GPUIndexElementSize m_index_size;
+
+            //! Any transfers to execute.
+            std::vector<Systems::RenderSystem::TransferRequest> m_requests;
 
             //! Which samplers to bind.
             std::vector<DrawCommand> m_drawcommands;

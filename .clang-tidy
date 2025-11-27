@@ -6,6 +6,7 @@ Checks:
     - "concurrency-*"
     - "cppcoreguidelines-*"
     - "-cppcoreguidelines-pro-type-union-access"
+    - "-cppcoreguidelines-pro-bounds-pointer-arithmetic"
     - "performance-*"
     - "readability-*"
     - "portability-*"

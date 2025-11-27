@@ -6,10 +6,13 @@
 #include "components/Text.hpp"
 #include "components/Transform.hpp"
 #include "components/Camera.hpp"
+#include "graphics/pipelines/UnlitTexturePipeline.hpp"
+#include "sdl/SDL.hpp"
 #include "sdl/TTF.hpp"
 
+#include <SDL3/SDL_gpu.h>
 #include <SDL3_ttf/SDL_ttf.h>
-#include <array>
+#include <cstdint>
 #include <glm/ext/matrix_transform.hpp>
 #include <memory>
 
@@ -23,19 +26,17 @@ Systems::TextSystem::TextSystem(Core::Engine& engine)
     Systems::RenderSystem& renderSystem = registry.GetSystem<Systems::RenderSystem>();
     Core::AssetLoader& assetLoader = engine.GetAssetLoader();
 
-    Build3DTextPipeline(renderSystem, assetLoader.GetShaderDir());
+    m_p_textpipeline = renderSystem.CreatePipeline<Graphics::UnlitTexturePipeline>();
+    m_p_textpipeline_sdf = renderSystem.CreatePipeline<Graphics::UnlitTextureSDFPipeline>();
 
     m_vertex_buffer = renderSystem.CreateBuffer(
         SDL_GPU_BUFFERUSAGE_VERTEX,
-        sizeof(Systems::Vertex) * MAX_VERTEX_COUNT);
-
+        sizeof(Graphics::UnlitTexturedVertex) * MAX_VERTEX_COUNT);
+    m_vertex_buffer.SetBufferName("Text Vertex Buffer");
     m_index_buffer = renderSystem.CreateBuffer(
         SDL_GPU_BUFFERUSAGE_INDEX,
         sizeof(int) * MAX_INDEX_COUNT);
-
-    m_transferbuffer = renderSystem.CreateTransferBuffer(
-        SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        (sizeof(Systems::Vertex) * MAX_VERTEX_COUNT) + (sizeof(int) * MAX_INDEX_COUNT));
+    m_index_buffer.SetBufferName("Text Index Buffer");
 
     SDL_GPUSamplerCreateInfo sampler_info = {};
     sampler_info.min_filter = SDL_GPU_FILTER_LINEAR;
@@ -54,9 +55,6 @@ Systems::TextSystem::TextSystem(Core::Engine& engine)
     m_renderable = ECS::Entity(registry);
 }
 
-Systems::TextSystem::~TextSystem() {
-}
-
 std::shared_ptr<SDL::TTF::Font> Systems::TextSystem::CreateFont(const std::string& filename, float ptsize) { // NOLINT
 
     return std::make_shared<SDL::TTF::Font>(filename, ptsize);
@@ -65,6 +63,7 @@ std::shared_ptr<SDL::TTF::Font> Systems::TextSystem::CreateFont(const std::strin
 void Systems::TextSystem::Update() {
 
     ECS::Registry& registry = GetEngine().GetEcsRegistry();
+    Systems::RenderSystem& rendersystem = registry.GetSystem<Systems::RenderSystem>();
     std::set<ECS::EntityID_t> entities = GetEntities();
     const auto* cameras = registry.GetComponentArray<Components::Camera>();
 
@@ -75,23 +74,9 @@ void Systems::TextSystem::Update() {
         renderlist.reserve(entities.size());
 
         UpdateGeometryBuffer();
-        SetupTransferBuffer();
 
         // Build renderable object
         Components::Renderable& renderable = m_renderable.FindOrEmplaceComponent<Components::Renderable>();
-
-        // setup transfer
-        renderable.is_loaded = false;
-        renderable.m_vertex_src.transfer_buffer = m_transferbuffer.Get();
-        renderable.m_vertex_src.offset = 0;
-        renderable.m_vertex_dst.buffer = m_vertex_buffer.Get();
-        renderable.m_vertex_dst.offset = 0;
-        renderable.m_vertex_dst.size = sizeof(Systems::Vertex) * m_geometry_data.vertexCount;
-        renderable.m_index_src.transfer_buffer = m_transferbuffer.Get();
-        renderable.m_index_src.offset = sizeof(Systems::Vertex) * MAX_VERTEX_COUNT;
-        renderable.m_index_dst.buffer = m_index_buffer.Get();
-        renderable.m_index_dst.offset = 0;
-        renderable.m_index_dst.size = sizeof(int) * m_geometry_data.indexCount;
 
         // resource bindings
         renderable.is_visible = true;
@@ -99,8 +84,9 @@ void Systems::TextSystem::Update() {
         renderable.m_vertex_buffer_binding.offset = 0;
         renderable.m_index_buffer_binding.buffer = m_index_buffer.Get();
         renderable.m_index_buffer_binding.offset = 0;
-        renderable.m_p_pipeline = &m_textpipeline;
-
+        renderable.m_index_size = SDL_GPU_INDEXELEMENTSIZE_32BIT;
+        renderable.m_p_pipeline = m_p_textpipeline;
+        renderable.m_requests = SetupTransferBuffer(rendersystem);
         renderable.m_drawcommands.clear();
         // batch draw commands
         int32_t indexCount = 0U;
@@ -110,8 +96,12 @@ void Systems::TextSystem::Update() {
             Components::Text& text = registry.GetComponent<Components::Text>(entity);
             Components::Transform& transform = registry.GetComponent<Components::Transform>(entity);
 
+            if (text.m_p_font->GetSDF()) {
+                renderable.m_p_pipeline = m_p_textpipeline_sdf;
+            }
             renderable.uniform_data.projview = camera.GetProjection();
             renderable.uniform_data.model = transform.m_transform;
+
             for (TTF_GPUAtlasDrawSequence* p_current = text.m_p_text->GetGpuDrawData(); p_current != nullptr; p_current = p_current->next) {
 
                 Components::DrawCommand& command = renderable.m_drawcommands.emplace_back();
@@ -159,7 +149,7 @@ void Systems::TextSystem::UpdateGeometryBuffer() {
         while (p_current != nullptr) {
 
             for (int i = 0; i < p_current->num_vertices; i++) {
-                Systems::Vertex vert = {};
+                Graphics::UnlitTexturedVertex vert = {};
                 SDL_FPoint& pos = p_current->xy[i]; // NOLINT
                 SDL_FPoint& uv = p_current->uv[i]; // NOLINT
                 vert.position = glm::vec3(pos.x, pos.y, 0.0F);
@@ -181,88 +171,34 @@ void Systems::TextSystem::UpdateGeometryBuffer() {
     }
 }
 
-void Systems::TextSystem::SetupTransferBuffer() {
+std::vector<Systems::RenderSystem::TransferRequest> Systems::TextSystem::SetupTransferBuffer(Systems::RenderSystem& renderSystem) {
 
     // copy the geometry data to the transfer buffer.
-    Systems::Vertex* p_data = reinterpret_cast<Systems::Vertex*>(m_transferbuffer.Map()); // NOLINT
+    std::vector<Systems::RenderSystem::TransferRequest> requests;
 
-    memcpy(p_data, m_geometry_data.vertices.data(), sizeof(Systems::Vertex)*m_geometry_data.vertexCount);
-    memcpy(&(p_data[MAX_VERTEX_COUNT]), m_geometry_data.indices.data(), sizeof(int) * m_geometry_data.indexCount); // NOLINT
+    // vertex data
+    {
+        Systems::RenderSystem::TransferRequest request = {};
+        request.cycle = true; // don't overwrite vertex data in previous frame.
+        request.type = RenderSystem::RequestType::UPLOAD_TO_BUFFER;
+        request.data.buffer.buffer = m_vertex_buffer.Get();
+        request.data.buffer.offset = 0;
+        request.data.buffer.size = sizeof(Graphics::UnlitTexturedVertex) * m_geometry_data.vertexCount;
+        request.p_src = m_geometry_data.vertices.data();
+        requests.push_back(request);
+    }
 
-    m_transferbuffer.Unmap();
-}
+    // index data
+    {
+        Systems::RenderSystem::TransferRequest request = {};
+        request.cycle = true; // don't overwrite vertex data in previous frame.
+        request.type = RenderSystem::RequestType::UPLOAD_TO_BUFFER;
+        request.data.buffer.buffer = m_index_buffer.Get();
+        request.data.buffer.offset = 0;
+        request.data.buffer.size = sizeof(uint32_t) * m_geometry_data.indexCount;
+        request.p_src = m_geometry_data.indices.data();
+        requests.push_back(request);
+    }
 
-// Build a pipeline for rendering 3D text.
-void Systems::TextSystem::Build3DTextPipeline(Systems::RenderSystem& renderer, const std::string& shader_path) {
-    Graphics::ShaderCross compiler;
-
-    // Load file from filesystem
-    Graphics::ByteCode vertexShaderBytecode = compiler.CompileToSpirv(
-        EShLangVertex, shader_path + "/guiText.vert.glsl", "main", shader_path, {});
-
-    SDL::Shader vertexShader = renderer.CreateShader(vertexShaderBytecode);
-
-    Graphics::ByteCode fragmentShaderBytecode = compiler.CompileToSpirv(
-        EShLangFragment, shader_path + "/guiText.frag.glsl", "main", shader_path, {});
-
-    SDL::Shader fragmentShader = renderer.CreateShader(fragmentShaderBytecode);
-
-    SDL_GPUGraphicsPipelineCreateInfo pipelinecreateinfo = {};
-
-    //------------------------------------------------------------------------------------------------------------------
-    // Target Info Description
-
-    SDL_GPUGraphicsPipelineTargetInfo& targetInfo = pipelinecreateinfo.target_info;
-
-    SDL_GPUColorTargetDescription colorTargetDescription;
-    colorTargetDescription.format = renderer.GetSwapchainTextureFormat();
-    colorTargetDescription.blend_state.enable_blend = true,
-    colorTargetDescription.blend_state.alpha_blend_op = SDL_GPU_BLENDOP_ADD,
-    colorTargetDescription.blend_state.color_blend_op = SDL_GPU_BLENDOP_ADD,
-    colorTargetDescription.blend_state.color_write_mask = 0xF, // NOLINT
-    colorTargetDescription.blend_state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-    colorTargetDescription.blend_state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_DST_ALPHA,
-    colorTargetDescription.blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-    colorTargetDescription.blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
-
-    targetInfo.num_color_targets = 1;
-    targetInfo.color_target_descriptions = & colorTargetDescription;
-    targetInfo.has_depth_stencil_target = false;
-    targetInfo.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_INVALID;
-
-    //------------------------------------------------------------------------------------------------------------------
-    // Vertex Input State
-    SDL_GPUVertexInputState& vertexInputState = pipelinecreateinfo.vertex_input_state;
-    // all attributes are interleaved in same structure
-    SDL_GPUVertexBufferDescription vertexBufferDescription = {};
-    vertexBufferDescription.slot = 0;
-    vertexBufferDescription.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX;
-    vertexBufferDescription.instance_step_rate = 0;
-    vertexBufferDescription.pitch = sizeof(Systems::Vertex);
-
-    vertexInputState.vertex_buffer_descriptions = &vertexBufferDescription;
-    vertexInputState.num_vertex_buffers = 1;
-
-    std::array<SDL_GPUVertexAttribute, 3> vertexAttributes = {};
-    vertexAttributes[0].buffer_slot = 0;
-    vertexAttributes[0].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3;
-    vertexAttributes[0].location = 0;
-    vertexAttributes[0].offset = 0;
-    vertexAttributes[1].buffer_slot = 0;
-    vertexAttributes[1].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
-    vertexAttributes[1].location = 1;
-    vertexAttributes[1].offset = offsetof(Systems::Vertex, color);
-    vertexAttributes[2].buffer_slot = 0;
-    vertexAttributes[2].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
-    vertexAttributes[2].location = 2;
-    vertexAttributes[2].offset = offsetof(Systems::Vertex, texcoord);
-
-    vertexInputState.vertex_attributes = vertexAttributes.data();
-    vertexInputState.num_vertex_attributes = vertexAttributes.size();
-
-    pipelinecreateinfo.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
-    pipelinecreateinfo.vertex_shader = vertexShader.Get();
-    pipelinecreateinfo.fragment_shader = fragmentShader.Get();
-
-    m_textpipeline = renderer.CreatePipeline(pipelinecreateinfo);
+    return requests;
 }

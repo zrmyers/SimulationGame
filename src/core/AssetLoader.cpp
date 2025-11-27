@@ -12,3 +12,7 @@ std::string Core::AssetLoader::GetShaderDir() {
 std::string Core::AssetLoader::GetFontDir() {
     return m_content_dir + "/content/fonts";
 }
+
+std::string Core::AssetLoader::GetImageDir() {
+    return m_content_dir + "/content/images";
+}

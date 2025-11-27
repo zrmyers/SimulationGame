@@ -13,6 +13,8 @@ namespace Core {
 
             std::string GetFontDir();
 
+            std::string GetImageDir();
+
         private:
 
             std::string m_content_dir;

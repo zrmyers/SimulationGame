@@ -21,6 +21,8 @@ class SimulationGame : public Core::IGame {
 
         ECS::Entity m_camera_entity;
 
+        ECS::Entity m_cursor_entity;
+
         float m_rotateAngle{0.0F};
 
 };

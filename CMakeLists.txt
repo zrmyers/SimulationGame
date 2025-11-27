@@ -24,6 +24,10 @@ CPMAddPackage(
 CPMAddPackage(
     URI "gh:libsdl-org/SDL_ttf#release-3.2.2"
 )
+set(SDLIMAGE_AVIF OFF) # requires ASM_NASM compiler, which I don't want to install.
+CPMAddPackage(
+    URI "gh:libsdl-org/SDL_image#release-3.2.4"
+)
 CPMAddPackage(
     URI "gh:KhronosGroup/SPIRV-Headers#vulkan-sdk-1.4.328.1"
 )
@@ -56,6 +60,7 @@ add_executable(${PROJECT_NAME}
     ./src/sdl/SDL.cpp
     ./src/sdl/TTF.cpp
     ./src/systems/RenderSystem.cpp
+    ./src/systems/SpriteSystem.cpp
     ./src/systems/TextSystem.cpp
 )
 
@@ -64,6 +69,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ./src)
 target_link_libraries(${PROJECT_NAME} PRIVATE
     SDL3::SDL3
     SDL3_ttf::SDL3_ttf
+    SDL3_image::SDL3_image
     SPIRV
     glslang
     glslang-default-resource-limits

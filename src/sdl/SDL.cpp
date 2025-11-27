@@ -3,12 +3,18 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_iostream.h>
+#include <SDL3/SDL_log.h>
 #include <SDL3/SDL_stdinc.h>
+#include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_timer.h>
 #include <SDL3/SDL_video.h>
+#include <SDL3_image/SDL_image.h>
 #include <stdexcept>
 #include <sstream>
+#include <utility>
 
+#include "core/Engine.hpp"
+#include "core/Logger.hpp"
 #include "graphics/ShaderCross.hpp"
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -45,6 +51,59 @@ SDL::Context::~Context() {
 
 Uint64 SDL::Context::GetTicks() { // NOLINT depends on SDL_Init
     return SDL_GetTicks();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// SDL Surface
+
+SDL::Surface::Surface()
+    : m_p_surface(nullptr) {
+}
+
+SDL::Surface::Surface(Surface&& other) noexcept
+    : m_p_surface(other.m_p_surface) {
+    other.m_p_surface = nullptr;
+}
+
+SDL::Surface& SDL::Surface::operator=(Surface&& other) noexcept {
+    std::swap(m_p_surface, other.m_p_surface);
+    return *this;
+}
+
+SDL::Surface::~Surface() {
+    if (m_p_surface != nullptr) {
+        SDL_DestroySurface(m_p_surface);
+    }
+}
+
+void SDL::Surface::Load(const std::string& filename) {
+    m_p_surface = IMG_Load(filename.c_str());
+    if (m_p_surface == nullptr) {
+        throw SDL::Error("IMG_Load() failed!");
+    }
+}
+
+void SDL::Surface::SavePNG(const std::string& filename) {
+
+    if (m_p_surface != nullptr) {
+        if(!IMG_SavePNG(m_p_surface, filename.c_str())) {
+            throw SDL::Error("IMG_SavePNG() failed!");
+        }
+    }
+}
+
+void SDL::Surface::SaveJPG(const std::string& filename, int quality) {
+
+    if (m_p_surface != nullptr) {
+        if (!IMG_SaveJPG(m_p_surface, filename.c_str(), quality)) {
+            throw SDL::Error("IMG_SaveJPG() failed!");
+        }
+    }
+}
+
+SDL_Surface* SDL::Surface::Get() {
+
+    return m_p_surface;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -317,6 +376,11 @@ SDL_GPUBuffer* SDL::GpuBuffer::Get() {
     return m_p_buffer;
 }
 
+void SDL::GpuBuffer::SetBufferName(const std::string& name) {
+
+    SDL_SetGPUBufferName(m_p_device->Get(), m_p_buffer, name.c_str());
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // SDL GPU Transfer Buffer
 
@@ -365,8 +429,8 @@ SDL_GPUTransferBuffer* SDL::GpuTransferBuffer::Get() {
     return m_p_buffer;
 }
 
-void* SDL::GpuTransferBuffer::Map() {
-    void* p_mapped = SDL_MapGPUTransferBuffer(m_p_device->Get(), m_p_buffer, false);
+void* SDL::GpuTransferBuffer::Map(bool cycle) {
+    void* p_mapped = SDL_MapGPUTransferBuffer(m_p_device->Get(), m_p_buffer, cycle);
     if (p_mapped == nullptr) {
         throw SDL::Error("SDL_MapGPUTransferBuffer() failed!");
     }
@@ -428,6 +492,12 @@ SDL::GpuTexture::~GpuTexture() {
 
 SDL_GPUTexture* SDL::GpuTexture::Get() {
     return m_p_texture;
+}
+
+void SDL::GpuTexture::SetName(const std::string& name) {
+    if ((m_p_texture != nullptr) && (m_p_device != nullptr)) {
+        SDL_SetGPUTextureName(m_p_device->Get(), m_p_texture, name.c_str());
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------

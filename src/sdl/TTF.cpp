@@ -56,6 +56,10 @@ void SDL::TTF::Font::SetSDF(bool use_sdf) {
     }
 }
 
+bool SDL::TTF::Font::GetSDF() const {
+    return TTF_GetFontSDF(m_p_font);
+}
+
 void SDL::TTF::Font::SetHorizontalAlignment(TTF_HorizontalAlignment wrap_alignment) {
     TTF_SetFontWrapAlignment(m_p_font, wrap_alignment);
 }

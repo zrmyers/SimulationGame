@@ -3,14 +3,16 @@
 #include "components/Renderable.hpp"
 #include "components/Text.hpp"
 #include "components/Transform.hpp"
+#include "components/Sprite.hpp"
 #include "core/Engine.hpp"
 #include "core/Logger.hpp"
 #include "ecs/ECS.hpp"
 #include "systems/RenderSystem.hpp"
+#include "systems/SpriteSystem.hpp"
 #include "systems/TextSystem.hpp"
 #include <exception>
 #include <memory>
-#include <span>
+
 
 int main(int argc, const char** argv) {
 
@@ -32,10 +34,12 @@ int main(int argc, const char** argv) {
         registry.RegisterComponent<Components::Text>();
         registry.RegisterComponent<Components::Renderable>();
         registry.RegisterComponent<Components::Transform>();
+        registry.RegisterComponent<Components::Sprite>();
 
         // register systems
         registry.RegisterSystem(std::make_unique<Systems::RenderSystem>(engine));
         registry.RegisterSystem(std::make_unique<Systems::TextSystem>(engine));
+        registry.RegisterSystem(std::make_unique<Systems::SpriteSystem>(engine));
 
         // setup component registration
         registry.SetSystemSignature<Systems::RenderSystem>(
@@ -45,9 +49,14 @@ int main(int argc, const char** argv) {
             registry.GetComponentSignature<Components::Text>()
             | registry.GetComponentSignature<Components::Transform>()
         );
+        registry.SetSystemSignature<Systems::SpriteSystem>(
+            registry.GetComponentSignature<Components::Sprite>()
+            | registry.GetComponentSignature<Components::Transform>()
+        );
 
         // setup dependencies
         registry.SetSystemDependency<Systems::RenderSystem, Systems::TextSystem>();
+        registry.SetSystemDependency<Systems::RenderSystem, Systems::SpriteSystem>();
 
         // instantiate the game.
         std::unique_ptr<SimulationGame> p_game = std::make_unique<SimulationGame>(engine);

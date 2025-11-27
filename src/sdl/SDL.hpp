@@ -2,7 +2,9 @@
 
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_init.h>
+#include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_stdinc.h>
+#include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_video.h>
 #include <cstddef>
 #include <exception>
@@ -91,7 +93,36 @@ namespace SDL {
 
             //! Get the total amount of time in milliseconds that has elapsed since initialization.
             Uint64 GetTicks();
+    };
 
+    //! Wrapper around SDL surface object which holds image data.
+    class Image {
+
+        public:
+
+            Image(const std::string& filename);
+            Image(const Image&) = delete;
+            Image(Image&& other) noexcept;
+            Image& operator=(const Image&) = delete;
+            Image& operator=(Image&& other) noexcept;
+            ~Image();
+
+            void SavePNG(const std::string& filename);
+
+            //! See SDL_SaveJPG for docs. quality controls lossiness of jpg compression
+            void SaveJPG(const std::string& filename, int quality);
+
+            SDL_SurfaceFlags GetFlags();
+            SDL_PixelFormat GetFormat();
+            uint32_t GetWidth();
+            uint32_t GetHeight();
+            uint32_t GetPitch();
+            uint32_t GetNumChannels();
+            void* GetPixels();
+            size_t GetSize();
+        private:
+
+            SDL_Surface* m_p_surface;
     };
 
     class Window {
@@ -209,6 +240,8 @@ namespace SDL {
 
             SDL_GPUBuffer* Get();
 
+            void SetBufferName(const std::string& name);
+
         private:
             SDL_GPUBuffer* m_p_buffer;
             GpuDevice* m_p_device;
@@ -227,7 +260,7 @@ namespace SDL {
 
             SDL_GPUTransferBuffer* Get();
             //! Make gpu memory accessible to CPU.
-            void* Map();
+            void* Map(bool cycle = false);
             void Unmap();
 
         private:
@@ -249,6 +282,9 @@ namespace SDL {
             ~GpuTexture();
 
             SDL_GPUTexture* Get();
+
+            void SetName(const std::string& name);
+
         private:
 
             SDL_GPUTexture* m_p_texture;
@@ -272,4 +308,5 @@ namespace SDL {
             SDL_GPUSampler* m_p_sampler;
             GpuDevice* m_p_device;
     };
+
 }

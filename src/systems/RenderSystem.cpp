@@ -20,6 +20,9 @@
 
 #include "sdl/SDL.hpp"
 
+// Total number of bytes to allocate for a transfer buffer.
+static constexpr uint32_t TRANSFER_BUFFER_SIZE = 128U * 1024U * 1024;
+
 Systems::RenderSystem::RenderSystem(Core::Engine& engine)
     : ECS::System(engine)
     , m_window("Simulation Game", 1024, 768, SDL_WINDOW_VULKAN)
@@ -30,6 +33,8 @@ Systems::RenderSystem::RenderSystem(Core::Engine& engine)
     Core::Logger::Info("OK: Created device with driver: " + std::string(m_gpu.GetDriver()));
 
     m_gpu.ClaimWindow(m_window);
+
+    m_transfer_buffer = CreateTransferBuffer(SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD, TRANSFER_BUFFER_SIZE);
 }
 
 
@@ -67,6 +72,23 @@ SDL::GpuSampler Systems::RenderSystem::CreateSampler(SDL_GPUSamplerCreateInfo& s
     return SDL::GpuSampler(m_gpu, sampler_info);
 }
 
+SDL::GpuTexture Systems::RenderSystem::CreateTexture(SDL_GPUTextureCreateInfo& texture_info) {
+    return SDL::GpuTexture(m_gpu, texture_info);
+}
+
+void Systems::RenderSystem::UploadDataToBuffer(const std::vector<TransferRequest>& transfers) {
+
+    SDL_GPUCommandBuffer* p_cmd = SDL_AcquireGPUCommandBuffer(m_gpu.Get());
+    if (p_cmd == nullptr) {
+        throw SDL::Error("SDL_AcquireGPUCommandBuffer() failed!");
+    }
+    SDL_GPUCopyPass* p_copy = SDL_BeginGPUCopyPass(p_cmd);
+
+    ProcessDataUpload(p_copy, transfers);
+
+    SDL_EndGPUCopyPass(p_copy);
+    SDL_SubmitGPUCommandBuffer(p_cmd);
+}
 
 void Systems::RenderSystem::Update() {
 
@@ -90,21 +112,17 @@ void Systems::RenderSystem::Update() {
         for (ECS::EntityID_t entity : entities) {
 
             Components::Renderable& renderable = registry.GetComponent<Components::Renderable>(entity);
-            if (!renderable.is_loaded) {
+            if (!renderable.m_requests.empty()) {
 
                 // Process transfer.
-                SDL_UploadToGPUBuffer(p_copyPass, &renderable.m_vertex_src, &renderable.m_vertex_dst, false);
-
-                SDL_UploadToGPUBuffer(p_copyPass, &renderable.m_index_src, &renderable.m_index_dst, false);
-
-                renderable.is_loaded = true;
+                ProcessDataUpload(p_copyPass, renderable.m_requests);
             }
         }
         SDL_EndGPUCopyPass(p_copyPass);
 
         SDL_GPUColorTargetInfo colorTargetInfo = {0};
         colorTargetInfo.texture = p_swapchainTexture;
-        colorTargetInfo.clear_color = SDL_FColor{0.0, 0.0, 0.0, 1.0};
+        colorTargetInfo.clear_color = SDL_FColor{1.0, 0.0, 1.0, 1.0};
         colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
 
@@ -114,11 +132,11 @@ void Systems::RenderSystem::Update() {
         for (ECS::EntityID_t entity : entities) {
 
             Components::Renderable& renderable = registry.GetComponent<Components::Renderable>(entity);
-            if (renderable.is_loaded && renderable.is_visible) {
+            if (renderable.is_visible) {
 
-                SDL_BindGPUGraphicsPipeline(p_renderPass, renderable.m_p_pipeline->Get());
+                SDL_BindGPUGraphicsPipeline(p_renderPass, renderable.m_p_pipeline->Get().Get());
                 SDL_BindGPUVertexBuffers(p_renderPass, 0, &renderable.m_vertex_buffer_binding, 1U);
-                SDL_BindGPUIndexBuffer(p_renderPass, &renderable.m_index_buffer_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+                SDL_BindGPUIndexBuffer(p_renderPass, &renderable.m_index_buffer_binding, renderable.m_index_size);
                 SDL_PushGPUVertexUniformData(p_cmdbuf, 0U, &renderable.uniform_data, sizeof(renderable.uniform_data));
 
                 for (Components::DrawCommand& command : renderable.m_drawcommands) {
@@ -142,3 +160,38 @@ void Systems::RenderSystem::Update() {
 }
 
 
+void Systems::RenderSystem::ProcessDataUpload(SDL_GPUCopyPass* p_copypass, const std::vector<TransferRequest>& transfers) {
+
+    uint32_t transferOffset = 0U;
+
+    // map the transfer buffer.  Cycle to ensure that we don't overwrite transfer buffers that are currently bound.
+    uint8_t* p_data =static_cast<uint8_t*>( m_transfer_buffer.Map(true));
+
+    // copy data to transfer buffer
+    for (const TransferRequest& request : transfers) {
+
+        uint32_t data_len = GetRequestLength(request);
+
+        if (data_len + transferOffset > TRANSFER_BUFFER_SIZE) {
+            Core::Logger::Error("Transfer request exceeds max buffer size. skipping buffer.");
+            continue;
+        }
+
+        SDL_memcpy(p_data + transferOffset, request.p_src, data_len);
+
+        if (request.type == RequestType::UPLOAD_TO_BUFFER) {
+            SDL_GPUTransferBufferLocation src = {m_transfer_buffer.Get(), transferOffset};
+
+            SDL_UploadToGPUBuffer(p_copypass, &src, &request.data.buffer, request.cycle);
+        }
+        else if (request.type == RequestType::UPLOAD_TO_TEXTURE) {
+            SDL_GPUTextureTransferInfo src = {m_transfer_buffer.Get(), transferOffset, 0U, 0U};
+
+            SDL_UploadToGPUTexture(p_copypass, &src, &request.data.texture, request.cycle);
+        }
+
+        transferOffset += data_len;
+    }
+
+    m_transfer_buffer.Unmap();
+}
