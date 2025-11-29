@@ -16,6 +16,7 @@
 #include <array>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/scalar_constants.hpp>
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -83,7 +84,9 @@ SimulationGame::SimulationGame(Core::Engine& engine)
     renderer.UploadDataToBuffer({request});
 
     Components::Transform& transform = m_cursor_entity.EmplaceComponent<Components::Transform>();
-    transform.Scale({static_cast<float>(region.w)/1024.0F, static_cast<float>(region.h)/768.0F, 1.0F});  // scale cursor by half.
+    transform
+        .Scale({static_cast<float>(region.w)/1024.0F, static_cast<float>(region.h)/768.0F, 1.0F})  // scale cursor by half.
+        .Rotate(glm::pi<float>()/5.0F, glm::vec3(0.0F, 0.0F, 1.0F));
 }
 
 void SimulationGame::Update() {
