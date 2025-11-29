@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Renderable.hpp"
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_RADIANS
 #include "glm/mat4x4.hpp"
@@ -11,9 +12,9 @@
 namespace Components {
 
     struct Camera {
-            static constexpr glm::vec3 DEFAULT_DIR = {0.0F, 1.0F, 0.0F};
-            static constexpr glm::vec3 DEFAULT_POS = {1.0F, 1.0F, 1.0F };
-            static constexpr glm::vec3 DEFAULT_UP = {0.0F, 0.0F, 1.0F};
+            static constexpr glm::vec3 DEFAULT_DIR = {0.0F, 0.0F, -1.0F};
+            static constexpr glm::vec3 DEFAULT_POS = {0.0F, 0.0F, 0.0F };
+            static constexpr glm::vec3 DEFAULT_UP = {0.0F, 1.0F, 0.0F};
             static constexpr float DEFAULT_FOV_RAD = glm::pi<float>() / 2.0F;
             static constexpr float DEFAULT_ASPECT_RATIO = 1024.0F / 768.0F;
             static constexpr float DEFAULT_NEAR_CLIP = 0.1F;
@@ -27,6 +28,7 @@ namespace Components {
             float m_aspect_ratio {DEFAULT_ASPECT_RATIO};
             float m_near_clip {DEFAULT_NEAR_CLIP};
             float m_far_clip {DEFAULT_FAR_CLIP};
+            RenderLayer m_layer {RenderLayer::LAYER_NONE};
 
             // Transformations
             Camera& Rotate(float delta, const glm::vec3& axis) {

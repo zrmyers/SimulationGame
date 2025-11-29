@@ -1,5 +1,6 @@
 #include "RenderSystem.hpp"
 
+#include "components/Camera.hpp"
 #include "components/Renderable.hpp"
 #include "core/Engine.hpp"
 #include "core/Logger.hpp"
@@ -19,6 +20,11 @@
 #include <vector>
 
 #include "sdl/SDL.hpp"
+
+struct PerVertexUniformData {
+    glm::mat4 projView;
+    glm::mat4 model;
+};
 
 // Total number of bytes to allocate for a transfer buffer.
 static constexpr uint32_t TRANSFER_BUFFER_SIZE = 128U * 1024U * 1024;
@@ -106,6 +112,7 @@ void Systems::RenderSystem::Update() {
 
         ECS::Registry& registry = GetEngine().GetEcsRegistry();
         std::set<ECS::EntityID_t> entities = GetEntities();
+        const auto& cameras = registry.GetComponentArray<Components::Camera>();
 
         SDL_GPUCopyPass* p_copyPass = SDL_BeginGPUCopyPass(p_cmdbuf);
         // Process uploads.
@@ -122,7 +129,7 @@ void Systems::RenderSystem::Update() {
 
         SDL_GPUColorTargetInfo colorTargetInfo = {0};
         colorTargetInfo.texture = p_swapchainTexture;
-        colorTargetInfo.clear_color = SDL_FColor{1.0, 0.0, 1.0, 1.0};
+        colorTargetInfo.clear_color = SDL_FColor{0.0, 0.0, 0.0, 1.0};
         colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
 
@@ -132,24 +139,52 @@ void Systems::RenderSystem::Update() {
         for (ECS::EntityID_t entity : entities) {
 
             Components::Renderable& renderable = registry.GetComponent<Components::Renderable>(entity);
-            if (renderable.is_visible) {
+            if (renderable.m_layer == Components::RenderLayer::LAYER_GUI) {
+                PerVertexUniformData uniform = {};
+                uniform.model = renderable.transform;
+                uniform.projView = glm::mat4(1.0F); // orthrographic camera
 
                 SDL_BindGPUGraphicsPipeline(p_renderPass, renderable.m_p_pipeline->Get().Get());
                 SDL_BindGPUVertexBuffers(p_renderPass, 0, &renderable.m_vertex_buffer_binding, 1U);
                 SDL_BindGPUIndexBuffer(p_renderPass, &renderable.m_index_buffer_binding, renderable.m_index_size);
-                SDL_PushGPUVertexUniformData(p_cmdbuf, 0U, &renderable.uniform_data, sizeof(renderable.uniform_data));
 
-                for (Components::DrawCommand& command : renderable.m_drawcommands) {
+                SDL_PushGPUVertexUniformData(p_cmdbuf, 0U, &uniform, sizeof(uniform));
 
-                    SDL_BindGPUFragmentSamplers(p_renderPass, 0U, &command.textureSampler, 1U);
-                    SDL_DrawGPUIndexedPrimitives(
-                        p_renderPass,
-                        command.m_num_indices,
-                        command.m_num_instances,
-                        command.m_start_index,
-                        command.m_vertex_offset,
-                        command.m_start_instance);
-                }
+                SDL_BindGPUFragmentSamplers(p_renderPass, 0U, &renderable.textureSampler, 1U);
+
+                Components::DrawCommand& command = renderable.m_drawcommand;
+                SDL_DrawGPUIndexedPrimitives(
+                    p_renderPass,
+                    command.m_num_indices,
+                    command.m_num_instances,
+                    command.m_start_index,
+                    command.m_vertex_offset,
+                    command.m_start_instance);
+            } else if ((renderable.m_layer == Components::RenderLayer::LAYER_3D_OPAQUE)
+                && (cameras->GetSize() > 0)) {
+
+                const Components::Camera& camera = cameras->GetByIndex(0U); // orthrographic camera
+
+                PerVertexUniformData uniform = {};
+                uniform.model = renderable.transform;
+                uniform.projView = camera.GetProjection() * camera.GetView();
+
+                SDL_BindGPUGraphicsPipeline(p_renderPass, renderable.m_p_pipeline->Get().Get());
+                SDL_BindGPUVertexBuffers(p_renderPass, 0, &renderable.m_vertex_buffer_binding, 1U);
+                SDL_BindGPUIndexBuffer(p_renderPass, &renderable.m_index_buffer_binding, renderable.m_index_size);
+
+                SDL_PushGPUVertexUniformData(p_cmdbuf, 0U, &uniform, sizeof(uniform));
+
+                SDL_BindGPUFragmentSamplers(p_renderPass, 0U, &renderable.textureSampler, 1U);
+
+                Components::DrawCommand& command = renderable.m_drawcommand;
+                SDL_DrawGPUIndexedPrimitives(
+                    p_renderPass,
+                    command.m_num_indices,
+                    command.m_num_instances,
+                    command.m_start_index,
+                    command.m_vertex_offset,
+                    command.m_start_instance);
             }
         }
 

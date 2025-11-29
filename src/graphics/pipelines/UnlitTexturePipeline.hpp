@@ -21,8 +21,8 @@ namespace Graphics {
         public:
 
             UnlitTexturePipeline()
-                : m_vertex_name("guiText.vert.glsl")
-                , m_frag_name("guiText.frag.glsl") {
+                : m_vertex_name("unlitTextured.vert.glsl")
+                , m_frag_name("unlitTextured.frag.glsl") {
             };
 
             UnlitTexturePipeline(std::string vertex_name, std::string frag_name)
@@ -122,6 +122,6 @@ namespace Graphics {
         public:
 
             UnlitTextureSDFPipeline()
-                : UnlitTexturePipeline("guiText.vert.glsl", "guiText-sdf.frag.glsl"){};
+                : UnlitTexturePipeline("unlitTextured.vert.glsl", "unlitFont-sdf.frag.glsl"){};
     };
 }

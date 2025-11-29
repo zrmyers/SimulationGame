@@ -1,8 +1,6 @@
 #pragma once
 
-#include "components/Renderable.hpp"
-#include "components/Transform.hpp"
-#include "components/Sprite.hpp"
+#include "RenderSystem.hpp"
 #include "core/Engine.hpp"
 #include "ecs/ECS.hpp"
 #include "graphics/pipelines/PipelineCache.hpp"
@@ -10,7 +8,6 @@
 #include "sdl/SDL.hpp"
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_stdinc.h>
-#include <unordered_map>
 
 namespace Systems {
 
@@ -27,15 +24,7 @@ namespace Systems {
 
         private:
 
-            // Add a sprite to the geometry buffers.
-            void InputSprite(const Components::Sprite& sprite, const Components::Transform& transform);
-            void OutputBatch(
-                Components::Renderable& renderable,
-                SDL_GPUTexture* p_texture,
-                uint32_t vertexOffset,
-                uint32_t numVertices,
-                uint32_t indexOffset,
-                uint32_t numIndices);
+            void UploadData(Systems::RenderSystem& rendersystem);
 
             // Pipeline for rendering sprites.
             Graphics::IPipeline* m_p_sprite_pipeline;
@@ -54,8 +43,5 @@ namespace Systems {
             //! Geometry data.
             std::vector<Graphics::UnlitTexturedVertex> m_vertices;
             std::vector<Uint16> m_indices;
-
-            //! Sprite Batches
-            std::unordered_map<SDL_GPUTexture*, ECS::Entity> m_sprite_batches;
     };
 }

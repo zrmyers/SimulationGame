@@ -6,18 +6,19 @@
 #include <glm/mat4x4.hpp>
 #include "graphics/pipelines/PipelineCache.hpp"
 #include "systems/RenderSystem.hpp"
+
 namespace Components {
 
-    //! Uniform data.
-    struct UniformData {
-        glm::mat4 projview{};
-        glm::mat4 model{};
+    // Which render layer the object is rendered to.
+    enum class RenderLayer : uint8_t {
+        LAYER_NONE = 0, // The object is invisible
+        LAYER_3D_OPAQUE,
+        LAYER_3D_TRANSPARENT,
+        LAYER_GUI
     };
 
     // @nested part of Renderable
     struct DrawCommand {
-        // per draw resources.
-        SDL_GPUTextureSamplerBinding textureSampler;
 
         //! Starting index
         uint32_t m_start_index;
@@ -38,10 +39,7 @@ namespace Components {
     struct Renderable {
 
             //! Whether the renderable is ready for drawing.
-            bool is_visible;
-
-            //! Vertex uniform data.
-            UniformData uniform_data; // todo, this should come from camera in render system. model data should be stored in seperate buffer.
+            RenderLayer m_layer;
 
             //! Which pipeline to bind.
             Graphics::IPipeline* m_p_pipeline;
@@ -54,8 +52,32 @@ namespace Components {
             //! Any transfers to execute.
             std::vector<Systems::RenderSystem::TransferRequest> m_requests;
 
+            // per draw resources.
+            SDL_GPUTextureSamplerBinding textureSampler;
+
+            // transform
+            glm::mat4 transform;
+
             //! Which samplers to bind.
-            std::vector<DrawCommand> m_drawcommands;
+            DrawCommand m_drawcommand;
+
+            void Reset() {
+                m_layer = RenderLayer::LAYER_NONE;
+
+                // material
+                m_p_pipeline = nullptr;
+
+                // mesh
+                m_vertex_buffer_binding = {};
+                m_index_buffer_binding = {};
+                m_index_size = SDL_GPU_INDEXELEMENTSIZE_32BIT;
+
+                // upload
+                m_requests.clear();
+
+                // draw
+                m_drawcommand = {};
+            }
     };
 
 }

@@ -48,11 +48,9 @@ Systems::TextSystem::TextSystem(Core::Engine& engine)
 
     m_sampler = renderSystem.CreateSampler(sampler_info);
 
-    m_geometry_data.vertices.resize(MAX_VERTEX_COUNT);
-    m_geometry_data.indices.resize(MAX_INDEX_COUNT);
+    m_geometry_data.vertices.reserve(MAX_VERTEX_COUNT);
+    m_geometry_data.indices.reserve(MAX_INDEX_COUNT);
     m_textengine = SDL::TTF::TextEngine(renderSystem.GetGpuDevice());
-
-    m_renderable = ECS::Entity(registry);
 }
 
 std::shared_ptr<SDL::TTF::Font> Systems::TextSystem::CreateFont(const std::string& filename, float ptsize) { // NOLINT
@@ -65,66 +63,68 @@ void Systems::TextSystem::Update() {
     ECS::Registry& registry = GetEngine().GetEcsRegistry();
     Systems::RenderSystem& rendersystem = registry.GetSystem<Systems::RenderSystem>();
     std::set<ECS::EntityID_t> entities = GetEntities();
-    const auto* cameras = registry.GetComponentArray<Components::Camera>();
 
-    if (!entities.empty() && (cameras->GetSize() > 0)) {
-        const Components::Camera& camera = cameras->GetByIndex(0);
+    if (!entities.empty()) {
 
-        std::vector<Components::Renderable> renderlist;
-        renderlist.reserve(entities.size());
-
+        // update buffers
         UpdateGeometryBuffer();
 
-        // Build renderable object
-        Components::Renderable& renderable = m_renderable.FindOrEmplaceComponent<Components::Renderable>();
+        // upload data to gpu
+        rendersystem.UploadDataToBuffer(SetupTransferBuffer(rendersystem));
 
-        // resource bindings
-        renderable.is_visible = true;
-        renderable.m_vertex_buffer_binding.buffer = m_vertex_buffer.Get();
-        renderable.m_vertex_buffer_binding.offset = 0;
-        renderable.m_index_buffer_binding.buffer = m_index_buffer.Get();
-        renderable.m_index_buffer_binding.offset = 0;
-        renderable.m_index_size = SDL_GPU_INDEXELEMENTSIZE_32BIT;
-        renderable.m_p_pipeline = m_p_textpipeline;
-        renderable.m_requests = SetupTransferBuffer(rendersystem);
-        renderable.m_drawcommands.clear();
-        // batch draw commands
-        int32_t indexCount = 0U;
-        int32_t vertexOffset = 0U;
+        uint32_t indexCount = 0U;
+        uint32_t vertexCount = 0U;
+        // Build renderable object for each entity
         for (ECS::EntityID_t entity : entities) {
 
             Components::Text& text = registry.GetComponent<Components::Text>(entity);
             Components::Transform& transform = registry.GetComponent<Components::Transform>(entity);
 
+            Components::Renderable& renderable = registry.FindOrEmplaceComponent<Components::Renderable>(entity);
+
             if (text.m_p_font->GetSDF()) {
                 renderable.m_p_pipeline = m_p_textpipeline_sdf;
             }
-            renderable.uniform_data.projview = camera.GetProjection();
-            renderable.uniform_data.model = transform.m_transform;
+            else {
+                renderable.m_p_pipeline = m_p_textpipeline;
+            }
+            renderable.m_layer = text.m_layer;
+            renderable.transform = transform.m_transform;
+
+            renderable.m_vertex_buffer_binding.buffer = m_vertex_buffer.Get();
+            renderable.m_vertex_buffer_binding.offset = 0;
+            renderable.m_index_buffer_binding.buffer = m_index_buffer.Get();
+            renderable.m_index_buffer_binding.offset = 0;
+            renderable.textureSampler.sampler = m_sampler.Get();
+
+            renderable.m_drawcommand.m_start_index = indexCount;
+            renderable.m_drawcommand.m_vertex_offset = static_cast<int32_t>(vertexCount);
+            renderable.m_drawcommand.m_start_instance = 0;
+            renderable.m_drawcommand.m_num_instances = 1;
+            renderable.m_index_size = SDL_GPU_INDEXELEMENTSIZE_32BIT;
 
             for (TTF_GPUAtlasDrawSequence* p_current = text.m_p_text->GetGpuDrawData(); p_current != nullptr; p_current = p_current->next) {
 
-                Components::DrawCommand& command = renderable.m_drawcommands.emplace_back();
-                command.textureSampler = {p_current->atlas_texture, m_sampler.Get()};
-                command.m_num_indices = p_current->num_indices;
-                command.m_num_instances = 1;
-                command.m_start_index = indexCount;
-                command.m_vertex_offset = vertexOffset;
-                command.m_start_instance = 0;
+                if (renderable.textureSampler.texture != p_current->atlas_texture) {
+                    renderable.textureSampler.texture = p_current->atlas_texture;
+                }
 
                 indexCount += p_current->num_indices;
-                vertexOffset += p_current->num_vertices;
+                vertexCount += p_current->num_vertices;
             }
+
+            renderable.m_drawcommand.m_num_indices = indexCount;
         }
     }
+
 }
 
 void Systems::TextSystem::UpdateGeometryBuffer() {
 
     ECS::Registry& registry = GetEngine().GetEcsRegistry();
     std::set<ECS::EntityID_t>& entities = GetEntities();
-    m_geometry_data.vertexCount = 0;
-    m_geometry_data.indexCount = 0;
+    m_geometry_data.vertices.clear();
+    m_geometry_data.indices.clear();
 
     // Build renderable object for text buffer.
     for (ECS::EntityID_t entity : entities) {
@@ -148,6 +148,7 @@ void Systems::TextSystem::UpdateGeometryBuffer() {
         TTF_GPUAtlasDrawSequence* p_current = p_sequence;
         while (p_current != nullptr) {
 
+            int32_t indexStart = static_cast<int32_t>(m_geometry_data.vertices.size());
             for (int i = 0; i < p_current->num_vertices; i++) {
                 Graphics::UnlitTexturedVertex vert = {};
                 SDL_FPoint& pos = p_current->xy[i]; // NOLINT
@@ -156,15 +157,12 @@ void Systems::TextSystem::UpdateGeometryBuffer() {
                 vert.color = text.m_color;
                 vert.texcoord = glm::vec2(uv.x, uv.y);
 
-                m_geometry_data.vertices[m_geometry_data.vertexCount + i] = vert;
+                m_geometry_data.vertices.push_back(vert);
             }
 
-            memcpy(
-                &m_geometry_data.indices.at(m_geometry_data.indexCount),
-                p_current->indices,
-                p_current->num_indices * sizeof(int));
-            m_geometry_data.vertexCount += p_current->num_vertices;
-            m_geometry_data.indexCount += p_current->num_indices;
+            for (int i = 0; i < p_current->num_indices; i++) {
+                m_geometry_data.indices.push_back(indexStart + p_current->indices[i]);
+            }
 
             p_current = p_current->next;
         }
@@ -183,7 +181,7 @@ std::vector<Systems::RenderSystem::TransferRequest> Systems::TextSystem::SetupTr
         request.type = RenderSystem::RequestType::UPLOAD_TO_BUFFER;
         request.data.buffer.buffer = m_vertex_buffer.Get();
         request.data.buffer.offset = 0;
-        request.data.buffer.size = sizeof(Graphics::UnlitTexturedVertex) * m_geometry_data.vertexCount;
+        request.data.buffer.size = sizeof(Graphics::UnlitTexturedVertex) * m_geometry_data.vertices.size();
         request.p_src = m_geometry_data.vertices.data();
         requests.push_back(request);
     }
@@ -195,7 +193,7 @@ std::vector<Systems::RenderSystem::TransferRequest> Systems::TextSystem::SetupTr
         request.type = RenderSystem::RequestType::UPLOAD_TO_BUFFER;
         request.data.buffer.buffer = m_index_buffer.Get();
         request.data.buffer.offset = 0;
-        request.data.buffer.size = sizeof(uint32_t) * m_geometry_data.indexCount;
+        request.data.buffer.size = sizeof(uint32_t) * m_geometry_data.indices.size();
         request.p_src = m_geometry_data.indices.data();
         requests.push_back(request);
     }

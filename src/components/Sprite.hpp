@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Renderable.hpp"
 #include "sdl/SDL.hpp"
 #include "glm/vec2.hpp"
 #include "glm/vec4.hpp"
@@ -22,6 +23,9 @@ namespace Components {
         // The UV coordinate at the top-right corner of the sprite.
         // The color to apply to the sprite.
         glm::vec4 color {1.0F, 1.0F, 1.0F, 1.0F};
+
+        // Which layer the sprite should be rendered to.
+        RenderLayer layer {RenderLayer::LAYER_NONE};
     };
 
 }

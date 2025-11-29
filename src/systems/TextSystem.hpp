@@ -17,9 +17,7 @@ namespace Systems {
 
     struct GeometryData {
         std::vector<Graphics::UnlitTexturedVertex> vertices;
-        int vertexCount = 0;
         std::vector<int> indices;
-        int indexCount = 0;
     };
 
     class TextSystem : public ECS::System {
@@ -64,9 +62,5 @@ namespace Systems {
 
             //! Text Engine
             SDL::TTF::TextEngine m_textengine;
-
-            //! List of render objects.
-            ECS::Entity m_renderable;
-
     };
 }

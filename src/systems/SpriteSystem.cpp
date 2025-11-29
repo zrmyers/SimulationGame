@@ -57,149 +57,83 @@ Systems::SpriteSystem::SpriteSystem(Core::Engine& engine)
 
 void Systems::SpriteSystem::Update() {
 
-    std::unordered_map<SDL_GPUTexture*, ECS::Entity> renderBatches;
     // sort the sprites
-    std::unordered_map<SDL_GPUTexture*, std::list<ECS::EntityID_t>> entitiesByTexture;
     ECS::Registry& registry = GetEngine().GetEcsRegistry();
-
-    // sort sprites into batches
-    for (ECS::EntityID_t entityID : GetEntities()) {
-
-        auto& sprite = registry.GetComponent<Components::Sprite>(entityID);
-
-        auto batchIter = entitiesByTexture.find(sprite.texture.Get());
-        if (batchIter != entitiesByTexture.end()) {
-            batchIter->second.push_back(entityID);
-        }
-        else {
-            entitiesByTexture[sprite.texture.Get()] = {entityID};
-        }
-    }
 
     m_vertices.clear();
     m_indices.clear();
 
-    uint32_t num_vertices = 0U;
-    uint32_t vertex_offset = 0U;
-    uint32_t num_indices = 0U;
-    uint32_t index_offset = 0U;
+    // sort sprites into batches
+    for (ECS::EntityID_t entityID : GetEntities()) {
 
-    // for each batch, build sprite geometry, and output renderable.
-    for (auto& batchIter : entitiesByTexture) {
+        // inputs
+        auto& sprite = registry.GetComponent<Components::Sprite>(entityID);
+        auto& transform = registry.GetComponent<Components::Transform>(entityID);
 
-        // update geometry buffers
-        for (ECS::EntityID_t entityID : batchIter.second) {
+        // output
+        auto& renderable = registry.FindOrEmplaceComponent<Components::Renderable>(entityID);
 
-            auto& sprite = registry.GetComponent<Components::Sprite>(entityID);
-            auto& transform = registry.GetComponent<Components::Transform>(entityID);
+        size_t startIndex = m_indices.size();
+        size_t numVertices = m_vertices.size();
+        // buffer vertex transfer
+        m_vertices.push_back({{-1.0F, 1.0F, 0.0F}, sprite.color, sprite.topLeftUV});
+        m_vertices.push_back({{1.0F, 1.0F, 0.0F}, sprite.color, {sprite.bottomRightUV.x, sprite.topLeftUV.y}});
+        m_vertices.push_back({{1.0F, -1.0F, 0.0F}, sprite.color, sprite.bottomRightUV});
+        m_vertices.push_back({{-1.0F, -1.0F, 0.0F}, sprite.color, {sprite.topLeftUV.x, sprite.bottomRightUV.y}});
 
-            InputSprite(sprite, transform);
-            num_vertices += 4;
-            num_indices += 6;
-        }
+        m_indices.push_back(numVertices + 0);
+        m_indices.push_back(numVertices + 1);
+        m_indices.push_back(numVertices + 2);
+        m_indices.push_back(numVertices + 0);
+        m_indices.push_back(numVertices + 2);
+        m_indices.push_back(numVertices + 3);
 
-        // reuse existing entity from previous list. Otherwise create a new entity.
-        auto renderableIter = m_sprite_batches.find(batchIter.first);
-        if (renderableIter != m_sprite_batches.end()) {
+        renderable.m_vertex_buffer_binding.buffer = m_vertex_buffer.Get();
+        renderable.m_vertex_buffer_binding.offset = 0U;
+        renderable.m_index_buffer_binding.buffer = m_index_buffer.Get();
+        renderable.m_index_buffer_binding.offset = 0U;
+        renderable.m_index_size = SDL_GPU_INDEXELEMENTSIZE_16BIT;
+        renderable.m_p_pipeline = m_p_sprite_pipeline;
+        renderable.transform = transform.m_transform;
+        renderable.textureSampler.sampler = m_sampler.Get();
+        renderable.textureSampler.texture = sprite.texture.Get();
 
-            renderBatches.insert(m_sprite_batches.extract(batchIter.first));
-        }
-        else {
-            renderBatches[batchIter.first] = ECS::Entity(registry);
-        }
-
-        ECS::Entity& entity = renderBatches.at(batchIter.first);
-        Components::Renderable& renderable = entity.FindOrEmplaceComponent<Components::Renderable>();
-        OutputBatch(
-            renderable,
-            batchIter.first,
-            vertex_offset, // starting vertex in batch
-            num_vertices, // number of vertices in batch
-            index_offset, // starting index in batch
-            num_indices); // number of vertices in batch
-        vertex_offset += num_vertices;
-        index_offset += num_indices;
-        num_vertices = 0;
-        num_indices = 0;
+        Components::DrawCommand& command = renderable.m_drawcommand;
+        command.m_num_indices = 6;
+        command.m_num_instances = 1U;
+        command.m_start_index = startIndex;
+        command.m_vertex_offset = static_cast<int32_t>(numVertices);
+        command.m_start_instance = 0U;
+        renderable.m_layer = sprite.layer;
     }
 
-    renderable.is_visible = true;
-    renderable.m_vertex_buffer_binding.buffer = m_vertex_buffer.Get();
-    renderable.m_vertex_buffer_binding.offset = 0;
-    renderable.m_index_buffer_binding.buffer = m_index_buffer.Get();
-    renderable.m_index_buffer_binding.offset = 0;
-    renderable.m_index_size = SDL_GPU_INDEXELEMENTSIZE_16BIT;
-    renderable.m_drawcommands.clear();
-    renderable.m_p_pipeline = m_p_sprite_pipeline;
-
-    renderable.uniform_data.model = glm::mat4(1.0F);
-    renderable.uniform_data.projview = glm::mat4(1.0F);
-
-    Components::DrawCommand& command = renderable.m_drawcommands.emplace_back();
-    command.m_num_indices = 6;
-    command.m_num_instances = 1;
-    command.m_start_index = 0;
-    command.m_start_instance = 0;
-    command.m_vertex_offset = 0;
-    command.textureSampler.sampler = m_sampler.Get();
-    command.textureSampler.texture = m_texture.Get();
+    UploadData(registry.GetSystem<Systems::RenderSystem>());
 }
 
-void Systems::SpriteSystem::UploadData(Systems::RenderSystem& renderSystem) {
+void Systems::SpriteSystem::UploadData(Systems::RenderSystem& rendersystem) {
 
     // setup transfer buffers
     std::vector<Systems::RenderSystem::TransferRequest> requests;
     requests.reserve(2);
     Systems::RenderSystem::TransferRequest request = {};
 
-
     request.cycle = false;
     request.type = Systems::RenderSystem::RequestType::UPLOAD_TO_BUFFER;
     SDL_GPUBufferRegion& vertexRegion = request.data.buffer;
     vertexRegion.buffer = m_vertex_buffer.Get();
     vertexRegion.offset = 0;
-    vertexRegion.size = sizeof(Graphics::UnlitTexturedVertex) * vertices.size();
-    request.p_src = vertices.data();
+    vertexRegion.size = sizeof(Graphics::UnlitTexturedVertex) * m_vertices.size();
+    request.p_src = m_vertices.data();
     requests.push_back(request);
-
-    std::vector<uint16_t> indexData;
-    indexData.resize(6);
 
     request.cycle = false;
     request.type = Systems::RenderSystem::RequestType::UPLOAD_TO_BUFFER;
     SDL_GPUBufferRegion& indexRegion = request.data.buffer;
     indexRegion.buffer = m_index_buffer.Get();
     indexRegion.offset = 0;
-    indexRegion.size = sizeof(uint16_t) * indexData.size();
-    request.p_src = indexData.data();
+    indexRegion.size = sizeof(uint16_t) * m_indices.size();
+    request.p_src = m_indices.data();
     requests.push_back(request);
 
-    renderSystem.UploadDataToBuffer(requests);
-}
-
-void Systems::SpriteSystem::InputSprite(const Components::Sprite& sprite, const Components::Transform& transform) {
-
-    size_t vertex_offset = m_vertices.size();
-    // buffer vertex transfer
-    m_vertices.push_back({{-1.0F, 1.0F, 0.0F}, sprite.color, sprite.topLeftUV});
-    m_vertices.push_back({{1.0F, 1.0F, 0.0F}, sprite.color, {sprite.bottomRightUV.x, sprite.topLeftUV.y}});
-    m_vertices.push_back({{1.0F, -1.0F, 0.0F}, sprite.color, sprite.bottomRightUV});
-    m_vertices.push_back({{-1.0F, -1.0F, 0.0F}, sprite.color, {sprite.topLeftUV.x, sprite.bottomRightUV.y}});
-
-    m_indices.push_back(vertex_offset + 0);
-    m_indices.push_back(vertex_offset + 1);
-    m_indices.push_back(vertex_offset + 2);
-    m_indices.push_back(vertex_offset + 0);
-    m_indices.push_back(vertex_offset + 2);
-    m_indices.push_back(vertex_offset + 3);
-}
-
-void Systems::SpriteSystem::OutputBatch(
-    Components::Renderable& renderable,
-    SDL_GPUTexture* p_texture,
-    uint32_t vertexOffset,
-    uint32_t numVertices,
-    uint32_t indexOffset,
-    uint32_t numIndices) {
-
+    rendersystem.UploadDataToBuffer(requests);
 }

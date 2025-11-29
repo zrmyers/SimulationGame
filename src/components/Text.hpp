@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Renderable.hpp"
 #include "sdl/TTF.hpp"
 #include <string>
 #include <glm/vec4.hpp>
@@ -21,6 +22,9 @@ namespace Components {
         //! The text object.
         std::shared_ptr<SDL::TTF::Text> m_p_text;
 
-        Text() : m_color(1.0F, 1.0F, 1.0F, 1.0F) { };
+        //! Which layer the text is rendered to.
+        RenderLayer m_layer{};
+
+        Text() : m_color(1.0F, 1.0F, 1.0F, 1.0F), m_layer(RenderLayer::LAYER_NONE) { };
     };
 }

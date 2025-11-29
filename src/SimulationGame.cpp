@@ -1,5 +1,6 @@
 #include "SimulationGame.hpp"
 #include "components/Camera.hpp"
+#include "components/Renderable.hpp"
 #include "components/Sprite.hpp"
 #include "components/Text.hpp"
 #include "components/Transform.hpp"
@@ -41,6 +42,7 @@ SimulationGame::SimulationGame(Core::Engine& engine)
     text.m_p_font = m_font;
     text.m_color = glm::vec4(0.0F, 1.0F, 0.0F, 1.0F);
     text.m_string = "Hello World\n1234";
+    text.m_layer = Components::RenderLayer::LAYER_3D_OPAQUE;
 
     // setup camera object
     m_camera_entity = ECS::Entity(registry);
@@ -54,7 +56,7 @@ SimulationGame::SimulationGame(Core::Engine& engine)
     cursor.bottomRightUV = {1.0F,1.0F};
 
     // loading a texture is still lot of work, but getting there.
-    SDL::Image image("cursor.png");
+    SDL::Image image(assetLoader.GetImageDir() + "/cursor.png");
     SDL_GPUTextureCreateInfo textureInfo = {};
     textureInfo.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
     textureInfo.type = SDL_GPU_TEXTURETYPE_2D;
@@ -65,6 +67,7 @@ SimulationGame::SimulationGame(Core::Engine& engine)
     textureInfo.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
     cursor.texture = renderer.CreateTexture(textureInfo);
     cursor.texture.SetName("Cursor");
+    cursor.layer = Components::RenderLayer::LAYER_GUI;
 
     // texture transfer
     Systems::RenderSystem::TransferRequest request = {};
@@ -80,7 +83,7 @@ SimulationGame::SimulationGame(Core::Engine& engine)
     renderer.UploadDataToBuffer({request});
 
     Components::Transform& transform = m_cursor_entity.EmplaceComponent<Components::Transform>();
-    transform.Scale({0.5F, 0.5F, 1.0F});  // scale cursor by half.
+    transform.Scale({static_cast<float>(region.w)/1024.0F, static_cast<float>(region.h)/768.0F, 1.0F});  // scale cursor by half.
 }
 
 void SimulationGame::Update() {
@@ -99,13 +102,13 @@ void SimulationGame::Update() {
         int textHeight = 0;
         text.m_p_text->GetSize(textWidth, textHeight);
 
-        m_rotateAngle += glm::pi<float>()/10.0F * deltaTimeSec;
+        m_rotateAngle += glm::pi<float>()/2.0F * deltaTimeSec;
         Components::Transform& transform = m_text_entity.GetComponent<Components::Transform>();
 
         // text pipeline
         transform
             .Set(glm::mat4(1.0F))
-            .Translate(glm::vec3(0.0F, 0.0F, -80.0F))
+            .Translate(glm::vec3(0.0F, -0.0F, -80.0F))
             .Scale(glm::vec3(0.3F, 0.3F, 0.3F))
             .Rotate(m_rotateAngle, glm::vec3(0.0F, 1.0F, 0.0F));
     }

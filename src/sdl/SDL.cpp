@@ -56,34 +56,30 @@ Uint64 SDL::Context::GetTicks() { // NOLINT depends on SDL_Init
 //----------------------------------------------------------------------------------------------------------------------
 // SDL Surface
 
-SDL::Surface::Surface()
-    : m_p_surface(nullptr) {
-}
-
-SDL::Surface::Surface(Surface&& other) noexcept
-    : m_p_surface(other.m_p_surface) {
-    other.m_p_surface = nullptr;
-}
-
-SDL::Surface& SDL::Surface::operator=(Surface&& other) noexcept {
-    std::swap(m_p_surface, other.m_p_surface);
-    return *this;
-}
-
-SDL::Surface::~Surface() {
-    if (m_p_surface != nullptr) {
-        SDL_DestroySurface(m_p_surface);
-    }
-}
-
-void SDL::Surface::Load(const std::string& filename) {
-    m_p_surface = IMG_Load(filename.c_str());
+SDL::Image::Image(const std::string& filename)
+    : m_p_surface(IMG_Load(filename.c_str())){
     if (m_p_surface == nullptr) {
         throw SDL::Error("IMG_Load() failed!");
     }
 }
 
-void SDL::Surface::SavePNG(const std::string& filename) {
+SDL::Image::Image(Image&& other) noexcept
+    : m_p_surface(other.m_p_surface) {
+    other.m_p_surface = nullptr;
+}
+
+SDL::Image& SDL::Image::operator=(Image&& other) noexcept {
+    std::swap(m_p_surface, other.m_p_surface);
+    return *this;
+}
+
+SDL::Image::~Image() {
+    if (m_p_surface != nullptr) {
+        SDL_DestroySurface(m_p_surface);
+    }
+}
+
+void SDL::Image::SavePNG(const std::string& filename) {
 
     if (m_p_surface != nullptr) {
         if(!IMG_SavePNG(m_p_surface, filename.c_str())) {
@@ -92,7 +88,7 @@ void SDL::Surface::SavePNG(const std::string& filename) {
     }
 }
 
-void SDL::Surface::SaveJPG(const std::string& filename, int quality) {
+void SDL::Image::SaveJPG(const std::string& filename, int quality) {
 
     if (m_p_surface != nullptr) {
         if (!IMG_SaveJPG(m_p_surface, filename.c_str(), quality)) {
@@ -101,9 +97,32 @@ void SDL::Surface::SaveJPG(const std::string& filename, int quality) {
     }
 }
 
-SDL_Surface* SDL::Surface::Get() {
+SDL_SurfaceFlags SDL::Image::GetFlags() {
+    return m_p_surface->flags;
+}
 
-    return m_p_surface;
+SDL_PixelFormat SDL::Image::GetFormat() {
+    return m_p_surface->format;
+}
+
+uint32_t SDL::Image::GetWidth() {
+    return m_p_surface->w;
+}
+
+uint32_t SDL::Image::GetHeight() {
+    return m_p_surface->h;
+}
+
+uint32_t SDL::Image::GetPitch() {
+    return m_p_surface->pitch;
+}
+
+uint32_t SDL::Image::GetNumChannels() {
+    return m_p_surface->pitch / m_p_surface->w;
+}
+
+void* SDL::Image::GetPixels() {
+    return m_p_surface->pixels;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
