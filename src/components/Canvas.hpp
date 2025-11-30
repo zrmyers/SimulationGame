@@ -2,10 +2,8 @@
 
 #include "glm/vec2.hpp"
 #include <memory>
-
-namespace UI {
-    class Element;
-}
+#include <vector>
+#include "ui/UI.hpp"
 
 namespace Components {
 
@@ -15,25 +13,31 @@ namespace Components {
     //! - Handle User Input (keyboard/mouse) events, routing to the appropriate child object.
     //! - Managing the layout of all child objects
     //! - Transformation of 2D GUI to 3D world or screen space
-    struct Canvas {
+    class Canvas : public UI::Element {
 
-        //! The render mode of a Canvas.
-        //!
-        //! When operating in screen mode, all canvas coordinates are used to calculate layout positions in screen space.
-        //!
-        //! When operating in world mode, all canvas coordinates are translated to world space.
-        enum class RenderMode : uint8_t {
-            SCREEN = 0,
-            WORLD,
-        };
+        public:
 
-        //! The size of the canvas in pixels.
-        glm::ivec2 m_resolution_px {1024, 768};
+            //! The render mode of a Canvas.
+            //!
+            //! When operating in screen mode, all canvas coordinates are used to calculate layout positions in screen space.
+            //!
+            //! When operating in world mode, all canvas coordinates are translated to world space.
+            enum class RenderMode : uint8_t {
+                SCREEN = 0,
+                WORLD,
+            };
 
-        //! Whether the canvas is in screen or world mode.
-        RenderMode m_render_mode {RenderMode::SCREEN};
+            Canvas& SetRenderMode(RenderMode mode) {
+                m_render_mode = mode;
+                return *this;
+            }
 
-        //! Root UI element in the canvas.
-        std::unique_ptr<UI::Element> m_elements;
+            RenderMode GetRenderMode() const {
+                return m_render_mode;
+            }
+
+        private:
+            //! Whether the canvas is in screen or world mode.
+            RenderMode m_render_mode {RenderMode::SCREEN};
     };
 }

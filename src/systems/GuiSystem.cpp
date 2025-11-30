@@ -7,6 +7,7 @@
 
 #include "components/Sprite.hpp"
 #include "components/Transform.hpp"
+#include "sdl/SDL.hpp"
 #include <SDL3/SDL_events.h>
 #include <glm/fwd.hpp>
 #include <iostream>
@@ -18,6 +19,7 @@ Systems::GuiSystem::GuiSystem(Core::Engine& engine)
     , m_window_size_px(engine.GetEcsRegistry().GetSystem<Systems::RenderSystem>().GetWindowSize())
     , m_cursor_size_px(0.0F)
     , m_cursor_pos_px(0.0F) {
+
 }
 
 void Systems::GuiSystem::Update() {
@@ -38,6 +40,11 @@ void Systems::GuiSystem::Update() {
         }
     }
 
+}
+
+void Systems::GuiSystem::NotifyEntityDestroyed(ECS::EntityID_t entityID) {
+
+    // clean up related sprites and text
 }
 
 void Systems::GuiSystem::SetCursorVisible(bool enable) {
@@ -63,10 +70,6 @@ bool Systems::GuiSystem::GetCursorVisible() const {
 
 void Systems::GuiSystem::UpdateCursor() {
 
-    glm::vec2 cursorCenter(m_cursor_size_px / 2.0F);
-    glm::vec2 cursorOrigin(cursorCenter.x, 0.0F);
-
-
     Components::Transform& transform = m_cursor_entity.FindOrEmplaceComponent<Components::Transform>();
     glm::vec2 center = m_window_size_px / 2.0F;
     glm::vec2 translate = center - m_cursor_pos_px;
@@ -80,7 +83,7 @@ void Systems::GuiSystem::UpdateCursor() {
         .Translate({translate, 0.0F})
         .Scale({m_cursor_size_px / m_window_size_px, 1.0F})
         .Rotate(glm::pi<float>()/5.0F, glm::vec3(0.0F, 0.0F, 1.0F))
-        .Translate({0.0F, -0.5F, 0.0F});
+        .Translate({0.0F, -0.5F, 0.0F}); // set origin at x=0.5F, y=0.0F
 }
 
 void Systems::GuiSystem::HandleMouseMotion(const SDL_MouseMotionEvent& event) {
@@ -117,8 +120,20 @@ void Systems::GuiSystem::SetCursor(const std::string& image_filename, bool visib
     textureInfo.layer_count_or_depth = 1;
     textureInfo.num_levels = 1;
     textureInfo.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
-    cursor.texture = renderer.CreateTexture(textureInfo);
-    cursor.texture.SetName("Cursor");
+    cursor.texture = std::make_shared<SDL::GpuTexture>(renderer.CreateTexture(textureInfo));
+    cursor.texture->SetName("Cursor");
+
+    SDL_GPUSamplerCreateInfo samplerCreateInfo = {};
+    samplerCreateInfo.min_filter = SDL_GPU_FILTER_LINEAR;
+    samplerCreateInfo.mag_filter = SDL_GPU_FILTER_LINEAR;
+    samplerCreateInfo.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR;
+    samplerCreateInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerCreateInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerCreateInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerCreateInfo.enable_anisotropy = true;
+    samplerCreateInfo.max_anisotropy = 16; // NOLINT
+
+    cursor.sampler = std::make_shared<SDL::GpuSampler>(renderer.CreateSampler(samplerCreateInfo));
     cursor.layer = (visible)? Components::RenderLayer::LAYER_GUI : Components::RenderLayer::LAYER_NONE;
 
     // texture transfer
@@ -126,7 +141,7 @@ void Systems::GuiSystem::SetCursor(const std::string& image_filename, bool visib
     request.cycle = false;
     request.type = Systems::RenderSystem::RequestType::UPLOAD_TO_TEXTURE;
     SDL_GPUTextureRegion& region = request.data.texture;
-    region.texture = cursor.texture.Get();
+    region.texture = cursor.texture->Get();
     region.w = image.GetWidth();
     region.h = image.GetHeight();
     region.d = 1;

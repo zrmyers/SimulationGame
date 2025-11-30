@@ -16,11 +16,15 @@ class SimulationGame : public Core::IGame {
 
     private:
 
+        void InitializeGUI();
+
         std::shared_ptr<SDL::TTF::Font> m_font;
         ECS::Entity m_text_entity;
 
         ECS::Entity m_camera_entity;
 
         float m_rotateAngle{0.0F};
+
+        ECS::Entity m_gui_entity;
 
 };

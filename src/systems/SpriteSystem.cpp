@@ -36,18 +36,6 @@ Systems::SpriteSystem::SpriteSystem(Core::Engine& engine)
 
     m_p_sprite_pipeline = renderSys.CreatePipeline<Graphics::UnlitTexturePipeline>();
 
-    SDL_GPUSamplerCreateInfo samplerCreateInfo = {};
-    samplerCreateInfo.min_filter = SDL_GPU_FILTER_LINEAR;
-    samplerCreateInfo.mag_filter = SDL_GPU_FILTER_LINEAR;
-    samplerCreateInfo.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR;
-    samplerCreateInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-    samplerCreateInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-    samplerCreateInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-    samplerCreateInfo.enable_anisotropy = true;
-    samplerCreateInfo.max_anisotropy = 16; // NOLINT
-
-    m_sampler = renderSys.CreateSampler(samplerCreateInfo);
-
     m_vertex_buffer = renderSys.CreateBuffer(SDL_GPU_BUFFERUSAGE_VERTEX, MAX_VERTEX_COUNT * sizeof(Graphics::UnlitTexturedVertex));
     m_vertex_buffer.SetBufferName("Sprite Vertex Buffer");
     m_index_buffer = renderSys.CreateBuffer(SDL_GPU_BUFFERUSAGE_INDEX, MAX_INDEX_COUNT * sizeof(uint16_t));
@@ -97,8 +85,8 @@ void Systems::SpriteSystem::Update() {
             renderable.m_index_size = SDL_GPU_INDEXELEMENTSIZE_16BIT;
             renderable.m_p_pipeline = m_p_sprite_pipeline;
             renderable.transform = transform.m_transform;
-            renderable.textureSampler.sampler = m_sampler.Get();
-            renderable.textureSampler.texture = sprite.texture.Get();
+            renderable.textureSampler.sampler = sprite.sampler->Get();
+            renderable.textureSampler.texture = sprite.texture->Get();
 
             Components::DrawCommand& command = renderable.m_drawcommand;
             command.m_num_indices = 6;

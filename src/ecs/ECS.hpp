@@ -372,6 +372,7 @@ namespace ECS {
             virtual ~System() = default;
 
             virtual void Update() = 0;
+            virtual void NotifyEntityDestroyed(EntityID_t entityID) {};
 
             Core::Engine& GetEngine() { return *m_p_engine;};
             std::set<EntityID_t>& GetEntities() { return m_entities;};

@@ -1,5 +1,6 @@
 #include "SimulationGame.hpp"
 #include "components/Camera.hpp"
+#include "components/Canvas.hpp"
 #include "components/Renderable.hpp"
 #include "components/Sprite.hpp"
 #include "components/Text.hpp"
@@ -19,11 +20,14 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/scalar_constants.hpp>
 #include <iomanip>
+#include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include "glm/mat4x4.hpp"
 #include "systems/TextSystem.hpp"
+#include "ui/UI.hpp"
 
 SimulationGame::SimulationGame(Core::Engine& engine)
     : Core::IGame(engine) {
@@ -52,6 +56,8 @@ SimulationGame::SimulationGame(Core::Engine& engine)
     m_camera_entity.EmplaceComponent<Components::Camera>();
 
     guiSystem.SetCursor("/cursor.png", true);
+
+    InitializeGUI();
 }
 
 void SimulationGame::Update() {
@@ -83,3 +89,59 @@ void SimulationGame::Update() {
 
 }
 
+
+void SimulationGame::InitializeGUI() {
+
+    Core::AssetLoader& assetLoader = GetEngine().GetAssetLoader();
+    ECS::Registry& registry = GetEngine().GetEcsRegistry();
+    Systems::RenderSystem& renderSystem = registry.GetSystem<Systems::RenderSystem>();
+    m_gui_entity = ECS::Entity(registry);
+
+    auto& canvas = m_gui_entity.EmplaceComponent<Components::Canvas>();
+
+    canvas.SetRenderMode(Components::Canvas::RenderMode::SCREEN);
+    UI::ImageElement& element = canvas.EmplaceChild<UI::ImageElement>();
+
+    SDL::Image image(assetLoader.GetImageDir() + "/nineslice-top-right.png");
+    // Load a texture
+    SDL_GPUTextureCreateInfo textureCreateInfo = {};
+    textureCreateInfo.type = SDL_GPU_TEXTURETYPE_2D;
+    textureCreateInfo.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
+    textureCreateInfo.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+    textureCreateInfo.width = image.GetWidth();
+    textureCreateInfo.height = image.GetHeight();
+    textureCreateInfo.layer_count_or_depth = 1;
+    textureCreateInfo.sample_count = SDL_GPU_SAMPLECOUNT_1;
+    textureCreateInfo.num_levels = 1;
+
+    std::shared_ptr<SDL::GpuTexture> p_texture = std::make_shared<SDL::GpuTexture>(renderSystem.CreateTexture(textureCreateInfo));
+
+    SDL_GPUSamplerCreateInfo samplerCreateInfo = {};
+    samplerCreateInfo.min_filter = SDL_GPU_FILTER_LINEAR;
+    samplerCreateInfo.mag_filter = SDL_GPU_FILTER_LINEAR;
+    samplerCreateInfo.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR;
+    samplerCreateInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerCreateInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerCreateInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerCreateInfo.enable_anisotropy = true;
+    samplerCreateInfo.max_anisotropy = 16; // NOLINT
+
+    std::shared_ptr<SDL::GpuSampler> p_sampler = std::make_shared<SDL::GpuSampler>(renderSystem.CreateSampler(samplerCreateInfo));
+
+    // texture transfer
+    Systems::RenderSystem::TransferRequest request = {};
+    request.cycle = false;
+    request.type = Systems::RenderSystem::RequestType::UPLOAD_TO_TEXTURE;
+    SDL_GPUTextureRegion& region = request.data.texture;
+    region.texture = p_texture->Get();
+    region.w = image.GetWidth();
+    region.h = image.GetHeight();
+    region.d = 1;
+    request.p_src = image.GetPixels();
+
+    renderSystem.UploadDataToBuffer({request});
+
+    element.SetTexture(std::move(p_texture));
+    element.SetSampler(std::move(p_sampler));
+    element.SetFixedSize(glm::vec2(image.GetWidth(), image.GetHeight()));
+}

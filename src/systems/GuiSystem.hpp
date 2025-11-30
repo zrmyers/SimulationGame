@@ -14,6 +14,8 @@ namespace Systems {
 
             void Update() override;
 
+            void NotifyEntityDestroyed(ECS::EntityID_t entityID) override;
+
             //! Set the cursor style for the game.
             void SetCursor(const std::string& image_filename, bool visible);
 

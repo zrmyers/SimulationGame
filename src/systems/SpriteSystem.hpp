@@ -29,9 +29,6 @@ namespace Systems {
             // Pipeline for rendering sprites.
             Graphics::IPipeline* m_p_sprite_pipeline;
 
-            // sampler
-            SDL::GpuSampler m_sampler;
-
             // mesh buffers
             SDL::GpuBuffer m_vertex_buffer;
             SDL::GpuBuffer m_index_buffer;

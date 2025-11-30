@@ -12,7 +12,10 @@ namespace Components {
     struct Sprite {
 
         // The texture used for the sprite.
-        SDL::GpuTexture texture;
+        std::shared_ptr<SDL::GpuTexture> texture;
+
+        // The sampler used for the sprite.
+        std::shared_ptr<SDL::GpuSampler> sampler;
 
         // The UV coordinate at the top-left corner of the sprite. Used to index into a texture atlas.
         glm::vec2 topLeftUV{0.0F, 0.0F};

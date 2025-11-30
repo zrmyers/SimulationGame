@@ -1,5 +1,6 @@
 #include "SimulationGame.hpp"
 #include "components/Camera.hpp"
+#include "components/Canvas.hpp"
 #include "components/Renderable.hpp"
 #include "components/Text.hpp"
 #include "components/Transform.hpp"
@@ -36,6 +37,7 @@ int main(int argc, const char** argv) {
         registry.RegisterComponent<Components::Renderable>();
         registry.RegisterComponent<Components::Transform>();
         registry.RegisterComponent<Components::Sprite>();
+        registry.RegisterComponent<Components::Canvas>();
 
         // register systems
         registry.RegisterSystem(std::make_unique<Systems::RenderSystem>(engine));

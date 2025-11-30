@@ -63,6 +63,7 @@ add_executable(${PROJECT_NAME}
     ./src/systems/RenderSystem.cpp
     ./src/systems/SpriteSystem.cpp
     ./src/systems/TextSystem.cpp
+    ./src/ui/UI.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ./src)
