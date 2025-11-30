@@ -4,6 +4,7 @@
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_iostream.h>
 #include <SDL3/SDL_log.h>
+#include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_timer.h>
@@ -51,6 +52,23 @@ SDL::Context::~Context() {
 
 Uint64 SDL::Context::GetTicks() { // NOLINT depends on SDL_Init
     return SDL_GetTicks();
+}
+
+void SDL::Context::ShowCursor() { // NOLINT
+
+    if (!SDL_ShowCursor()) {
+        throw Error("SDL_ShowCursor() failed!");
+    }
+}
+
+void SDL::Context::HideCursor() { // NOLINT
+    if (!SDL_HideCursor()) {
+        throw Error("SDL_HideCursor() failed!");
+    }
+}
+
+bool SDL::Context::CursorVisible() { // NOLINT
+    return SDL_CursorVisible();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -177,6 +195,15 @@ void SDL::Window::SetPosition(int width, int height) {
 
         throw Error("SDL_SetWindowPosition() failed!");
     }
+}
+
+glm::ivec2 SDL::Window::GetWindowSize() const {
+
+    glm::ivec2 windowSize(0.0F);
+    if(!SDL_GetWindowSize(m_p_window, &windowSize.x, &windowSize.y)) {
+        throw SDL::Error("Failed to retrieve SDL window size.");
+    }
+    return windowSize;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

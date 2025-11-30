@@ -10,6 +10,8 @@
 #include <exception>
 #include <string>
 
+#include <glm/vec2.hpp>
+
 namespace Graphics {
     class ByteCode;
 }
@@ -93,6 +95,15 @@ namespace SDL {
 
             //! Get the total amount of time in milliseconds that has elapsed since initialization.
             Uint64 GetTicks();
+
+            //! Show the system cursor.
+            void ShowCursor();
+
+            //! Hide the system cursor.
+            void HideCursor();
+
+            //! Check if system cursor is currently visible.
+            bool CursorVisible();
     };
 
     //! Wrapper around SDL surface object which holds image data.
@@ -147,6 +158,9 @@ namespace SDL {
 
             //! Set the position of the window.
             void SetPosition(int width, int height);
+
+            //! Get the size of the window.
+            glm::ivec2 GetWindowSize() const;
 
         private:
 

@@ -9,6 +9,7 @@
 #include "core/Logger.hpp"
 #include "ecs/ECS.hpp"
 #include "sdl/SDL.hpp"
+#include "systems/GuiSystem.hpp"
 #include "systems/RenderSystem.hpp"
 #include "graphics/ShaderCross.hpp"
 #include <SDL3/SDL_gpu.h>
@@ -31,6 +32,7 @@ SimulationGame::SimulationGame(Core::Engine& engine)
     Core::AssetLoader& assetLoader = engine.GetAssetLoader();
     Systems::RenderSystem& renderer = registry.GetSystem<Systems::RenderSystem>();
     Systems::TextSystem& textRenderer = registry.GetSystem<Systems::TextSystem>();
+    Systems::GuiSystem& guiSystem = registry.GetSystem<Systems::GuiSystem>();
 
     m_font = textRenderer.CreateFont(assetLoader.GetFontDir() + "/Oblegg-Regular.otf", 50.0F); // NOLINT
     m_font->SetHorizontalAlignment(TTF_HORIZONTAL_ALIGN_CENTER);
@@ -49,44 +51,7 @@ SimulationGame::SimulationGame(Core::Engine& engine)
     m_camera_entity = ECS::Entity(registry);
     m_camera_entity.EmplaceComponent<Components::Camera>();
 
-    // setup cursor object
-    m_cursor_entity = ECS::Entity(registry);
-    Components::Sprite& cursor = m_cursor_entity.EmplaceComponent<Components::Sprite>();
-    cursor.color = glm::vec4(1.0F,1.0F, 1.0F, 1.0F);
-    cursor.topLeftUV = {0.0F, 0.0F};
-    cursor.bottomRightUV = {1.0F,1.0F};
-
-    // loading a texture is still lot of work, but getting there.
-    SDL::Image image(assetLoader.GetImageDir() + "/cursor.png");
-    SDL_GPUTextureCreateInfo textureInfo = {};
-    textureInfo.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
-    textureInfo.type = SDL_GPU_TEXTURETYPE_2D;
-    textureInfo.width = image.GetWidth();
-    textureInfo.height = image.GetHeight();
-    textureInfo.layer_count_or_depth = 1;
-    textureInfo.num_levels = 1;
-    textureInfo.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
-    cursor.texture = renderer.CreateTexture(textureInfo);
-    cursor.texture.SetName("Cursor");
-    cursor.layer = Components::RenderLayer::LAYER_GUI;
-
-    // texture transfer
-    Systems::RenderSystem::TransferRequest request = {};
-    request.cycle = false;
-    request.type = Systems::RenderSystem::RequestType::UPLOAD_TO_TEXTURE;
-    SDL_GPUTextureRegion& region = request.data.texture;
-    region.texture = cursor.texture.Get();
-    region.w = image.GetWidth();
-    region.h = image.GetHeight();
-    region.d = 1;
-    request.p_src = image.GetPixels();
-
-    renderer.UploadDataToBuffer({request});
-
-    Components::Transform& transform = m_cursor_entity.EmplaceComponent<Components::Transform>();
-    transform
-        .Scale({static_cast<float>(region.w)/1024.0F, static_cast<float>(region.h)/768.0F, 1.0F})  // scale cursor by half.
-        .Rotate(glm::pi<float>()/5.0F, glm::vec3(0.0F, 0.0F, 1.0F));
+    guiSystem.SetCursor("/cursor.png", true);
 }
 
 void SimulationGame::Update() {

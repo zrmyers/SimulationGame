@@ -59,55 +59,58 @@ void Systems::SpriteSystem::Update() {
 
     // sort the sprites
     ECS::Registry& registry = GetEngine().GetEcsRegistry();
+    std::set<ECS::EntityID_t>& entities = GetEntities();
 
-    m_vertices.clear();
-    m_indices.clear();
+    if (!entities.empty()) {
+        m_vertices.clear();
+        m_indices.clear();
 
-    // sort sprites into batches
-    for (ECS::EntityID_t entityID : GetEntities()) {
+        // sort sprites into batches
+        for (ECS::EntityID_t entityID : GetEntities()) {
 
-        // inputs
-        auto& sprite = registry.GetComponent<Components::Sprite>(entityID);
-        auto& transform = registry.GetComponent<Components::Transform>(entityID);
+            // inputs
+            auto& sprite = registry.GetComponent<Components::Sprite>(entityID);
+            auto& transform = registry.GetComponent<Components::Transform>(entityID);
 
-        // output
-        auto& renderable = registry.FindOrEmplaceComponent<Components::Renderable>(entityID);
+            // output
+            auto& renderable = registry.FindOrEmplaceComponent<Components::Renderable>(entityID);
 
-        size_t startIndex = m_indices.size();
-        size_t numVertices = m_vertices.size();
-        // buffer vertex transfer
-        m_vertices.push_back({{-1.0F, 1.0F, 0.0F}, sprite.color, sprite.topLeftUV});
-        m_vertices.push_back({{1.0F, 1.0F, 0.0F}, sprite.color, {sprite.bottomRightUV.x, sprite.topLeftUV.y}});
-        m_vertices.push_back({{1.0F, -1.0F, 0.0F}, sprite.color, sprite.bottomRightUV});
-        m_vertices.push_back({{-1.0F, -1.0F, 0.0F}, sprite.color, {sprite.topLeftUV.x, sprite.bottomRightUV.y}});
+            size_t startIndex = m_indices.size();
+            size_t numVertices = m_vertices.size();
+            // buffer vertex transfer
+            m_vertices.push_back({{-1.0F, 1.0F, 0.0F}, sprite.color, sprite.topLeftUV});
+            m_vertices.push_back({{1.0F, 1.0F, 0.0F}, sprite.color, {sprite.bottomRightUV.x, sprite.topLeftUV.y}});
+            m_vertices.push_back({{1.0F, -1.0F, 0.0F}, sprite.color, sprite.bottomRightUV});
+            m_vertices.push_back({{-1.0F, -1.0F, 0.0F}, sprite.color, {sprite.topLeftUV.x, sprite.bottomRightUV.y}});
 
-        m_indices.push_back(numVertices + 0);
-        m_indices.push_back(numVertices + 1);
-        m_indices.push_back(numVertices + 2);
-        m_indices.push_back(numVertices + 0);
-        m_indices.push_back(numVertices + 2);
-        m_indices.push_back(numVertices + 3);
+            m_indices.push_back(numVertices + 0);
+            m_indices.push_back(numVertices + 1);
+            m_indices.push_back(numVertices + 2);
+            m_indices.push_back(numVertices + 0);
+            m_indices.push_back(numVertices + 2);
+            m_indices.push_back(numVertices + 3);
 
-        renderable.m_vertex_buffer_binding.buffer = m_vertex_buffer.Get();
-        renderable.m_vertex_buffer_binding.offset = 0U;
-        renderable.m_index_buffer_binding.buffer = m_index_buffer.Get();
-        renderable.m_index_buffer_binding.offset = 0U;
-        renderable.m_index_size = SDL_GPU_INDEXELEMENTSIZE_16BIT;
-        renderable.m_p_pipeline = m_p_sprite_pipeline;
-        renderable.transform = transform.m_transform;
-        renderable.textureSampler.sampler = m_sampler.Get();
-        renderable.textureSampler.texture = sprite.texture.Get();
+            renderable.m_vertex_buffer_binding.buffer = m_vertex_buffer.Get();
+            renderable.m_vertex_buffer_binding.offset = 0U;
+            renderable.m_index_buffer_binding.buffer = m_index_buffer.Get();
+            renderable.m_index_buffer_binding.offset = 0U;
+            renderable.m_index_size = SDL_GPU_INDEXELEMENTSIZE_16BIT;
+            renderable.m_p_pipeline = m_p_sprite_pipeline;
+            renderable.transform = transform.m_transform;
+            renderable.textureSampler.sampler = m_sampler.Get();
+            renderable.textureSampler.texture = sprite.texture.Get();
 
-        Components::DrawCommand& command = renderable.m_drawcommand;
-        command.m_num_indices = 6;
-        command.m_num_instances = 1U;
-        command.m_start_index = startIndex;
-        command.m_vertex_offset = static_cast<int32_t>(numVertices);
-        command.m_start_instance = 0U;
-        renderable.m_layer = sprite.layer;
+            Components::DrawCommand& command = renderable.m_drawcommand;
+            command.m_num_indices = 6;
+            command.m_num_instances = 1U;
+            command.m_start_index = startIndex;
+            command.m_vertex_offset = static_cast<int32_t>(numVertices);
+            command.m_start_instance = 0U;
+            renderable.m_layer = sprite.layer;
+        }
+
+        UploadData(registry.GetSystem<Systems::RenderSystem>());
     }
-
-    UploadData(registry.GetSystem<Systems::RenderSystem>());
 }
 
 void Systems::SpriteSystem::UploadData(Systems::RenderSystem& rendersystem) {

@@ -63,6 +63,8 @@ namespace Systems {
 
             SDL::GpuDevice& GetGpuDevice();
 
+            glm::ivec2 GetWindowSize() const;
+
             //! Get Swap chain texture format.
             SDL_GPUTextureFormat GetSwapchainTextureFormat();
 

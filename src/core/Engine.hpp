@@ -1,8 +1,10 @@
 #pragma once
 
+#include <SDL3/SDL_events.h>
 #include <exception>
 #include <memory>
 #include <string>
+#include <vector>
 #include "AssetLoader.hpp"
 #include "Environment.hpp"
 #include "IGame.hpp"
@@ -54,6 +56,9 @@ namespace Core {
             //! Get the latest delta time.
             float GetDeltaTimeSec() const;
 
+            //! Get latest input events
+            const std::vector<SDL_Event>& GetEvents();
+
         private:
 
             //! update the delta time.
@@ -73,6 +78,9 @@ namespace Core {
 
             //! Game instance
             std::unique_ptr<IGame> m_game_instance;
+
+            //! Latest events
+            std::vector<SDL_Event> m_events;
 
             //! The latest delta frame time, in seconds.
             float m_delta_time_sec;

@@ -7,6 +7,7 @@
 #include "core/Engine.hpp"
 #include "core/Logger.hpp"
 #include "ecs/ECS.hpp"
+#include "systems/GuiSystem.hpp"
 #include "systems/RenderSystem.hpp"
 #include "systems/SpriteSystem.hpp"
 #include "systems/TextSystem.hpp"
@@ -40,6 +41,7 @@ int main(int argc, const char** argv) {
         registry.RegisterSystem(std::make_unique<Systems::RenderSystem>(engine));
         registry.RegisterSystem(std::make_unique<Systems::TextSystem>(engine));
         registry.RegisterSystem(std::make_unique<Systems::SpriteSystem>(engine));
+        registry.RegisterSystem(std::make_unique<Systems::GuiSystem>(engine));
 
         // setup component registration
         registry.SetSystemSignature<Systems::RenderSystem>(
@@ -57,6 +59,8 @@ int main(int argc, const char** argv) {
         // setup dependencies
         registry.SetSystemDependency<Systems::RenderSystem, Systems::TextSystem>();
         registry.SetSystemDependency<Systems::RenderSystem, Systems::SpriteSystem>();
+        registry.SetSystemDependency<Systems::TextSystem, Systems::GuiSystem>();
+        registry.SetSystemDependency<Systems::SpriteSystem, Systems::GuiSystem>();
 
         // instantiate the game.
         std::unique_ptr<SimulationGame> p_game = std::make_unique<SimulationGame>(engine);

@@ -59,6 +59,7 @@ add_executable(${PROJECT_NAME}
     ./src/graphics/ShaderCross.cpp
     ./src/sdl/SDL.cpp
     ./src/sdl/TTF.cpp
+    ./src/systems/GuiSystem.cpp
     ./src/systems/RenderSystem.cpp
     ./src/systems/SpriteSystem.cpp
     ./src/systems/TextSystem.cpp

@@ -572,6 +572,10 @@ namespace ECS {
                 }
             }
 
+            Signature_t GetEntitySignature(EntityID_t entity) {
+                return m_entity_manager.GetSignature(entity);
+            }
+
             template<typename T>
             void RegisterComponent() {
                 m_component_manager.RegisterComponent<T>();
@@ -715,6 +719,11 @@ namespace ECS {
                 }
             }
 
+            //! Whether the entity is valid.
+            bool IsValid() const {
+                return m_id != MAX_ENTITIES;
+            }
+
             template<typename T>
             void AddComponent(T&& component) {
                 if (m_p_registry == nullptr) {
@@ -732,7 +741,26 @@ namespace ECS {
             }
 
             template<typename T>
+            bool HasComponent() const {
+                if (m_p_registry == nullptr) {
+                    throw Exception("HasComponent(): entity is not initialized!");
+                }
+
+                const Signature_t& componentSignature = m_p_registry->GetComponentSignature<T>();
+                const Signature_t& entitySignature = m_p_registry->GetEntitySignature(m_id);
+                return (entitySignature & componentSignature).any();
+            }
+
+            template<typename T>
             T& GetComponent() {
+                if (m_p_registry == nullptr) {
+                    throw Exception("GetComponent(): entity is not initialized!");
+                }
+                return m_p_registry->GetComponent<T>(m_id);
+            }
+
+            template<typename T>
+            const T& GetComponent() const {
                 if (m_p_registry == nullptr) {
                     throw Exception("GetComponent(): entity is not initialized!");
                 }

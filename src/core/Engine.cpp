@@ -9,6 +9,7 @@
 #include <SDL3/SDL_video.h>
 #include <glslang/Public/ShaderLang.h>
 #include <string>
+#include "Logger.hpp"
 #include "sdl/SDL.hpp"
 
 Core::EngineException::EngineException(const std::string& msg)
@@ -25,6 +26,7 @@ Core::Engine::Engine(const std::list<const char*>& args)
     , m_assetLoader(m_env.Get("gamePath"))
     , m_delta_time_sec(0.0F)
     , m_last_time_sec(0.0F) {
+    m_sdl.HideCursor();
 }
 
 Core::Engine::~Engine() {
@@ -49,8 +51,10 @@ void Core::Engine::Run() {
 
     while (!shouldQuit) {
 
+        m_events.clear();
+
         SDL_Event event;
-        if (SDL_PollEvent(&event)) {
+        while (SDL_PollEvent(&event)) {
 
             switch (event.type) {
 
@@ -61,6 +65,8 @@ void Core::Engine::Run() {
                 default:
                     break;
             }
+
+            m_events.push_back(event);
         }
 
         if (m_game_instance != nullptr) {
@@ -76,6 +82,10 @@ void Core::Engine::Run() {
 
 float Core::Engine::GetDeltaTimeSec() const {
     return m_delta_time_sec;
+}
+
+const std::vector<SDL_Event>& Core::Engine::GetEvents() {
+    return m_events;
 }
 
 void Core::Engine::UpdateDeltaTimeSec() {

@@ -52,6 +52,10 @@ SDL::GpuDevice& Systems::RenderSystem::GetGpuDevice() {
     return m_gpu;
 }
 
+glm::ivec2 Systems::RenderSystem::GetWindowSize() const {
+    return m_window.GetWindowSize();
+}
+
 SDL_GPUTextureFormat Systems::RenderSystem::GetSwapchainTextureFormat() {
     return m_gpu.GetSwapchainTextureFormat(m_window);
 }
