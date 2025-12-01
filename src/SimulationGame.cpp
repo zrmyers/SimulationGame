@@ -141,13 +141,21 @@ void SimulationGame::InitializeGUI() {
     renderSystem.UploadDataToBuffer({request});
 
     UI::HorizontalLayout& hzLayout = canvas.EmplaceChild<UI::HorizontalLayout>();
-    UI::ImageElement& element1 = hzLayout.EmplaceChild<UI::ImageElement>();
+    UI::VerticalLayout& vzLayout = hzLayout.EmplaceChild<UI::VerticalLayout>();
+    UI::ImageElement& element1 = vzLayout.EmplaceChild<UI::ImageElement>();
     element1
         .SetTexture(p_texture)
         .SetSampler(p_sampler)
         .SetOrigin({0.5F, 0.5F})
         .SetFixedSize(glm::vec2(image.GetWidth(), image.GetHeight()))
-        .SetLayoutMode(UI::LayoutMode::FIXED);
+        .SetLayoutMode(UI::LayoutMode::RELATIVE_TO_PARENT);
+    UI::ImageElement& element12 = vzLayout.EmplaceChild<UI::ImageElement>();
+    element12
+        .SetTexture(p_texture)
+        .SetSampler(p_sampler)
+        .SetOrigin({0.5F, 0.5F})
+        .SetFixedSize(glm::vec2(image.GetWidth(), image.GetHeight()))
+        .SetLayoutMode(UI::LayoutMode::RELATIVE_TO_PARENT);
     UI::ImageElement& element2 = hzLayout.EmplaceChild<UI::ImageElement>();
     element2
         .SetTexture(p_texture)
