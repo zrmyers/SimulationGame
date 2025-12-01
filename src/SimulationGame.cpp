@@ -100,7 +100,6 @@ void SimulationGame::InitializeGUI() {
     auto& canvas = m_gui_entity.EmplaceComponent<Components::Canvas>();
 
     canvas.SetRenderMode(Components::Canvas::RenderMode::SCREEN);
-    UI::ImageElement& element = canvas.EmplaceChild<UI::ImageElement>();
 
     SDL::Image image(assetLoader.GetImageDir() + "/nineslice-top-right.png");
     // Load a texture
@@ -141,7 +140,26 @@ void SimulationGame::InitializeGUI() {
 
     renderSystem.UploadDataToBuffer({request});
 
-    element.SetTexture(std::move(p_texture));
-    element.SetSampler(std::move(p_sampler));
-    element.SetFixedSize(glm::vec2(image.GetWidth(), image.GetHeight()));
+    UI::HorizontalLayout& hzLayout = canvas.EmplaceChild<UI::HorizontalLayout>();
+    UI::ImageElement& element1 = hzLayout.EmplaceChild<UI::ImageElement>();
+    element1
+        .SetTexture(p_texture)
+        .SetSampler(p_sampler)
+        .SetOrigin({0.5F, 0.5F})
+        .SetFixedSize(glm::vec2(image.GetWidth(), image.GetHeight()))
+        .SetLayoutMode(UI::LayoutMode::FIXED);
+    UI::ImageElement& element2 = hzLayout.EmplaceChild<UI::ImageElement>();
+    element2
+        .SetTexture(p_texture)
+        .SetSampler(p_sampler)
+        .SetOrigin({0.5F, 0.5F})
+        .SetFixedSize(glm::vec2(image.GetWidth(), image.GetHeight()))
+        .SetLayoutMode(UI::LayoutMode::RELATIVE_TO_PARENT);
+    UI::ImageElement& element3 = hzLayout.EmplaceChild<UI::ImageElement>();
+    element3
+        .SetTexture(p_texture)
+        .SetSampler(p_sampler)
+        .SetOrigin({0.5F, 0.5F})
+        .SetFixedSize(glm::vec2(image.GetWidth(), image.GetHeight()))
+        .SetLayoutMode(UI::LayoutMode::FIXED);
 }

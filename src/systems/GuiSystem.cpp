@@ -7,6 +7,7 @@
 
 #include "components/Sprite.hpp"
 #include "components/Transform.hpp"
+#include "components/Canvas.hpp"
 #include "sdl/SDL.hpp"
 #include <SDL3/SDL_events.h>
 #include <glm/fwd.hpp>
@@ -24,6 +25,8 @@ Systems::GuiSystem::GuiSystem(Core::Engine& engine)
 
 void Systems::GuiSystem::Update() {
 
+    ECS::Registry& registry = GetEngine().GetEcsRegistry();
+
     // process events
     const std::vector<SDL_Event>& events = GetEngine().GetEvents();
 
@@ -35,16 +38,28 @@ void Systems::GuiSystem::Update() {
                 HandleMouseMotion(event.motion);
                 break;
 
+            case SDL_EVENT_WINDOW_RESIZED:
+                HandleWindowResize();
+                break;
+
             default:
                 break;
         }
+    }
+
+    std::set<ECS::EntityID_t> entities = GetEntities();
+
+    for (ECS::EntityID_t entityID : entities) {
+
+        auto& canvas = registry.GetComponent<Components::Canvas>(entityID);
+
+        ProcessCanvas(canvas, events);
     }
 
 }
 
 void Systems::GuiSystem::NotifyEntityDestroyed(ECS::EntityID_t entityID) {
 
-    // clean up related sprites and text
 }
 
 void Systems::GuiSystem::SetCursorVisible(bool enable) {
@@ -86,10 +101,43 @@ void Systems::GuiSystem::UpdateCursor() {
         .Translate({0.0F, -0.5F, 0.0F}); // set origin at x=0.5F, y=0.0F
 }
 
+void Systems::GuiSystem::ProcessCanvas(Components::Canvas& canvas, const std::vector<SDL_Event>& events) {
+
+    // process events
+    for (const SDL_Event& event : events) {
+
+        switch (event.type) {
+
+            case SDL_EVENT_WINDOW_RESIZED:
+                canvas.SetDirty();
+                break;
+
+            default:
+                break;
+
+        }
+    }
+
+    if (canvas.GetDirty()) {
+
+        canvas.CalculateLayout(m_window_size_px);
+        canvas.UpdateGraphics(GetEngine().GetEcsRegistry(), m_window_size_px, 0);
+    }
+}
+
 void Systems::GuiSystem::HandleMouseMotion(const SDL_MouseMotionEvent& event) {
 
     m_cursor_pos_px.x = event.x;
     m_cursor_pos_px.y = event.y;
+
+    if (GetCursorVisible()) {
+        UpdateCursor();
+    }
+}
+
+void Systems::GuiSystem::HandleWindowResize() {
+
+    m_window_size_px = GetEngine().GetEcsRegistry().GetSystem<RenderSystem>().GetWindowSize();
 
     if (GetCursorVisible()) {
         UpdateCursor();

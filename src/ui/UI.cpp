@@ -1,4 +1,9 @@
 #include "UI.hpp"
+#include "components/Renderable.hpp"
+#include "components/Sprite.hpp"
+#include "components/Transform.hpp"
+#include "core/Logger.hpp"
+#include "ecs/ECS.hpp"
 #include <algorithm>
 #include <memory>
 #include <vector>
@@ -39,6 +44,11 @@ UI::Element& UI::Element::SetFixedSize(glm::vec2 fixed_size) {
     return *this;
 }
 
+UI::Element& UI::Element::SetLayoutMode(LayoutMode mode) {
+    m_layout_mode = mode;
+    return *this;
+}
+
 glm::vec2 UI::Element::GetOrigin() const {
 
     return m_origin;
@@ -64,9 +74,30 @@ glm::vec2 UI::Element::GetFixedSize() const {
     return m_fixed_size;
 }
 
+UI::LayoutMode UI::Element::GetLayoutMode() const {
+    return m_layout_mode;
+}
+
 void UI::Element::CalculateSize(glm::vec2 parent_size) {
 
-    SetAbsoluteSize(parent_size * GetRelativeSize()  + GetOffsetSize());
+    if (m_layout_mode == LayoutMode::RELATIVE_TO_PARENT) {
+        // Calculate own size first.
+        SetAbsoluteSize(parent_size * GetRelativeSize()  + GetOffsetSize());
+
+        // Then calculate children.
+        for (auto& p_child : m_children) {
+            p_child->CalculateSize(GetAbsoluteSize());
+        }
+    }
+    else if (m_layout_mode == LayoutMode::FIXED) {
+
+        SetAbsoluteSize(m_fixed_size);
+
+        // Then calculate children.
+        for (auto& p_child : m_children) {
+            p_child->CalculateSize(GetAbsoluteSize());
+        }
+    }
 }
 
 void UI::Element::CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_position) {
@@ -75,8 +106,14 @@ void UI::Element::CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_posi
     SetAbsolutePosition(parent_position
         + parent_size * GetRelativePosition()
         + GetOffsetPosition()
-        - GetOrigin() * GetAbsoluteSize());
+        + GetOrigin() * GetAbsoluteSize());
+
+    // update child positions
+    for (auto& p_child : GetChildren()) {
+        p_child->CalculatePosition(GetAbsoluteSize(), GetAbsolutePosition());
+    }
 }
+
 
 glm::vec2 UI::Element::GetAbsoluteSize() const {
     return m_absolute_size;
@@ -103,7 +140,80 @@ std::vector<std::unique_ptr<UI::Element>>& UI::Element::GetChildren() {
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// Image
+// Horizontal Layout Element
+UI::HorizontalLayout::HorizontalLayout() {
+    SetLayoutMode(LayoutMode::FIT_TO_CHILDREN);
+}
+
+void UI::HorizontalLayout::CalculateSize(glm::vec2 parent_size) {
+
+    uint32_t num_fixed = 0U;
+    uint32_t num_relative = 0U;
+    // iterate through each child, processing children with fixed size layout first.
+    glm::vec2 totalSize = {0.0F, 0.0F};
+
+    for (auto& p_child : GetChildren()) {
+
+        if (p_child->GetLayoutMode() == LayoutMode::FIXED) {
+            p_child->CalculateSize(parent_size);
+            glm::vec2 childFixedSize = p_child->GetAbsoluteSize();
+            totalSize.x += childFixedSize.x;
+            totalSize.y = std::max(totalSize.y, childFixedSize.y);
+            num_fixed++;
+        }
+        else {
+            num_relative++;
+        }
+    }
+
+    if (num_relative > 0) {
+
+        // divide up remaining space among relative sized children.
+        glm::vec2 horizontalPartitionSize
+            = glm::vec2((parent_size.x - totalSize.x)/static_cast<float>(num_relative)
+                , std::max(parent_size.y, totalSize.y));
+        // calculate size of children.
+        for (auto& p_child : GetChildren()) {
+
+            horizontalPartitionSize.x = std::max(horizontalPartitionSize.x, 0.0F);
+            if (p_child->GetLayoutMode() != LayoutMode::FIXED) {
+                p_child->CalculateSize(horizontalPartitionSize);
+                glm::vec2 childSize = p_child->GetAbsoluteSize();
+                totalSize.x += childSize.x;
+                totalSize.y = std::max(childSize.y, totalSize.y);
+            }
+        }
+    }
+
+    SetAbsoluteSize(totalSize);
+
+}
+
+void UI::HorizontalLayout::CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_position) {
+
+    Element::CalculatePosition(parent_size, parent_position);
+    glm::vec2 currentPos = GetAbsolutePosition();
+
+    for (auto& p_child : GetChildren()) {
+
+        glm::vec2 childAbsSize = p_child->GetAbsoluteSize();
+        p_child->CalculatePosition(childAbsSize, currentPos);
+
+        currentPos.x += childAbsSize.x;
+    }
+}
+
+
+void UI::HorizontalLayout::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
+
+    depth++;
+    for (auto& p_child : GetChildren()) {
+        p_child->UpdateGraphics(registry, screenSize, depth);
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// Image Element
 
 UI::ImageElement::ImageElement() {
 }
@@ -116,4 +226,42 @@ UI::ImageElement& UI::ImageElement::SetTexture(std::shared_ptr<SDL::GpuTexture> 
 UI::ImageElement& UI::ImageElement::SetSampler(std::shared_ptr<SDL::GpuSampler> p_sampler) {
     m_p_sampler = std::move(p_sampler);
     return *this;
+}
+
+
+void UI::ImageElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
+
+    if (!m_entity.IsValid()) {
+        m_entity = ECS::Entity(registry);
+    }
+
+    Components::Sprite& sprite = m_entity.FindOrEmplaceComponent<Components::Sprite>();
+    sprite.color = {1.0F, 1.0F, 1.0F, 1.0F};
+    sprite.texture = m_p_texture;
+    sprite.sampler = m_p_sampler;
+    sprite.topLeftUV = {0.0F, 0.0F};
+    sprite.bottomRightUV = {1.0F, 1.0F};
+    sprite.layer = Components::RenderLayer::LAYER_GUI;
+
+    glm::vec2 center = screenSize / 2.0F;
+    glm::vec2 translate = center - GetAbsolutePosition();
+
+    // translate needs to be changed from pixel coordinate to screen coordinate. [0, resX] -> [-1.0, 1.0]
+    translate /= screenSize;
+    translate *= 2.0F;
+    translate.x *= -1.0F;
+
+    glm::vec2 scale = GetAbsoluteSize() / screenSize;
+
+    Components::Transform& transform = m_entity.FindOrEmplaceComponent<Components::Transform>();
+        transform
+            .Set(glm::mat4(1.0F))
+            .Translate({translate, 0.0F})
+            .Scale({scale, 1.0F});
+
+    depth++;
+
+    for (auto& p_child : GetChildren()) {
+        p_child->UpdateGraphics(registry, screenSize, depth);
+    }
 }

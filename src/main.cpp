@@ -57,6 +57,9 @@ int main(int argc, const char** argv) {
             registry.GetComponentSignature<Components::Sprite>()
             | registry.GetComponentSignature<Components::Transform>()
         );
+        registry.SetSystemSignature<Systems::GuiSystem>(
+            registry.GetComponentSignature<Components::Canvas>()
+        );
 
         // setup dependencies
         registry.SetSystemDependency<Systems::RenderSystem, Systems::TextSystem>();

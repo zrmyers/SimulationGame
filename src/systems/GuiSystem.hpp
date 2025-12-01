@@ -2,8 +2,10 @@
 
 #include "core/Engine.hpp"
 #include "ecs/ECS.hpp"
+#include "components/Canvas.hpp"
 #include <SDL3/SDL_events.h>
 #include <string>
+#include <vector>
 namespace Systems {
 
     class GuiSystem : public ECS::System {
@@ -30,8 +32,14 @@ namespace Systems {
             //! Handle mouse motion
             void HandleMouseMotion(const SDL_MouseMotionEvent& event);
 
+            //! Handle resize
+            void HandleWindowResize();
+
             //! Set the cursor position, using pixel coordinates.
             void UpdateCursor();
+
+            //! Process Canvas
+            void ProcessCanvas(Components::Canvas& canvas, const std::vector<SDL_Event>& events);
 
             //! The entity used for rendering the cursor.
             ECS::Entity m_cursor_entity;

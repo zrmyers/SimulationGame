@@ -8,6 +8,7 @@
 #include "graphics/ShaderCross.hpp"
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_stdinc.h>
+#include <SDL3/SDL_video.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <cstddef>
 #include <cstdint>
@@ -31,7 +32,7 @@ static constexpr uint32_t TRANSFER_BUFFER_SIZE = 128U * 1024U * 1024;
 
 Systems::RenderSystem::RenderSystem(Core::Engine& engine)
     : ECS::System(engine)
-    , m_window("Simulation Game", 1024, 768, SDL_WINDOW_VULKAN)
+    , m_window("Simulation Game", 1024, 768, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE)
     , m_gpu(SDL_GPU_SHADERFORMAT_SPIRV, true, NULL) {
 
     m_window.SetPosition( SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);

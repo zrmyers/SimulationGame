@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ecs/ECS.hpp"
 #include "sdl/SDL.hpp"
 #include <SDL3/SDL_stdinc.h>
 #include <cstdint>
@@ -33,6 +34,7 @@ namespace UI {
             Element& SetOffsetSize(glm::vec2 offset_size);
             Element& SetOffsetPosition(glm::vec2 offset_position);
             Element& SetFixedSize(glm::vec2 fixed_size);
+            Element& SetLayoutMode(LayoutMode mode);
 
             glm::vec2 GetOrigin() const;
             glm::vec2 GetRelativeSize() const;
@@ -40,6 +42,7 @@ namespace UI {
             glm::vec2 GetOffsetSize() const;
             glm::vec2 GetOffsetPosition() const;
             glm::vec2 GetFixedSize() const;
+            LayoutMode GetLayoutMode() const;
 
             //! Calculate the size of the element.
             //!
@@ -51,6 +54,9 @@ namespace UI {
             //! @param[in] parent_size The absolute size of the parent element.
             //! @param[in] parent_position The absolute position of the parent element.
             virtual void CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_position);
+
+            //! Update the element. If element is visible, updates sprite and text primitives.
+            virtual void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) = 0;
 
             glm::vec2 GetAbsoluteSize() const;
             glm::vec2 GetAbsolutePosition() const;
@@ -118,6 +124,46 @@ namespace UI {
             std::vector<std::unique_ptr<Element>> m_children;
     };
 
+    //! An element that constains a list of elements arranged horizontally
+    class HorizontalLayout : public Element {
+
+        public:
+            HorizontalLayout();
+
+            //! Calculate the size of the element.
+            //!
+            //! @param[in] parent_size The absolute size of the parent element.
+            void CalculateSize(glm::vec2 parent_size) override;
+
+            //! Calculate the position of the element
+            //!
+            //! @param[in] parent_size The absolute size of the parent element.
+            //! @param[in] parent_position The absolute position of the parent element.
+            void CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_position) override;
+
+            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
+    };
+
+    //! An element that constains a list of elements arranged vertically
+    class VerticalLayout : public Element {
+
+        public:
+            VerticalLayout();
+
+            //! Calculate the size of the element.
+            //!
+            //! @param[in] parent_size The absolute size of the parent element.
+            void CalculateSize(glm::vec2 parent_size) override;
+
+            //! Calculate the position of the element
+            //!
+            //! @param[in] parent_size The absolute size of the parent element.
+            //! @param[in] parent_position The absolute position of the parent element.
+            void CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_position) override;
+
+            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
+    };
+
     //! An element that contains a single image.
     class ImageElement : public Element {
 
@@ -128,10 +174,13 @@ namespace UI {
             ImageElement& SetTexture(std::shared_ptr<SDL::GpuTexture> p_texture);
             ImageElement& SetSampler(std::shared_ptr<SDL::GpuSampler> p_sampler);
 
+            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
         private:
 
             std::shared_ptr<SDL::GpuTexture> m_p_texture;
             std::shared_ptr<SDL::GpuSampler> m_p_sampler;
+
+            ECS::Entity m_entity;
     };
 
 }

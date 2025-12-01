@@ -45,7 +45,6 @@ Systems::SpriteSystem::SpriteSystem(Core::Engine& engine)
 
 void Systems::SpriteSystem::Update() {
 
-    // sort the sprites
     ECS::Registry& registry = GetEngine().GetEcsRegistry();
     std::set<ECS::EntityID_t>& entities = GetEntities();
 
@@ -92,7 +91,7 @@ void Systems::SpriteSystem::Update() {
             command.m_num_indices = 6;
             command.m_num_instances = 1U;
             command.m_start_index = startIndex;
-            command.m_vertex_offset = static_cast<int32_t>(numVertices);
+            command.m_vertex_offset = 0;//static_cast<int32_t>(numVertices);
             command.m_start_instance = 0U;
             renderable.m_layer = sprite.layer;
         }

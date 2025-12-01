@@ -467,12 +467,14 @@ namespace ECS {
 
                     std::unique_ptr<System>& p_system =systemIter;
                     const Signature_t& systemSignature = p_system->GetSignature();
+                    if (systemSignature.any()) {
 
-                    if ((newSignature & systemSignature) == systemSignature) {
-                        p_system->GetEntities().insert(entity);
-                    }
-                    else if ((oldSignature & systemSignature) == systemSignature) {
-                        p_system->GetEntities().erase(entity);
+                        if ((newSignature & systemSignature) == systemSignature) {
+                            p_system->GetEntities().insert(entity);
+                        }
+                        else if ((oldSignature & systemSignature) == systemSignature) {
+                            p_system->GetEntities().erase(entity);
+                        }
                     }
                 }
             }

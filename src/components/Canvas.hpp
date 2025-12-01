@@ -36,8 +36,42 @@ namespace Components {
                 return m_render_mode;
             }
 
+            //! Given the displaySize, calculate the layout of the canvas and all of its child element.
+            //!
+            //! This should be called when the canvas is first created, and any time one of the following occurs:
+            //! - display size changes
+            //! - gui elements are modified.
+            void CalculateLayout(glm::vec2 displaySize) {
+
+                CalculateSize(displaySize);
+                CalculatePosition(displaySize, {0.0F, 0.0F});
+
+                m_is_dirty = false;
+            }
+
+            // Sets the dirty flag. This tells the UI system to recalculate the layout.
+            //
+            // is_dirty is cleared when the layout is recalculated.
+            void SetDirty() {
+                m_is_dirty = true;
+            }
+
+            // Get the dirty flag.
+            bool GetDirty() const {
+                return m_is_dirty;
+            }
+
+            void UpdateGraphics(ECS::Registry &registry, glm::vec2 screenSize, int depth) override {
+                for (auto& child : GetChildren()) {
+                    child->UpdateGraphics(registry, screenSize, depth);
+                }
+            }
+
         private:
             //! Whether the canvas is in screen or world mode.
             RenderMode m_render_mode {RenderMode::SCREEN};
+
+            //! Whether the canvas layout needs to be recalculated.
+            bool m_is_dirty{true};
     };
 }
