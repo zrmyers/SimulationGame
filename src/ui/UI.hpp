@@ -2,12 +2,14 @@
 
 #include "ecs/ECS.hpp"
 #include "sdl/SDL.hpp"
+#include "sdl/TTF.hpp"
 #include <SDL3/SDL_stdinc.h>
 #include <cstdint>
 #include <glm/fwd.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace UI {
@@ -183,4 +185,67 @@ namespace UI {
             ECS::Entity m_entity;
     };
 
+    //! An element that contains a single image.
+    class TextElement : public Element {
+
+        public:
+
+            TextElement();
+
+            //! Sets the font for the font element.
+            TextElement& SetFont(std::shared_ptr<SDL::TTF::Font> p_font);
+            TextElement& SetText(std::shared_ptr<SDL::TTF::Text> p_text);
+
+            //! sets the text string
+            TextElement& SetTextString(const std::string& str);
+            TextElement& SetTextColor(const glm::vec4& color);
+
+            //! Get the pixel size of characters in the text string.
+            glm::vec2 GetTextSize() const;
+
+            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
+        private:
+
+            std::shared_ptr<SDL::TTF::Font> m_p_font;
+            std::shared_ptr<SDL::TTF::Text> m_p_text;
+
+            glm::vec4 m_color;
+            ECS::Entity m_entity;
+    };
+
+    struct NineSliceStyle {
+        std::shared_ptr<SDL::GpuSampler> m_repeat_horizontal;
+        std::shared_ptr<SDL::GpuSampler> m_repeat_vertical;
+        std::shared_ptr<SDL::GpuSampler> m_clamp;
+        std::shared_ptr<SDL::GpuTexture> m_p_top_left;
+        std::shared_ptr<SDL::GpuTexture> m_p_top_right;
+        std::shared_ptr<SDL::GpuTexture> m_p_bottom_left;
+        std::shared_ptr<SDL::GpuTexture> m_p_bottom_right;
+        std::shared_ptr<SDL::GpuTexture> m_p_top;
+        std::shared_ptr<SDL::GpuTexture> m_p_left;
+        std::shared_ptr<SDL::GpuTexture> m_p_right;
+        std::shared_ptr<SDL::GpuTexture> m_p_bottom;
+        std::shared_ptr<SDL::GpuTexture> m_p_center;
+    };
+
+    class NineSlice : public Element {
+
+        public:
+            NineSlice();
+
+        private:
+
+            NineSliceStyle m_style;
+
+            // elements used for rendering the nineslice.
+            std::unique_ptr<UI::ImageElement> m_p_top_left;
+            std::unique_ptr<UI::ImageElement> m_p_top_right;
+            std::unique_ptr<UI::ImageElement> m_p_bottom_left;
+            std::unique_ptr<UI::ImageElement> m_p_bottom_right;
+            std::unique_ptr<UI::ImageElement> m_p_top;
+            std::unique_ptr<UI::ImageElement> m_p_left;
+            std::unique_ptr<UI::ImageElement> m_p_right;
+            std::unique_ptr<UI::ImageElement> m_p_bottom;
+            std::unique_ptr<UI::ImageElement> m_p_center;
+    };
 }

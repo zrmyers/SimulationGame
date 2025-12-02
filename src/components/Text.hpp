@@ -10,16 +10,13 @@ namespace Components {
 
     struct Text {
 
-        //! The formatted string to render as text.
-        std::string m_string;
-
         //! The color of the text.
         glm::vec4 m_color;
 
         //! The font with which to create the text.
         std::shared_ptr<SDL::TTF::Font> m_p_font;
 
-        //! The text object.
+        //! The text object. created by Text system
         std::shared_ptr<SDL::TTF::Text> m_p_text;
 
         //! Which layer the text is rendered to.

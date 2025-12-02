@@ -12,12 +12,16 @@
 
 #include <SDL3/SDL_gpu.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#include <algorithm>
 #include <cstdint>
 #include <glm/ext/matrix_transform.hpp>
 #include <memory>
 
 static const constexpr uint32_t MAX_VERTEX_COUNT = 4000;
 static const constexpr uint32_t MAX_INDEX_COUNT = 6000;
+
+// conversion of point size to pixel size
+static const constexpr float POINT_TO_PIXEL = 2.0F;
 
 Systems::TextSystem::TextSystem(Core::Engine& engine)
     : ECS::System(engine) {
@@ -58,6 +62,10 @@ std::shared_ptr<SDL::TTF::Font> Systems::TextSystem::CreateFont(const std::strin
     return std::make_shared<SDL::TTF::Font>(filename, ptsize);
 }
 
+std::shared_ptr<SDL::TTF::Text> Systems::TextSystem::CreateText(std::shared_ptr<SDL::TTF::Font>& p_font, const std::string& text) { // NOLINT
+    return std::make_shared<SDL::TTF::Text>(m_textengine, *p_font, text);
+}
+
 void Systems::TextSystem::Update() {
 
     ECS::Registry& registry = GetEngine().GetEcsRegistry();
@@ -73,12 +81,15 @@ void Systems::TextSystem::Update() {
         rendersystem.UploadDataToBuffer(SetupTransferBuffer(rendersystem));
 
         uint32_t indexCount = 0U;
-        uint32_t vertexCount = 0U;
         // Build renderable object for each entity
         for (ECS::EntityID_t entity : entities) {
 
             Components::Text& text = registry.GetComponent<Components::Text>(entity);
             Components::Transform& transform = registry.GetComponent<Components::Transform>(entity);
+
+            if ((text.m_p_font == nullptr) || (text.m_p_text == nullptr)) {
+                continue;
+            }
 
             Components::Renderable& renderable = registry.FindOrEmplaceComponent<Components::Renderable>(entity);
 
@@ -98,25 +109,53 @@ void Systems::TextSystem::Update() {
             renderable.textureSampler.sampler = m_sampler.Get();
 
             renderable.m_drawcommand.m_start_index = indexCount;
-            renderable.m_drawcommand.m_vertex_offset = static_cast<int32_t>(vertexCount);
+            renderable.m_drawcommand.m_vertex_offset = 0;
             renderable.m_drawcommand.m_start_instance = 0;
             renderable.m_drawcommand.m_num_instances = 1;
             renderable.m_index_size = SDL_GPU_INDEXELEMENTSIZE_32BIT;
 
+            uint32_t indicesInTextObject = 0U;
             for (TTF_GPUAtlasDrawSequence* p_current = text.m_p_text->GetGpuDrawData(); p_current != nullptr; p_current = p_current->next) {
 
                 if (renderable.textureSampler.texture != p_current->atlas_texture) {
                     renderable.textureSampler.texture = p_current->atlas_texture;
                 }
 
-                indexCount += p_current->num_indices;
-                vertexCount += p_current->num_vertices;
+                indicesInTextObject += p_current->num_indices;
             }
+            renderable.m_drawcommand.m_num_indices = indicesInTextObject;
+            indexCount += indicesInTextObject;
 
-            renderable.m_drawcommand.m_num_indices = indexCount;
         }
     }
 
+}
+
+void Systems::TextSystem::GetTextMetrics(const TTF_GPUAtlasDrawSequence* p_draw_sequence, glm::vec2& min, glm::vec2& max) const {
+
+    float xmin = p_draw_sequence->xy[0].x;
+    float xmax = p_draw_sequence->xy[0].x;
+    float ymin = p_draw_sequence->xy[0].y;
+    float ymax = p_draw_sequence->xy[0].y;
+
+    const TTF_GPUAtlasDrawSequence* p_current = p_draw_sequence;
+    while (p_current != nullptr) {
+
+        int32_t indexStart = static_cast<int32_t>(m_geometry_data.vertices.size());
+        for (int i = 0; i < p_current->num_vertices; i++) {
+            SDL_FPoint& pos = p_current->xy[i]; // NOLINT
+
+            xmax = std::max(pos.x, xmax);
+            xmin = std::min(pos.x, xmin);
+            ymax = std::max(pos.y, ymax);
+            ymin = std::max(pos.y, ymin);
+        }
+
+        p_current = p_current->next;
+    }
+
+    min = {xmin, ymin}; // bottom left
+    max = {xmax, ymax}; // top right
 }
 
 void Systems::TextSystem::UpdateGeometryBuffer() {
@@ -131,21 +170,14 @@ void Systems::TextSystem::UpdateGeometryBuffer() {
 
         Components::Text& text = registry.GetComponent<Components::Text>(entity);
 
-        if (text.m_p_font == nullptr) {
+        if ((text.m_p_font == nullptr) || (text.m_p_text == nullptr)) {
             continue;
         }
-
-        if (text.m_p_text == nullptr) {
-
-            // create new text.
-            text.m_p_text = std::make_shared<SDL::TTF::Text>(m_textengine, *text.m_p_font, text.m_string);
-        }
-
-        text.m_p_text->SetString(text.m_string);
 
         // update geometry buffer.
         TTF_GPUAtlasDrawSequence* p_sequence = text.m_p_text->GetGpuDrawData();
         TTF_GPUAtlasDrawSequence* p_current = p_sequence;
+
         while (p_current != nullptr) {
 
             int32_t indexStart = static_cast<int32_t>(m_geometry_data.vertices.size());
@@ -153,7 +185,8 @@ void Systems::TextSystem::UpdateGeometryBuffer() {
                 Graphics::UnlitTexturedVertex vert = {};
                 SDL_FPoint& pos = p_current->xy[i]; // NOLINT
                 SDL_FPoint& uv = p_current->uv[i]; // NOLINT
-                vert.position = glm::vec3(pos.x, pos.y, 0.0F);
+
+                vert.position = glm::vec3(pos.x, pos.y, 0.0F) * POINT_TO_PIXEL;
                 vert.color = text.m_color;
                 vert.texcoord = glm::vec2(uv.x, uv.y);
 

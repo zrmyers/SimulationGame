@@ -10,6 +10,7 @@
 #include "core/Logger.hpp"
 #include "ecs/ECS.hpp"
 #include "sdl/SDL.hpp"
+#include "sdl/TTF.hpp"
 #include "systems/GuiSystem.hpp"
 #include "systems/RenderSystem.hpp"
 #include "graphics/ShaderCross.hpp"
@@ -48,7 +49,7 @@ SimulationGame::SimulationGame(Core::Engine& engine)
     Components::Text& text = m_text_entity.EmplaceComponent<Components::Text>();
     text.m_p_font = m_font;
     text.m_color = glm::vec4(0.0F, 1.0F, 0.0F, 1.0F);
-    text.m_string = "Hello World\n1234";
+    text.m_p_text = textRenderer.CreateText(m_font, "Hello\n12345");
     text.m_layer = Components::RenderLayer::LAYER_3D_OPAQUE;
 
     // setup camera object
@@ -69,7 +70,7 @@ void SimulationGame::Update() {
     msgStream << "FPS: " << 1.0F / deltaTimeSec;
 
     Components::Text& text = m_text_entity.GetComponent<Components::Text>();
-    text.m_string = msgStream.str();
+    text.m_p_text->SetString(msgStream.str());
 
     if (text.m_p_text != nullptr) {
         int textWidth = 0;
@@ -95,6 +96,8 @@ void SimulationGame::InitializeGUI() {
     Core::AssetLoader& assetLoader = GetEngine().GetAssetLoader();
     ECS::Registry& registry = GetEngine().GetEcsRegistry();
     Systems::RenderSystem& renderSystem = registry.GetSystem<Systems::RenderSystem>();
+    Systems::TextSystem& textSystem = registry.GetSystem<Systems::TextSystem>();
+
     m_gui_entity = ECS::Entity(registry);
 
     auto& canvas = m_gui_entity.EmplaceComponent<Components::Canvas>();
@@ -141,33 +144,32 @@ void SimulationGame::InitializeGUI() {
     renderSystem.UploadDataToBuffer({request});
 
     UI::HorizontalLayout& hzLayout = canvas.EmplaceChild<UI::HorizontalLayout>();
-    UI::VerticalLayout& vzLayout = hzLayout.EmplaceChild<UI::VerticalLayout>();
-    UI::ImageElement& element1 = vzLayout.EmplaceChild<UI::ImageElement>();
-    element1
-        .SetTexture(p_texture)
-        .SetSampler(p_sampler)
-        .SetOrigin({0.5F, 0.5F})
-        .SetFixedSize(glm::vec2(image.GetWidth(), image.GetHeight()))
-        .SetLayoutMode(UI::LayoutMode::RELATIVE_TO_PARENT);
-    UI::ImageElement& element12 = vzLayout.EmplaceChild<UI::ImageElement>();
-    element12
-        .SetTexture(p_texture)
-        .SetSampler(p_sampler)
-        .SetOrigin({0.5F, 0.5F})
-        .SetFixedSize(glm::vec2(image.GetWidth(), image.GetHeight()))
-        .SetLayoutMode(UI::LayoutMode::RELATIVE_TO_PARENT);
-    UI::ImageElement& element2 = hzLayout.EmplaceChild<UI::ImageElement>();
-    element2
-        .SetTexture(p_texture)
-        .SetSampler(p_sampler)
-        .SetOrigin({0.5F, 0.5F})
-        .SetFixedSize(glm::vec2(image.GetWidth(), image.GetHeight()))
-        .SetLayoutMode(UI::LayoutMode::RELATIVE_TO_PARENT);
-    UI::ImageElement& element3 = hzLayout.EmplaceChild<UI::ImageElement>();
-    element3
-        .SetTexture(p_texture)
-        .SetSampler(p_sampler)
-        .SetOrigin({0.5F, 0.5F})
-        .SetFixedSize(glm::vec2(image.GetWidth(), image.GetHeight()))
+
+    std::shared_ptr<SDL::TTF::Font> p_uiFont = textSystem.CreateFont(assetLoader.GetFontDir() + "/Oblegg-Regular.otf", 32.0F);
+    p_uiFont->SetSDF(true);
+    p_uiFont->SetHorizontalAlignment(TTF_HORIZONTAL_ALIGN_LEFT);
+
+    UI::Element& vertLayout = hzLayout.EmplaceChild<UI::VerticalLayout>();
+    UI::TextElement& textelement1 = vertLayout.EmplaceChild<UI::TextElement>();
+    textelement1
+        .SetFont(p_uiFont)
+        .SetText(textSystem.CreateText(p_uiFont, "ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz!"))
+        .SetFixedSize(textelement1.GetTextSize())
+        //.SetOrigin({-0.5F, -0.5F})
         .SetLayoutMode(UI::LayoutMode::FIXED);
+    UI::TextElement& textelement2 = vertLayout.EmplaceChild<UI::TextElement>();
+    textelement2
+        .SetFont(p_uiFont)
+        .SetText(textSystem.CreateText(p_uiFont, "Some more text to test the text!"))
+        .SetFixedSize(textelement2.GetTextSize())
+        //.SetOrigin({-0.5F, -0.5F})
+        .SetLayoutMode(UI::LayoutMode::FIXED);
+
+    UI::ImageElement& imageElement = hzLayout.EmplaceChild<UI::ImageElement>();
+    imageElement
+        .SetTexture(p_texture)
+        .SetSampler(p_sampler)
+        .SetFixedSize({region.w, region.h})
+        .SetOrigin({0.5F, 0.5F})
+        .SetLayoutMode(UI::LayoutMode::RELATIVE_TO_PARENT);
 }

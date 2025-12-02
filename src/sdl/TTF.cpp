@@ -147,6 +147,13 @@ void SDL::TTF::Text::GetSize(int& width, int& height) {
     }
 }
 
+void SDL::TTF::Text::GetPosition(int& pos_x, int& pos_y) {
+
+    if(!TTF_GetTextPosition(m_p_text, &pos_x, &pos_y)) {
+        throw SDL::Error("TTF_GetPosition() failed!");
+    }
+}
+
 TTF_GPUAtlasDrawSequence* SDL::TTF::Text::GetGpuDrawData() {
 
     TTF_GPUAtlasDrawSequence* p_sequence = TTF_GetGPUTextDrawData(m_p_text);

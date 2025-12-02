@@ -83,6 +83,9 @@ namespace SDL::TTF {
             //! Get the size of the text.
             void GetSize(int& width, int& height);
 
+            //! Get the position of the text.
+            void GetPosition(int& pos_x, int& pos_y);
+
             //! Get the text draw data.
             TTF_GPUAtlasDrawSequence* GetGpuDrawData();
 
