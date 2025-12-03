@@ -3,6 +3,7 @@
 #include "ecs/ECS.hpp"
 #include "sdl/SDL.hpp"
 #include "sdl/TTF.hpp"
+#include "graphics/Texture2D.hpp"
 #include <SDL3/SDL_stdinc.h>
 #include <cstdint>
 #include <glm/fwd.hpp>
@@ -173,14 +174,12 @@ namespace UI {
 
             ImageElement();
 
-            ImageElement& SetTexture(std::shared_ptr<SDL::GpuTexture> p_texture);
-            ImageElement& SetSampler(std::shared_ptr<SDL::GpuSampler> p_sampler);
+            ImageElement& SetTexture(std::shared_ptr<Graphics::Texture2D> p_texture);
 
             void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
         private:
 
-            std::shared_ptr<SDL::GpuTexture> m_p_texture;
-            std::shared_ptr<SDL::GpuSampler> m_p_sampler;
+            std::shared_ptr<Graphics::Texture2D> m_p_texture;
 
             ECS::Entity m_entity;
     };
@@ -231,20 +230,13 @@ namespace UI {
     class NineSlice : public Element {
 
         public:
-            NineSlice();
+            NineSlice() = default;
 
             //! Set the NineSlice style.
             void SetStyle(const NineSliceStyle& style);
 
-            //! Calculate the size of the element.
-            //!
-            //! @param[in] parent_size The absolute size of the parent element.
             void CalculateSize(glm::vec2 parent_size) override;
 
-            //! Calculate the position of the element
-            //!
-            //! @param[in] parent_size The absolute size of the parent element.
-            //! @param[in] parent_position The absolute position of the parent element.
             void CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_position) override;
 
             void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;

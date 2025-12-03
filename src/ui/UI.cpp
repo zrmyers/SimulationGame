@@ -288,16 +288,10 @@ void UI::VerticalLayout::UpdateGraphics(ECS::Registry& registry, glm::vec2 scree
 UI::ImageElement::ImageElement() {
 }
 
-UI::ImageElement& UI::ImageElement::SetTexture(std::shared_ptr<SDL::GpuTexture> p_texture) {
+UI::ImageElement& UI::ImageElement::SetTexture(std::shared_ptr<Graphics::Texture2D> p_texture) {
     m_p_texture = std::move(p_texture);
     return *this;
 }
-
-UI::ImageElement& UI::ImageElement::SetSampler(std::shared_ptr<SDL::GpuSampler> p_sampler) {
-    m_p_sampler = std::move(p_sampler);
-    return *this;
-}
-
 
 void UI::ImageElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
 
@@ -308,7 +302,6 @@ void UI::ImageElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenS
     Components::Sprite& sprite = m_entity.FindOrEmplaceComponent<Components::Sprite>();
     sprite.color = {1.0F, 1.0F, 1.0F, 1.0F};
     sprite.texture = m_p_texture;
-    sprite.sampler = m_p_sampler;
     sprite.topLeftUV = {0.0F, 0.0F};
     sprite.bottomRightUV = {1.0F, 1.0F};
     sprite.layer = Components::RenderLayer::LAYER_GUI;
@@ -413,4 +406,23 @@ void UI::TextElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSi
     for (auto& p_child : GetChildren()) {
         p_child->UpdateGraphics(registry, screenSize, depth);
     }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// Nine Slice Element
+
+void UI::NineSlice::SetStyle(const NineSliceStyle& style) {
+    m_style = style;
+}
+
+void UI::NineSlice::CalculateSize(glm::vec2 parent_size) {
+
+}
+
+void UI::NineSlice::CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_position) {
+
+}
+
+void UI::NineSlice::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
+
 }

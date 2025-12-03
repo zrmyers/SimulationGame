@@ -84,8 +84,7 @@ void Systems::SpriteSystem::Update() {
             renderable.m_index_size = SDL_GPU_INDEXELEMENTSIZE_16BIT;
             renderable.m_p_pipeline = m_p_sprite_pipeline;
             renderable.transform = transform.m_transform;
-            renderable.textureSampler.sampler = sprite.sampler->Get();
-            renderable.textureSampler.texture = sprite.texture->Get();
+            renderable.textureSampler = sprite.texture->GetBinding();
 
             Components::DrawCommand& command = renderable.m_drawcommand;
             command.m_num_indices = 6;

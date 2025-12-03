@@ -9,6 +9,7 @@
 #include "core/IGame.hpp"
 #include "core/Logger.hpp"
 #include "ecs/ECS.hpp"
+#include "graphics/Texture2D.hpp"
 #include "sdl/SDL.hpp"
 #include "sdl/TTF.hpp"
 #include "systems/GuiSystem.hpp"
@@ -105,18 +106,6 @@ void SimulationGame::InitializeGUI() {
     canvas.SetRenderMode(Components::Canvas::RenderMode::SCREEN);
 
     SDL::Image image(assetLoader.GetImageDir() + "/nineslice-top-right.png");
-    // Load a texture
-    SDL_GPUTextureCreateInfo textureCreateInfo = {};
-    textureCreateInfo.type = SDL_GPU_TEXTURETYPE_2D;
-    textureCreateInfo.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
-    textureCreateInfo.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
-    textureCreateInfo.width = image.GetWidth();
-    textureCreateInfo.height = image.GetHeight();
-    textureCreateInfo.layer_count_or_depth = 1;
-    textureCreateInfo.sample_count = SDL_GPU_SAMPLECOUNT_1;
-    textureCreateInfo.num_levels = 1;
-
-    std::shared_ptr<SDL::GpuTexture> p_texture = std::make_shared<SDL::GpuTexture>(renderSystem.CreateTexture(textureCreateInfo));
 
     SDL_GPUSamplerCreateInfo samplerCreateInfo = {};
     samplerCreateInfo.min_filter = SDL_GPU_FILTER_LINEAR;
@@ -130,18 +119,10 @@ void SimulationGame::InitializeGUI() {
 
     std::shared_ptr<SDL::GpuSampler> p_sampler = std::make_shared<SDL::GpuSampler>(renderSystem.CreateSampler(samplerCreateInfo));
 
-    // texture transfer
-    Systems::RenderSystem::TransferRequest request = {};
-    request.cycle = false;
-    request.type = Systems::RenderSystem::RequestType::UPLOAD_TO_TEXTURE;
-    SDL_GPUTextureRegion& region = request.data.texture;
-    region.texture = p_texture->Get();
-    region.w = image.GetWidth();
-    region.h = image.GetHeight();
-    region.d = 1;
-    request.p_src = image.GetPixels();
+    std::shared_ptr<Graphics::Texture2D> p_texture =
+         std::make_shared<Graphics::Texture2D>(GetEngine(), p_sampler, image.GetWidth(), image.GetHeight(), false);
 
-    renderSystem.UploadDataToBuffer({request});
+    p_texture->LoadImageData(image);
 
     UI::HorizontalLayout& hzLayout = canvas.EmplaceChild<UI::HorizontalLayout>();
 
@@ -168,8 +149,7 @@ void SimulationGame::InitializeGUI() {
     UI::ImageElement& imageElement = hzLayout.EmplaceChild<UI::ImageElement>();
     imageElement
         .SetTexture(p_texture)
-        .SetSampler(p_sampler)
-        .SetFixedSize({region.w, region.h})
+        .SetFixedSize({p_texture->GetWidth(), p_texture->GetHeight()})
         .SetOrigin({0.5F, 0.5F})
         .SetLayoutMode(UI::LayoutMode::RELATIVE_TO_PARENT);
 }

@@ -123,14 +123,14 @@ namespace SDL {
             //! See SDL_SaveJPG for docs. quality controls lossiness of jpg compression
             void SaveJPG(const std::string& filename, int quality);
 
-            SDL_SurfaceFlags GetFlags();
-            SDL_PixelFormat GetFormat();
-            uint32_t GetWidth();
-            uint32_t GetHeight();
-            uint32_t GetPitch();
-            uint32_t GetNumChannels();
-            void* GetPixels();
-            size_t GetSize();
+            SDL_SurfaceFlags GetFlags() const;
+            SDL_PixelFormat GetFormat() const;
+            uint32_t GetWidth() const;
+            uint32_t GetHeight() const;
+            uint32_t GetPitch() const;
+            uint32_t GetNumChannels() const;
+            void* GetPixels() const;
+            size_t GetSize() const;
         private:
 
             SDL_Surface* m_p_surface;

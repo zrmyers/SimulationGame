@@ -115,31 +115,31 @@ void SDL::Image::SaveJPG(const std::string& filename, int quality) {
     }
 }
 
-SDL_SurfaceFlags SDL::Image::GetFlags() {
+SDL_SurfaceFlags SDL::Image::GetFlags() const {
     return m_p_surface->flags;
 }
 
-SDL_PixelFormat SDL::Image::GetFormat() {
+SDL_PixelFormat SDL::Image::GetFormat() const {
     return m_p_surface->format;
 }
 
-uint32_t SDL::Image::GetWidth() {
+uint32_t SDL::Image::GetWidth() const {
     return m_p_surface->w;
 }
 
-uint32_t SDL::Image::GetHeight() {
+uint32_t SDL::Image::GetHeight() const {
     return m_p_surface->h;
 }
 
-uint32_t SDL::Image::GetPitch() {
+uint32_t SDL::Image::GetPitch() const {
     return m_p_surface->pitch;
 }
 
-uint32_t SDL::Image::GetNumChannels() {
+uint32_t SDL::Image::GetNumChannels() const {
     return m_p_surface->pitch / m_p_surface->w;
 }
 
-void* SDL::Image::GetPixels() {
+void* SDL::Image::GetPixels() const {
     return m_p_surface->pixels;
 }
 

@@ -94,6 +94,9 @@ namespace Systems {
             //! Immediate upload of data to buffer.
             void UploadDataToBuffer(const std::vector<TransferRequest>& transfers);
 
+            //! Generate mipmaps for the given texture image.
+            void GenerateMipMaps(SDL::GpuTexture& texture);
+
             //!
             //! Main update loop.
             //!

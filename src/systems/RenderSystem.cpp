@@ -98,7 +98,23 @@ void Systems::RenderSystem::UploadDataToBuffer(const std::vector<TransferRequest
     ProcessDataUpload(p_copy, transfers);
 
     SDL_EndGPUCopyPass(p_copy);
-    SDL_SubmitGPUCommandBuffer(p_cmd);
+    if (!SDL_SubmitGPUCommandBuffer(p_cmd)) {
+        throw SDL::Error("SDL_SubmitGPUCommandBuffer() failed!");
+    }
+}
+
+void Systems::RenderSystem::GenerateMipMaps(SDL::GpuTexture& texture) {
+
+    SDL_GPUCommandBuffer* p_cmd = SDL_AcquireGPUCommandBuffer(m_gpu.Get());
+    if (p_cmd == nullptr) {
+        throw SDL::Error("SDL_GPUCommandBuffer() failed!");
+    }
+
+    SDL_GenerateMipmapsForGPUTexture(p_cmd, texture.Get());
+
+    if(!SDL_SubmitGPUCommandBuffer(p_cmd)) {
+        throw SDL::Error("SDL_SubmitGPUCommandBuffer() failed!");
+    }
 }
 
 void Systems::RenderSystem::Update() {

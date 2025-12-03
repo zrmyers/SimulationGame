@@ -160,16 +160,6 @@ void Systems::GuiSystem::SetCursor(const std::string& image_filename, bool visib
 
     // loading a texture is still lot of work, but getting there.
     SDL::Image image(assetLoader.GetImageDir() + "/" + image_filename);
-    SDL_GPUTextureCreateInfo textureInfo = {};
-    textureInfo.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
-    textureInfo.type = SDL_GPU_TEXTURETYPE_2D;
-    textureInfo.width = image.GetWidth();
-    textureInfo.height = image.GetHeight();
-    textureInfo.layer_count_or_depth = 1;
-    textureInfo.num_levels = 1;
-    textureInfo.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
-    cursor.texture = std::make_shared<SDL::GpuTexture>(renderer.CreateTexture(textureInfo));
-    cursor.texture->SetName("Cursor");
 
     SDL_GPUSamplerCreateInfo samplerCreateInfo = {};
     samplerCreateInfo.min_filter = SDL_GPU_FILTER_LINEAR;
@@ -181,24 +171,15 @@ void Systems::GuiSystem::SetCursor(const std::string& image_filename, bool visib
     samplerCreateInfo.enable_anisotropy = true;
     samplerCreateInfo.max_anisotropy = 16; // NOLINT
 
-    cursor.sampler = std::make_shared<SDL::GpuSampler>(renderer.CreateSampler(samplerCreateInfo));
+    std::shared_ptr<SDL::GpuSampler> pSampler = std::make_shared<SDL::GpuSampler>(renderer.CreateSampler(samplerCreateInfo));
+
+    cursor.texture = std::make_shared<Graphics::Texture2D>(GetEngine(),pSampler, image.GetWidth(), image.GetHeight(), false);
+    cursor.texture->LoadImageData(image);
+
     cursor.layer = (visible)? Components::RenderLayer::LAYER_GUI : Components::RenderLayer::LAYER_NONE;
 
-    // texture transfer
-    Systems::RenderSystem::TransferRequest request = {};
-    request.cycle = false;
-    request.type = Systems::RenderSystem::RequestType::UPLOAD_TO_TEXTURE;
-    SDL_GPUTextureRegion& region = request.data.texture;
-    region.texture = cursor.texture->Get();
-    region.w = image.GetWidth();
-    region.h = image.GetHeight();
-    region.d = 1;
-    request.p_src = image.GetPixels();
-
-    renderer.UploadDataToBuffer({request});
-
     m_cursor_pos_px = m_window_size_px / 2.0F; // center of screen
-    m_cursor_size_px = glm::vec2(region.w, region.h);
+    m_cursor_size_px = glm::vec2(cursor.texture->GetWidth(), cursor.texture->GetHeight());
 
     UpdateCursor();
 }

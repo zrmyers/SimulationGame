@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Renderable.hpp"
-#include "sdl/SDL.hpp"
+#include "graphics/Texture2D.hpp"
 #include "glm/vec2.hpp"
 #include "glm/vec4.hpp"
 #include <memory>
@@ -12,10 +12,7 @@ namespace Components {
     struct Sprite {
 
         // The texture used for the sprite.
-        std::shared_ptr<SDL::GpuTexture> texture;
-
-        // The sampler used for the sprite.
-        std::shared_ptr<SDL::GpuSampler> sampler;
+        std::shared_ptr<Graphics::Texture2D> texture;
 
         // The UV coordinate at the top-left corner of the sprite. Used to index into a texture atlas.
         glm::vec2 topLeftUV{0.0F, 0.0F};
