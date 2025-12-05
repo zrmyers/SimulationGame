@@ -3,9 +3,17 @@
 #include "components/Sprite.hpp"
 #include "components/Text.hpp"
 #include "components/Transform.hpp"
+#include "core/AssetLoader.hpp"
+#include "core/Engine.hpp"
 #include "core/Logger.hpp"
 #include "ecs/ECS.hpp"
+#include "graphics/Texture2D.hpp"
+#include "sdl/SDL.hpp"
+#include "systems/RenderSystem.hpp"
+#include <SDL3/SDL_gpu.h>
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <stdexcept>
 #include <vector>
@@ -108,7 +116,7 @@ void UI::Element::CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_posi
     SetAbsolutePosition(parent_position
         + parent_size * GetRelativePosition()
         + GetOffsetPosition()
-        + GetOrigin() * GetAbsoluteSize());
+        - GetOrigin() * GetAbsoluteSize());
 
     // update child positions
     for (auto& p_child : GetChildren()) {
@@ -306,20 +314,21 @@ void UI::ImageElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenS
     sprite.bottomRightUV = {1.0F, 1.0F};
     sprite.layer = Components::RenderLayer::LAYER_GUI;
 
-    glm::vec2 center = screenSize / 2.0F;
-    glm::vec2 translate = center - GetAbsolutePosition();
-
-    // translate needs to be changed from pixel coordinate to screen coordinate. [0, resX] -> [-1.0, 1.0]
-    translate /= screenSize;
-    translate *= 2.0F;
-    translate.x *= -1.0F;
-
     glm::vec2 scale = GetAbsoluteSize() / screenSize;
+
+    // get the topleft corner position in screen space
+    glm::vec2 spriteTopLeft = glm::vec2(-1.0F, 1.0F) * scale;
+
+    // get absolute position in screen space
+    glm::vec2 screenPos = (GetAbsolutePosition() / screenSize) * 2.0F - 1.0F;
+    screenPos.y *= -1.0F;
+
+    // now calculate difference between
 
     Components::Transform& transform = m_entity.FindOrEmplaceComponent<Components::Transform>();
         transform
             .Set(glm::mat4(1.0F))
-            .Translate({translate, 0.0F})
+            .Translate({ screenPos - spriteTopLeft, 0.0F})
             .Scale({scale, 1.0F});
 
     depth++;
@@ -409,20 +418,317 @@ void UI::TextElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSi
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+// Nine Slice Style
+
+UI::NineSliceStyle UI::NineSliceStyle::Load(Core::Engine& engine, const std::vector<std::string>& images) {
+
+    Core::AssetLoader& assetLoader = engine.GetAssetLoader();
+    UI::NineSliceStyle style;
+
+    if (images.size() != NineSliceStyle::SLICE_COUNT) {
+        throw Core::EngineException("Not enough data to initialize nine-slice. Need 9 image files to work.");
+    }
+
+    style.m_textures.resize(images.size());
+
+    Systems::RenderSystem& renderSystem = engine.GetEcsRegistry().GetSystem<Systems::RenderSystem>();
+    std::shared_ptr<SDL::GpuSampler> p_cornerSampler;
+    std::shared_ptr<SDL::GpuSampler> p_horizontalSampler;
+    std::shared_ptr<SDL::GpuSampler> p_verticalSampler;
+    std::shared_ptr<SDL::GpuSampler> p_fillSampler;
+
+    // Create samplers
+    SDL_GPUSamplerCreateInfo samplerCreateInfo = {};
+    samplerCreateInfo.min_filter = SDL_GPU_FILTER_LINEAR;
+    samplerCreateInfo.mag_filter = SDL_GPU_FILTER_LINEAR;
+    samplerCreateInfo.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR;
+    samplerCreateInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerCreateInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerCreateInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerCreateInfo.enable_anisotropy = true;
+    samplerCreateInfo.max_anisotropy = 16; // NOLINT
+
+    p_cornerSampler = std::make_shared<SDL::GpuSampler>(renderSystem.CreateSampler(samplerCreateInfo));
+    samplerCreateInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+    p_horizontalSampler = std::make_shared<SDL::GpuSampler>(renderSystem.CreateSampler(samplerCreateInfo));
+    samplerCreateInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerCreateInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+    p_verticalSampler = std::make_shared<SDL::GpuSampler>(renderSystem.CreateSampler(samplerCreateInfo));
+    samplerCreateInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+    samplerCreateInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+    p_fillSampler = std::make_shared<SDL::GpuSampler>(renderSystem.CreateSampler(samplerCreateInfo));
+
+    // now create images
+    for (size_t index = 0; index < images.size(); index++) {
+
+        Region region = static_cast<Region>(index);
+        SDL::Image image(assetLoader.GetImageDir() + "/" + images.at(index));
+        std::shared_ptr<Graphics::Texture2D> p_texture = nullptr;
+        switch (region) {
+            case Region::TOP_LEFT_CORNER:
+            case Region::BOTTOM_LEFT_CORNER:
+            case Region::TOP_RIGHT_CORNER:
+            case Region::BOTTOM_RIGHT_CORNER:
+                p_texture = std::make_shared<Graphics::Texture2D>(
+                    engine, p_cornerSampler, image.GetWidth(), image.GetHeight(), false);
+                break;
+
+            case Region::LEFT_EDGE:
+            case Region::RIGHT_EDGE:
+                p_texture = std::make_shared<Graphics::Texture2D>(
+                    engine, p_verticalSampler, image.GetWidth(), image.GetHeight(), false);
+                break;
+
+            case Region::TOP_EDGE:
+            case Region::BOTTOM_EDGE:
+                p_texture = std::make_shared<Graphics::Texture2D>(
+                    engine, p_horizontalSampler, image.GetWidth(), image.GetHeight(), false);
+                break;
+
+            case Region::CENTER:
+                p_texture = std::make_shared<Graphics::Texture2D>(
+                    engine, p_fillSampler, image.GetWidth(), image.GetHeight(), false);
+                break;
+
+            default:
+                break;
+        }
+
+        p_texture->LoadImageData( image);
+
+        style.m_textures[index] = std::move(p_texture);
+    }
+
+    style.m_border_width = style.CalculateBorderWidth();
+
+    return style;
+}
+
+UI::NineSliceStyle::NineSliceStyle()
+    : m_border_width(0.0F) {
+    m_textures.resize(NineSliceStyle::SLICE_COUNT);
+}
+
+void UI::NineSliceStyle::SetRegion(std::shared_ptr<Graphics::Texture2D> p_texture, Region region) {
+
+    size_t index = static_cast<size_t>(region);
+
+    m_textures.at(index) = std::move(p_texture);
+}
+
+const std::shared_ptr<Graphics::Texture2D>& UI::NineSliceStyle::GetRegion(Region region) const {
+
+    size_t index = static_cast<size_t>(region);
+
+    return m_textures.at(index);
+}
+
+float UI::NineSliceStyle::GetBorderWidth() const {
+    return m_border_width;
+}
+
+float UI::NineSliceStyle::CalculateBorderWidth() {
+
+    uint32_t minBorderWidth = 0;
+
+    for (size_t index = 0; index < m_textures.size(); index++) {
+
+        std::shared_ptr<Graphics::Texture2D>& p_texture = m_textures.at(index);
+        Region region = static_cast<Region>(index);
+
+        switch (region) {
+
+            case Region::TOP_LEFT_CORNER:
+            case Region::BOTTOM_LEFT_CORNER:
+            case Region::TOP_RIGHT_CORNER:
+            case Region::BOTTOM_RIGHT_CORNER:
+                minBorderWidth = std::max({minBorderWidth, p_texture->GetWidth(), p_texture->GetHeight()});
+                break;
+
+            case Region::LEFT_EDGE:
+            case Region::RIGHT_EDGE:
+                minBorderWidth = std::max(minBorderWidth, p_texture->GetWidth());
+                break;
+
+            case Region::TOP_EDGE:
+            case Region::BOTTOM_EDGE:
+                minBorderWidth = std::max(minBorderWidth, p_texture->GetHeight());
+                break;
+
+            case Region::CENTER:
+            default:
+                break;
+        }
+    }
+    return static_cast<float>(minBorderWidth);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 // Nine Slice Element
 
-void UI::NineSlice::SetStyle(const NineSliceStyle& style) {
+UI::NineSlice& UI::NineSlice::SetStyle(const NineSliceStyle& style) {
     m_style = style;
+
+    // Generate image elements for borders.
+    m_borders.reserve(NineSliceStyle::SLICE_COUNT);
+
+    for (size_t index = 0U; index < NineSliceStyle::SLICE_COUNT; index++) {
+        NineSliceStyle::Region region = static_cast<NineSliceStyle::Region>(index);
+
+        const std::shared_ptr<Graphics::Texture2D>& p_texture = m_style.GetRegion(region);
+
+        std::unique_ptr<UI::ImageElement> p_imageElement = std::make_unique<UI::ImageElement>();
+        p_imageElement
+            ->SetTexture(p_texture)
+            .SetLayoutMode(LayoutMode::RELATIVE_TO_PARENT);
+
+        m_borders.push_back(std::move(p_imageElement));
+    }
+
+    return *this;
 }
 
 void UI::NineSlice::CalculateSize(glm::vec2 parent_size) {
 
+    // first calculate size of nine slice
+    float borderWidth = m_style.GetBorderWidth();
+
+    if (GetLayoutMode() == LayoutMode::RELATIVE_TO_PARENT) {
+
+        // Calculate own size first.
+        SetAbsoluteSize(parent_size * GetRelativeSize()  + GetOffsetSize());
+
+        glm::vec2 absSize = GetAbsoluteSize();
+        glm::vec2 centerSize = absSize - 2.0F * borderWidth;
+
+        CalculateSliceSize(centerSize, borderWidth);
+
+        // set size for each child
+        for (auto& p_child : GetChildren()) {
+            p_child->CalculateSize(centerSize);
+        }
+    }
+    else if (GetLayoutMode() == LayoutMode::FIXED) {
+
+        SetAbsoluteSize(GetFixedSize());
+        glm::vec2 absSize = GetAbsoluteSize();
+        // subtract border width from size.
+        glm::vec2 centerSize = absSize - 2.0F * borderWidth;
+
+        CalculateSliceSize(centerSize, borderWidth);
+
+        for (auto& p_child : GetChildren()) {
+            p_child->CalculateSize(centerSize);
+        }
+
+    }
+    else {
+        throw std::runtime_error("Unsupported layout option for nine slice.");
+    }
 }
 
 void UI::NineSlice::CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_position) {
 
+    SetAbsolutePosition(parent_position
+        + parent_size * GetRelativePosition()
+        + GetOffsetPosition()
+        - GetOrigin() * GetAbsoluteSize());
+
+    glm::vec2 absSize = GetAbsoluteSize();
+    glm::vec2 absPosition = GetAbsolutePosition();
+    float borderSize = m_style.GetBorderWidth();
+    glm::vec2 centerSize = absSize - 2.0F * borderSize;
+
+    // calculate nine slice positions
+    for (size_t index = 0U; index < m_borders.size(); index++) {
+        NineSliceStyle::Region region = static_cast<NineSliceStyle::Region>(index);
+        auto& p_slice = m_borders.at(index);
+        glm::vec2 slicePosition = absPosition;
+
+        switch (region) {
+            case UI::NineSliceStyle::Region::TOP_LEFT_CORNER:
+                break;
+
+            case UI::NineSliceStyle::Region::TOP_RIGHT_CORNER:
+                slicePosition = slicePosition + glm::vec2(borderSize + centerSize.x, 0.0F);
+                break;
+
+            case UI::NineSliceStyle::Region::BOTTOM_LEFT_CORNER:
+                slicePosition = slicePosition + glm::vec2(0.0F, borderSize + centerSize.y);
+                break;
+
+            case UI::NineSliceStyle::Region::BOTTOM_RIGHT_CORNER:
+                slicePosition = slicePosition + glm::vec2(borderSize) + centerSize;
+                break;
+
+            case UI::NineSliceStyle::Region::TOP_EDGE:
+                slicePosition = slicePosition + glm::vec2(borderSize, 0.0F);
+                break;
+
+            case UI::NineSliceStyle::Region::BOTTOM_EDGE:
+                slicePosition = slicePosition + glm::vec2(borderSize, centerSize.y + borderSize);
+                break;
+
+            case UI::NineSliceStyle::Region::LEFT_EDGE:
+                slicePosition = slicePosition + glm::vec2(0.0F, borderSize);
+                break;
+
+            case UI::NineSliceStyle::Region::RIGHT_EDGE:
+                slicePosition = slicePosition + glm::vec2(borderSize + centerSize.x, borderSize);
+                break;
+
+            case UI::NineSliceStyle::Region::CENTER:
+                slicePosition = slicePosition + glm::vec2(borderSize);
+                break;
+        }
+
+        p_slice->CalculatePosition(p_slice->GetAbsoluteSize(), slicePosition);
+    }
+
+    for (auto& p_child : GetChildren()) {
+        p_child->CalculatePosition(centerSize, absPosition + glm::vec2(borderSize));
+    }
 }
 
 void UI::NineSlice::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
 
+    depth++;
+    for (auto& slice : m_borders) {
+        slice->UpdateGraphics(registry, screenSize, depth);
+    }
+
+    for (auto& child : GetChildren()) {
+        child->UpdateGraphics(registry, screenSize, depth);
+    }
+}
+
+void UI::NineSlice::CalculateSliceSize(glm::vec2 centerSize, float borderWidth) {
+    // calculate border size
+    for (size_t index = 0U; index < m_borders.size(); index++) {
+        NineSliceStyle::Region region = static_cast<NineSliceStyle::Region>(index);
+        auto& p_slice = m_borders.at(index);
+
+        switch(region) {
+            case UI::NineSliceStyle::Region::TOP_LEFT_CORNER:
+            case UI::NineSliceStyle::Region::TOP_RIGHT_CORNER:
+            case UI::NineSliceStyle::Region::BOTTOM_LEFT_CORNER:
+            case UI::NineSliceStyle::Region::BOTTOM_RIGHT_CORNER:
+                p_slice->CalculateSize({borderWidth, borderWidth});
+                break;
+
+            case UI::NineSliceStyle::Region::TOP_EDGE:
+            case UI::NineSliceStyle::Region::BOTTOM_EDGE:
+                p_slice->CalculateSize({centerSize.x, borderWidth});
+                break;
+
+            case UI::NineSliceStyle::Region::LEFT_EDGE:
+            case UI::NineSliceStyle::Region::RIGHT_EDGE:
+                p_slice->CalculateSize({borderWidth, centerSize.y});
+                break;
+
+            case UI::NineSliceStyle::Region::CENTER:
+                p_slice->CalculateSize(centerSize);
+                break;
+        }
+    }
 }

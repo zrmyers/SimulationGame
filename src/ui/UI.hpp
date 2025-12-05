@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/Engine.hpp"
 #include "ecs/ECS.hpp"
 #include "sdl/SDL.hpp"
 #include "sdl/TTF.hpp"
@@ -212,19 +213,37 @@ namespace UI {
             ECS::Entity m_entity;
     };
 
-    struct NineSliceStyle {
-        std::shared_ptr<SDL::GpuSampler> m_repeat_horizontal;
-        std::shared_ptr<SDL::GpuSampler> m_repeat_vertical;
-        std::shared_ptr<SDL::GpuSampler> m_clamp;
-        std::shared_ptr<SDL::GpuTexture> m_p_top_left;
-        std::shared_ptr<SDL::GpuTexture> m_p_top_right;
-        std::shared_ptr<SDL::GpuTexture> m_p_bottom_left;
-        std::shared_ptr<SDL::GpuTexture> m_p_bottom_right;
-        std::shared_ptr<SDL::GpuTexture> m_p_top;
-        std::shared_ptr<SDL::GpuTexture> m_p_left;
-        std::shared_ptr<SDL::GpuTexture> m_p_right;
-        std::shared_ptr<SDL::GpuTexture> m_p_bottom;
-        std::shared_ptr<SDL::GpuTexture> m_p_center;
+    class NineSliceStyle {
+
+        public:
+            enum class Region : uint8_t {
+                TOP_LEFT_CORNER = 0,
+                TOP_RIGHT_CORNER,
+                BOTTOM_LEFT_CORNER,
+                BOTTOM_RIGHT_CORNER,
+                TOP_EDGE,
+                LEFT_EDGE,
+                RIGHT_EDGE,
+                BOTTOM_EDGE,
+                CENTER
+            };
+
+            // number of textures that make up a nine-slice.
+            static constexpr size_t SLICE_COUNT = 9U;
+
+            static NineSliceStyle Load(Core::Engine& engine, const std::vector<std::string>& images);
+
+            NineSliceStyle();
+
+            void SetRegion(std::shared_ptr<Graphics::Texture2D> p_texture, Region region);
+            const std::shared_ptr<Graphics::Texture2D>& GetRegion(Region region) const;
+
+            float GetBorderWidth() const;
+        private:
+            float CalculateBorderWidth();
+
+            std::vector<std::shared_ptr<Graphics::Texture2D>> m_textures;
+            float m_border_width;
     };
 
     class NineSlice : public Element {
@@ -233,7 +252,7 @@ namespace UI {
             NineSlice() = default;
 
             //! Set the NineSlice style.
-            void SetStyle(const NineSliceStyle& style);
+            NineSlice& SetStyle(const NineSliceStyle& style);
 
             void CalculateSize(glm::vec2 parent_size) override;
 
@@ -243,17 +262,11 @@ namespace UI {
 
         private:
 
+            void CalculateSliceSize(glm::vec2 centerSize, float borderWidth);
+
             NineSliceStyle m_style;
 
             // elements used for rendering the nineslice.
-            std::unique_ptr<UI::ImageElement> m_p_top_left;
-            std::unique_ptr<UI::ImageElement> m_p_top_right;
-            std::unique_ptr<UI::ImageElement> m_p_bottom_left;
-            std::unique_ptr<UI::ImageElement> m_p_bottom_right;
-            std::unique_ptr<UI::ImageElement> m_p_top;
-            std::unique_ptr<UI::ImageElement> m_p_left;
-            std::unique_ptr<UI::ImageElement> m_p_right;
-            std::unique_ptr<UI::ImageElement> m_p_bottom;
-            std::unique_ptr<UI::ImageElement> m_p_center;
+            std::vector<std::unique_ptr<UI::ImageElement>> m_borders;
     };
 }

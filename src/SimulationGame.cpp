@@ -105,51 +105,34 @@ void SimulationGame::InitializeGUI() {
 
     canvas.SetRenderMode(Components::Canvas::RenderMode::SCREEN);
 
-    SDL::Image image(assetLoader.GetImageDir() + "/nineslice-top-right.png");
+    UI::NineSliceStyle style = UI::NineSliceStyle::Load(GetEngine(), {
+        "nineslice-top-left.png",
+        "nineslice-top-right.png",
+        "nineslice-bottom-left.png",
+        "nineslice-bottom-right.png",
+        "nineslice-top.png",
+        "nineslice-left.png",
+        "nineslice-right.png",
+        "nineslice-bottom.png",
+        "nineslice-center.png" });
 
-    SDL_GPUSamplerCreateInfo samplerCreateInfo = {};
-    samplerCreateInfo.min_filter = SDL_GPU_FILTER_LINEAR;
-    samplerCreateInfo.mag_filter = SDL_GPU_FILTER_LINEAR;
-    samplerCreateInfo.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR;
-    samplerCreateInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-    samplerCreateInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-    samplerCreateInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-    samplerCreateInfo.enable_anisotropy = true;
-    samplerCreateInfo.max_anisotropy = 16; // NOLINT
+    UI::NineSlice& nineslice = canvas.EmplaceChild<UI::NineSlice>();
+    nineslice
+        .SetStyle(style)
+        .SetRelativePosition({0.5, 0.5})
+        .SetRelativeSize({0.5F, 0.5F})
+        .SetOrigin({0.5F, 0.5F});
 
-    std::shared_ptr<SDL::GpuSampler> p_sampler = std::make_shared<SDL::GpuSampler>(renderSystem.CreateSampler(samplerCreateInfo));
+    std::shared_ptr<SDL::TTF::Font> font = textSystem.CreateFont(assetLoader.GetFontDir() + "/" + "Oblegg-Regular.otf", 32.0F);
+    std::shared_ptr<SDL::TTF::Text> text = textSystem.CreateText(font, "What a nice string of text.");
 
-    std::shared_ptr<Graphics::Texture2D> p_texture =
-         std::make_shared<Graphics::Texture2D>(GetEngine(), p_sampler, image.GetWidth(), image.GetHeight(), false);
+    UI::TextElement& textElement = nineslice.EmplaceChild<UI::TextElement>();
+    textElement
+        .SetFont(font)
+        .SetText(text)
+        .SetLayoutMode(UI::LayoutMode::FIXED)
+        .SetFixedSize(textElement.GetTextSize())
+        .SetRelativePosition({0.5F, 0.5F})
+        .SetOrigin({0.5F, 0.5F});
 
-    p_texture->LoadImageData(image);
-
-    UI::HorizontalLayout& hzLayout = canvas.EmplaceChild<UI::HorizontalLayout>();
-
-    std::shared_ptr<SDL::TTF::Font> p_uiFont = textSystem.CreateFont(assetLoader.GetFontDir() + "/Oblegg-Regular.otf", 32.0F);
-    p_uiFont->SetSDF(true);
-    p_uiFont->SetHorizontalAlignment(TTF_HORIZONTAL_ALIGN_LEFT);
-
-    UI::Element& vertLayout = hzLayout.EmplaceChild<UI::VerticalLayout>();
-    UI::TextElement& textelement1 = vertLayout.EmplaceChild<UI::TextElement>();
-    textelement1
-        .SetFont(p_uiFont)
-        .SetText(textSystem.CreateText(p_uiFont, "ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz!"))
-        .SetFixedSize(textelement1.GetTextSize())
-        //.SetOrigin({-0.5F, -0.5F})
-        .SetLayoutMode(UI::LayoutMode::FIXED);
-    UI::TextElement& textelement2 = vertLayout.EmplaceChild<UI::TextElement>();
-    textelement2
-        .SetFont(p_uiFont)
-        .SetText(textSystem.CreateText(p_uiFont, "Some more text to test the text!"))
-        .SetFixedSize(textelement2.GetTextSize())
-        //.SetOrigin({-0.5F, -0.5F})
-        .SetLayoutMode(UI::LayoutMode::FIXED);
-
-    UI::ImageElement& imageElement = hzLayout.EmplaceChild<UI::ImageElement>();
-    imageElement
-        .SetTexture(p_texture)
-        .SetFixedSize({p_texture->GetWidth(), p_texture->GetHeight()})
-        .SetOrigin({0.5F, 0.5F})
-        .SetLayoutMode(UI::LayoutMode::RELATIVE_TO_PARENT);
 }
