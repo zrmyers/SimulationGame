@@ -16,3 +16,7 @@ std::string Core::AssetLoader::GetFontDir() {
 std::string Core::AssetLoader::GetImageDir() {
     return m_content_dir + "/content/images";
 }
+
+std::string Core::AssetLoader::GetUiDir() {
+    return m_content_dir + "/content/ui";
+}

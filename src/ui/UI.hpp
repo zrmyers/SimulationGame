@@ -12,6 +12,7 @@
 #include <glm/vec4.hpp>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace UI {
@@ -268,5 +269,28 @@ namespace UI {
 
             // elements used for rendering the nineslice.
             std::vector<std::unique_ptr<UI::ImageElement>> m_borders;
+    };
+
+    class Style {
+
+        public:
+
+            static Style Load(Core::Engine& engine, const std::string& filename);
+
+            Style() = default;
+
+            void SetFont(const std::string& font_id, std::shared_ptr<SDL::TTF::Font> p_font);
+            std::shared_ptr<SDL::TTF::Font>& GetFont(const std::string& font_id);
+
+            void SetNineSliceStyle(const std::string& style_id, NineSliceStyle&& style);
+            NineSliceStyle& GetNineSliceStyle(const std::string& nineslice_id);
+
+        private:
+
+            //! Set of fonts that are used in style.
+            std::unordered_map<std::string, std::shared_ptr<SDL::TTF::Font>> m_fonts;
+
+            //! Set of Nine-Slice-Elements used in style.
+            std::unordered_map<std::string, NineSliceStyle> m_nine_slice_styles;
     };
 }

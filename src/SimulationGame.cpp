@@ -105,34 +105,62 @@ void SimulationGame::InitializeGUI() {
 
     canvas.SetRenderMode(Components::Canvas::RenderMode::SCREEN);
 
-    UI::NineSliceStyle style = UI::NineSliceStyle::Load(GetEngine(), {
-        "nineslice-top-left.png",
-        "nineslice-top-right.png",
-        "nineslice-bottom-left.png",
-        "nineslice-bottom-right.png",
-        "nineslice-top.png",
-        "nineslice-left.png",
-        "nineslice-right.png",
-        "nineslice-bottom.png",
-        "nineslice-center.png" });
+    UI::Style uiStyle = UI::Style::Load(GetEngine(), "ui-style.json");
+    UI::NineSliceStyle boxStyle = uiStyle.GetNineSliceStyle("box-style");
 
     UI::NineSlice& nineslice = canvas.EmplaceChild<UI::NineSlice>();
     nineslice
-        .SetStyle(style)
+        .SetStyle(boxStyle)
         .SetRelativePosition({0.5, 0.5})
         .SetRelativeSize({0.5F, 0.5F})
         .SetOrigin({0.5F, 0.5F});
 
-    std::shared_ptr<SDL::TTF::Font> font = textSystem.CreateFont(assetLoader.GetFontDir() + "/" + "Oblegg-Regular.otf", 32.0F);
-    std::shared_ptr<SDL::TTF::Text> text = textSystem.CreateText(font, "What a nice string of text.");
+    std::shared_ptr<SDL::TTF::Font> font = uiStyle.GetFont("Default-UI");
+    std::shared_ptr<SDL::TTF::Text> text1 = textSystem.CreateText(font, "Start");
+    std::shared_ptr<SDL::TTF::Text> text2 = textSystem.CreateText(font, "Settings");
+    std::shared_ptr<SDL::TTF::Text> text3 = textSystem.CreateText(font, "Quit");
 
-    UI::TextElement& textElement = nineslice.EmplaceChild<UI::TextElement>();
-    textElement
+    UI::VerticalLayout& verticalLayout = nineslice.EmplaceChild<UI::VerticalLayout>();
+    verticalLayout.SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
+
+    UI::NineSlice& startButtonImage = verticalLayout.EmplaceChild<UI::NineSlice>();
+    startButtonImage
+        .SetStyle(uiStyle.GetNineSliceStyle("button-enabled-style"));
+
+
+    UI::TextElement& startText = startButtonImage.EmplaceChild<UI::TextElement>();
+    startText
         .SetFont(font)
-        .SetText(text)
+        .SetText(text1)
+        .SetTextColor({1.0F, 1.0F, 0.0F, 1.0F})
         .SetLayoutMode(UI::LayoutMode::FIXED)
-        .SetFixedSize(textElement.GetTextSize())
+        .SetFixedSize(startText.GetTextSize())
         .SetRelativePosition({0.5F, 0.5F})
         .SetOrigin({0.5F, 0.5F});
 
+    UI::NineSlice& settingsButtonImage = verticalLayout.EmplaceChild<UI::NineSlice>();
+    settingsButtonImage.SetStyle(uiStyle.GetNineSliceStyle("button-enabled-style"));
+
+    UI::TextElement& settingsText = settingsButtonImage.EmplaceChild<UI::TextElement>();
+    settingsText
+        .SetFont(font)
+        .SetText(text2)
+        .SetTextColor({1.0F, 1.0F, 0.0F, 1.0F})
+        .SetLayoutMode(UI::LayoutMode::FIXED)
+        .SetFixedSize(settingsText.GetTextSize())
+        .SetRelativePosition({0.5F, 0.5F})
+        .SetOrigin({0.5F, 0.5F});
+
+    UI::NineSlice& quitButtonImage = verticalLayout.EmplaceChild<UI::NineSlice>();
+    quitButtonImage.SetStyle(uiStyle.GetNineSliceStyle("button-enabled-style"));
+
+    UI::TextElement& quitText = quitButtonImage.EmplaceChild<UI::TextElement>();
+    quitText
+        .SetFont(font)
+        .SetText(text3)
+        .SetTextColor({1.0F, 1.0F, 0.0F, 1.0F})
+        .SetLayoutMode(UI::LayoutMode::FIXED)
+        .SetFixedSize(quitText.GetTextSize())
+        .SetRelativePosition({0.5F, 0.5F})
+        .SetOrigin({0.5F, 0.5F});
 }

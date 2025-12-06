@@ -1,0 +1,60 @@
+{
+    "font": [
+        {
+            "id": "Default-UI",
+            "pt": 32,
+            "sdf": true,
+            "filename": "Oblegg-Regular.otf"
+        }
+    ],
+    "nine-slice": [
+        {
+            "id": "box-style",
+            "top-left": "ui/box-top-left.png",
+            "bottom-left": "ui/box-bottom-left.png",
+            "top-right": "ui/box-top-right.png",
+            "bottom-right": "ui/box-bottom-right.png",
+            "top": "ui/box-top.png",
+            "bottom": "ui/box-bottom.png",
+            "left": "ui/box-left.png",
+            "right": "ui/box-right.png",
+            "center": "ui/box-center.png"
+        },
+        {
+            "id": "button-disabled-style",
+            "top-left": "ui/button-disabled-top-left.png",
+            "bottom-left": "ui/button-disabled-bottom-left.png",
+            "top-right": "ui/button-disabled-top-right.png",
+            "bottom-right": "ui/button-disabled-bottom-right.png",
+            "top": "ui/button-disabled-top.png",
+            "bottom": "ui/button-disabled-bottom.png",
+            "left": "ui/button-disabled-left.png",
+            "right": "ui/button-disabled-right.png",
+            "center": "ui/button-center.png"
+        },
+        {
+            "id": "button-enabled-style",
+            "top-left": "ui/button-enabled-top-left.png",
+            "bottom-left": "ui/button-enabled-bottom-left.png",
+            "top-right": "ui/button-enabled-top-right.png",
+            "bottom-right": "ui/button-enabled-bottom-right.png",
+            "top": "ui/button-enabled-top.png",
+            "bottom": "ui/button-enabled-bottom.png",
+            "left": "ui/button-enabled-left.png",
+            "right": "ui/button-enabled-right.png",
+            "center": "ui/button-center.png"
+        },
+        {
+            "id": "button-active-style",
+            "top-left": "ui/button-active-top-left.png",
+            "bottom-left": "ui/button-active-bottom-left.png",
+            "top-right": "ui/button-active-top-right.png",
+            "bottom-right": "ui/button-active-bottom-right.png",
+            "top": "ui/button-active-top.png",
+            "bottom": "ui/button-active-bottom.png",
+            "left": "ui/button-active-left.png",
+            "right": "ui/button-active-right.png",
+            "center": "ui/button-center.png"
+        }
+    ]
+}

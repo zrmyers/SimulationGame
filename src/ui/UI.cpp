@@ -9,15 +9,20 @@
 #include "ecs/ECS.hpp"
 #include "graphics/Texture2D.hpp"
 #include "sdl/SDL.hpp"
+#include "sdl/TTF.hpp"
 #include "systems/RenderSystem.hpp"
+#include "systems/TextSystem.hpp"
 #include <SDL3/SDL_gpu.h>
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <fstream>
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 #include <stdexcept>
 #include <vector>
 
+#include <nlohmann/json.hpp>
 
 UI::Element& UI::Element::SetOrigin(glm::vec2 origin) {
     m_origin = origin;
@@ -731,4 +736,85 @@ void UI::NineSlice::CalculateSliceSize(glm::vec2 centerSize, float borderWidth) 
                 break;
         }
     }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// Style
+
+
+UI::Style UI::Style::Load(Core::Engine& engine, const std::string& filename) {
+
+    Core::AssetLoader& assetLoader = engine.GetAssetLoader();
+    Systems::TextSystem& textSystem = engine.GetEcsRegistry().GetSystem<Systems::TextSystem>();
+    UI::Style style;
+
+    std::ifstream filestream(assetLoader.GetUiDir() + "/" + filename);
+
+
+    nlohmann::json styleData = nlohmann::json::parse(filestream);
+
+    if (styleData.contains("font")) {
+
+        for (auto& fontData : styleData["font"]) {
+
+            std::string fontID = fontData["id"];
+            float fontSize = fontData["pt"];
+            bool useSDF = fontData["sdf"];
+            std::string name = fontData["filename"];
+
+            std::shared_ptr<SDL::TTF::Font> pFont = textSystem.CreateFont(assetLoader.GetFontDir() + "/" + name, fontSize);
+            pFont->SetSDF(useSDF);
+
+            style.SetFont(fontID, pFont);
+        }
+    }
+
+    if (styleData.contains("nine-slice")) {
+
+        for (auto& nineSliceData : styleData["nine-slice"]) {
+
+            std::string ninesliceId = nineSliceData["id"];
+            std::vector<std::string> imageFiles;
+            imageFiles.reserve(NineSliceStyle::SLICE_COUNT);
+            imageFiles.push_back(nineSliceData["top-left"]);
+            imageFiles.push_back(nineSliceData["top-right"]);
+            imageFiles.push_back(nineSliceData["bottom-left"]);
+            imageFiles.push_back(nineSliceData["bottom-right"]);
+            imageFiles.push_back(nineSliceData["top"]);
+            imageFiles.push_back(nineSliceData["left"]);
+            imageFiles.push_back(nineSliceData["right"]);
+            imageFiles.push_back(nineSliceData["bottom"]);
+            imageFiles.push_back(nineSliceData["center"]);
+
+            NineSliceStyle nineSliceStyle;
+            nineSliceStyle = NineSliceStyle::Load(engine, imageFiles);
+
+            style.SetNineSliceStyle(ninesliceId, std::move(nineSliceStyle));
+        }
+    }
+    return style;
+}
+
+void UI::Style::SetFont(const std::string& font_id, std::shared_ptr<SDL::TTF::Font> p_font) {
+    m_fonts[font_id] = std::move(p_font);
+}
+
+std::shared_ptr<SDL::TTF::Font>& UI::Style::GetFont(const std::string& font_id) {
+    auto fontIter = m_fonts.find(font_id);
+    if (fontIter == m_fonts.end()) {
+        throw std::runtime_error("GetFont() failed to find font " + font_id);
+    }
+    return fontIter->second;
+}
+
+void UI::Style::SetNineSliceStyle(const std::string& style_id, NineSliceStyle&& style) {
+    m_nine_slice_styles[style_id] = style;
+}
+
+UI::NineSliceStyle& UI::Style:: GetNineSliceStyle(const std::string& nineslice_id) {
+    auto styleIter = m_nine_slice_styles.find(nineslice_id);
+    if (styleIter == m_nine_slice_styles.end()) {
+        throw std::runtime_error("GetNineSliceStyle() failed to find style " + nineslice_id);
+    }
+    return styleIter->second;
 }

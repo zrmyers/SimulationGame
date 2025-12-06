@@ -45,6 +45,9 @@ set(GLM_BUILD_LIBRARY OFF)
 CPMAddPackage(
     URI "gh:g-truc/glm#1.0.2"
 )
+CPMAddPackage(
+    URI "gh:nlohmann/json#v3.12.0"
+)
 
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
@@ -76,4 +79,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     SPIRV
     glslang
     glslang-default-resource-limits
-    glm)
+    glm
+    nlohmann_json)
