@@ -59,6 +59,8 @@ namespace Core {
             //! Get latest input events
             const std::vector<SDL_Event>& GetEvents();
 
+            void RequestShutdown();
+
         private:
 
             //! update the delta time.
@@ -87,6 +89,9 @@ namespace Core {
 
             //! The last frame time, in seconds.
             float m_last_time_sec;
+
+            //! Whether the engine should keep running
+            bool m_keep_running;
     };
 
 }

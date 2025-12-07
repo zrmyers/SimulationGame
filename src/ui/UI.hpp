@@ -7,6 +7,7 @@
 #include "graphics/Texture2D.hpp"
 #include <SDL3/SDL_stdinc.h>
 #include <cstdint>
+#include <functional>
 #include <glm/fwd.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
@@ -17,11 +18,20 @@
 
 namespace UI {
 
+    enum class MouseButtonID : uint8_t {
+        MOUSE_LEFT = 0,
+        MOUSE_RIGHT
+    };
+
     enum class LayoutMode : uint8_t {
         RELATIVE_TO_PARENT = 0,
         FIT_TO_CHILDREN,
         FIXED
     };
+
+    using HoverCallback_t = std::function<void(void)>;
+    using MouseButtonCallback_t = std::function<void(MouseButtonID)>;
+
     //! Element.
     class Element {
 
@@ -60,6 +70,15 @@ namespace UI {
             //! @param[in] parent_position The absolute position of the parent element.
             virtual void CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_position);
 
+            //! Process mouse movement
+            void OnHover(glm::vec2 prev_position_px, glm::vec2 current_position_px);
+
+            //! Process mouse click
+            void OnMousePress(glm::vec2 press_position, MouseButtonID button_id);
+
+            //! Process mouse release
+            void OnMouseRelease(glm::vec2 release_position, MouseButtonID button_id);
+
             //! Update the element. If element is visible, updates sprite and text primitives.
             virtual void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) = 0;
 
@@ -75,6 +94,13 @@ namespace UI {
             }
 
             std::vector<std::unique_ptr<Element>>& GetChildren();
+
+            bool CheckCollision(glm::vec2 point_px) const;
+
+            Element& SetHoverEnterCallback(HoverCallback_t callback);
+            Element& SetHoverExitCallback(HoverCallback_t callback);
+            Element& SetMouseButtonPressCallback(MouseButtonCallback_t callback);
+            Element& SetMouseButtonReleaseCallback(MouseButtonCallback_t callback);
 
         protected:
 
@@ -127,6 +153,16 @@ namespace UI {
 
             // Set of child elements.
             std::vector<std::unique_ptr<Element>> m_children;
+
+            // on hover enter callback
+            HoverCallback_t m_hover_enter_callback;
+
+            // on hover exit callback
+            HoverCallback_t m_hover_exit_callback;
+
+            //
+            MouseButtonCallback_t m_on_press_callback;
+            MouseButtonCallback_t m_on_release_callback;
     };
 
     //! An element that constains a list of elements arranged horizontally

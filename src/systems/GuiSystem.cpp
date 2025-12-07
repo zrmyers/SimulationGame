@@ -9,7 +9,9 @@
 #include "components/Transform.hpp"
 #include "components/Canvas.hpp"
 #include "sdl/SDL.hpp"
+#include "ui/UI.hpp"
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_mouse.h>
 #include <cstdint>
 #include <glm/fwd.hpp>
 #include <iostream>
@@ -30,6 +32,9 @@ void Systems::GuiSystem::Update() {
 
     // process events
     const std::vector<SDL_Event>& events = GetEngine().GetEvents();
+
+    // save previous state
+    m_prev_cursor_pos_px = m_cursor_pos_px;
 
     for (const SDL_Event& event : events) {
 
@@ -110,6 +115,26 @@ void Systems::GuiSystem::ProcessCanvas(Components::Canvas& canvas, const std::ve
         switch (event.type) {
 
             case SDL_EVENT_WINDOW_RESIZED:
+                canvas.SetDirty();
+                break;
+
+            case SDL_EVENT_MOUSE_MOTION:
+                canvas.OnHover(m_prev_cursor_pos_px, m_cursor_pos_px);
+                canvas.SetDirty();
+                break;
+
+            case SDL_EVENT_MOUSE_BUTTON_UP:
+                canvas.OnMouseRelease(
+                    glm::vec2(event.button.x, event.button.y),
+                    (event.button.button == SDL_BUTTON_LEFT)?
+                        UI::MouseButtonID::MOUSE_LEFT : UI::MouseButtonID::MOUSE_RIGHT);
+                canvas.SetDirty();
+                break;
+
+            case SDL_EVENT_MOUSE_BUTTON_DOWN:
+                canvas.OnMousePress(glm::vec2(event.button.x, event.button.y),
+                    (event.button.button == SDL_BUTTON_LEFT)?
+                    UI::MouseButtonID::MOUSE_LEFT : UI::MouseButtonID::MOUSE_RIGHT);
                 canvas.SetDirty();
                 break;
 

@@ -91,9 +91,9 @@ void SimulationGame::Update() {
 
 }
 
-
 void SimulationGame::InitializeGUI() {
 
+    Core::Engine& engine = GetEngine();
     Core::AssetLoader& assetLoader = GetEngine().GetAssetLoader();
     ECS::Registry& registry = GetEngine().GetEcsRegistry();
     Systems::RenderSystem& renderSystem = registry.GetSystem<Systems::RenderSystem>();
@@ -127,7 +127,6 @@ void SimulationGame::InitializeGUI() {
     startButtonImage
         .SetStyle(uiStyle.GetNineSliceStyle("button-enabled-style"));
 
-
     UI::TextElement& startText = startButtonImage.EmplaceChild<UI::TextElement>();
     startText
         .SetFont(font)
@@ -139,7 +138,9 @@ void SimulationGame::InitializeGUI() {
         .SetOrigin({0.5F, 0.5F});
 
     UI::NineSlice& settingsButtonImage = verticalLayout.EmplaceChild<UI::NineSlice>();
-    settingsButtonImage.SetStyle(uiStyle.GetNineSliceStyle("button-enabled-style"));
+    settingsButtonImage.SetStyle(uiStyle.GetNineSliceStyle("button-enabled-style"))
+        .SetHoverEnterCallback([](){Core::Logger::Info("Settings hover enter!");})
+        .SetHoverExitCallback([](){Core::Logger::Info("Settings hover exit!");});
 
     UI::TextElement& settingsText = settingsButtonImage.EmplaceChild<UI::TextElement>();
     settingsText
@@ -152,7 +153,16 @@ void SimulationGame::InitializeGUI() {
         .SetOrigin({0.5F, 0.5F});
 
     UI::NineSlice& quitButtonImage = verticalLayout.EmplaceChild<UI::NineSlice>();
-    quitButtonImage.SetStyle(uiStyle.GetNineSliceStyle("button-enabled-style"));
+    quitButtonImage.SetStyle(uiStyle.GetNineSliceStyle("button-enabled-style"))
+        .SetMouseButtonReleaseCallback([&engine](UI::MouseButtonID buttonID){
+            switch(buttonID) {
+                case UI::MouseButtonID::MOUSE_LEFT:
+                    engine.RequestShutdown();
+                    break;
+                default:
+                    break;
+            }
+        });
 
     UI::TextElement& quitText = quitButtonImage.EmplaceChild<UI::TextElement>();
     quitText

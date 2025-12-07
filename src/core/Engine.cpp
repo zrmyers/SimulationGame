@@ -25,7 +25,8 @@ Core::Engine::Engine(const std::list<const char*>& args)
     , m_sdl(SDL_INIT_VIDEO)
     , m_assetLoader(m_env.Get("gamePath"))
     , m_delta_time_sec(0.0F)
-    , m_last_time_sec(0.0F) {
+    , m_last_time_sec(0.0F)
+    , m_keep_running(true) {
     m_sdl.HideCursor();
 }
 
@@ -47,9 +48,7 @@ void Core::Engine::SetGameInstance(std::unique_ptr<IGame>&& p_game) {
 
 void Core::Engine::Run() {
 
-    bool shouldQuit = false;
-
-    while (!shouldQuit) {
+    while (m_keep_running) {
 
         m_events.clear();
 
@@ -59,7 +58,7 @@ void Core::Engine::Run() {
             switch (event.type) {
 
                 case SDL_EVENT_QUIT:
-                    shouldQuit = true;
+                    m_keep_running = false;
                     break;
 
                 default:
@@ -86,6 +85,10 @@ float Core::Engine::GetDeltaTimeSec() const {
 
 const std::vector<SDL_Event>& Core::Engine::GetEvents() {
     return m_events;
+}
+
+void Core::Engine::RequestShutdown() {
+    m_keep_running = false;
 }
 
 void Core::Engine::UpdateDeltaTimeSec() {

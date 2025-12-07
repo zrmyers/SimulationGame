@@ -129,6 +129,55 @@ void UI::Element::CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_posi
     }
 }
 
+void UI::Element::OnHover(glm::vec2 prev_position_px, glm::vec2 current_position_px) {
+
+    bool prevCollision = CheckCollision(prev_position_px);
+    bool currentCollision = CheckCollision(current_position_px);
+
+    if (prevCollision || currentCollision) {
+
+        if (m_hover_enter_callback && !prevCollision && currentCollision) {
+            m_hover_enter_callback();
+        }
+
+        if (m_hover_exit_callback && prevCollision && !currentCollision) {
+            m_hover_exit_callback();
+        }
+
+        for (auto& p_child : m_children) {
+
+            p_child->OnHover(prev_position_px, current_position_px);
+        }
+    }
+}
+
+void UI::Element::OnMousePress(glm::vec2 press_position, MouseButtonID button_id) {
+
+    if (CheckCollision(press_position)) {
+
+        if (m_on_press_callback) {
+            m_on_press_callback(button_id);
+        }
+
+        for (auto& p_child : m_children) {
+            p_child->OnMousePress(press_position, button_id);
+        }
+    }
+}
+
+void UI::Element::OnMouseRelease(glm::vec2 release_position, MouseButtonID button_id) {
+
+    if (CheckCollision(release_position)) {
+
+        if (m_on_release_callback) {
+            m_on_release_callback(button_id);
+        }
+
+        for (auto& p_child : m_children) {
+            p_child->OnMouseRelease(release_position, button_id);
+        }
+    }
+}
 
 glm::vec2 UI::Element::GetAbsoluteSize() const {
     return m_absolute_size;
@@ -152,6 +201,33 @@ void UI::Element::AddChild(std::unique_ptr<Element>&& child) {
 
 std::vector<std::unique_ptr<UI::Element>>& UI::Element::GetChildren() {
     return m_children;
+}
+
+bool UI::Element::CheckCollision(glm::vec2 point_px) const {
+    return ((point_px.x >= m_absolute_position.x)
+        && (point_px.x <= (m_absolute_position.x + m_absolute_size.x))
+        && (point_px.y >= m_absolute_position.y)
+        && (point_px.y <= (m_absolute_position.y + m_absolute_size.y)));
+}
+
+UI::Element& UI::Element::SetHoverEnterCallback(HoverCallback_t callback) {
+    m_hover_enter_callback = std::move(callback);
+    return *this;
+}
+
+UI::Element& UI::Element::SetHoverExitCallback(HoverCallback_t callback) {
+    m_hover_exit_callback = std::move(callback);
+    return *this;
+}
+
+UI::Element& UI::Element::SetMouseButtonPressCallback(MouseButtonCallback_t callback) {
+    m_on_press_callback = std::move(callback);
+    return *this;
+}
+
+UI::Element& UI::Element::SetMouseButtonReleaseCallback(MouseButtonCallback_t callback) {
+    m_on_release_callback = std::move(callback);
+    return *this;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

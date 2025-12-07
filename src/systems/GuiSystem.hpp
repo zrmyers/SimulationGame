@@ -50,7 +50,11 @@ namespace Systems {
             //! The latest cursor position.
             glm::vec2 m_cursor_pos_px;
 
+            //! The previous cursor position.
+            glm::vec2 m_prev_cursor_pos_px;
+
             //! The size of the cursor.
             glm::vec2 m_cursor_size_px;
+
     };
 }
