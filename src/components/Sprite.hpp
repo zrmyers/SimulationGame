@@ -26,6 +26,9 @@ namespace Components {
 
         // Which layer the sprite should be rendered to.
         RenderLayer layer {RenderLayer::LAYER_NONE};
+
+        // Used for draw call sorting.
+        uint32_t draw_order;
     };
 
 }

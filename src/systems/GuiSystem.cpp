@@ -10,6 +10,7 @@
 #include "components/Canvas.hpp"
 #include "sdl/SDL.hpp"
 #include <SDL3/SDL_events.h>
+#include <cstdint>
 #include <glm/fwd.hpp>
 #include <iostream>
 #include <string>
@@ -121,7 +122,7 @@ void Systems::GuiSystem::ProcessCanvas(Components::Canvas& canvas, const std::ve
     if (canvas.GetDirty()) {
 
         canvas.CalculateLayout(m_window_size_px);
-        canvas.UpdateGraphics(GetEngine().GetEcsRegistry(), m_window_size_px, 0);
+        canvas.UpdateGraphics(GetEngine().GetEcsRegistry(), m_window_size_px, 1);
     }
 }
 
@@ -177,6 +178,7 @@ void Systems::GuiSystem::SetCursor(const std::string& image_filename, bool visib
     cursor.texture->LoadImageData(image);
 
     cursor.layer = (visible)? Components::RenderLayer::LAYER_GUI : Components::RenderLayer::LAYER_NONE;
+    cursor.draw_order = UINT16_MAX; // ensure cursor gets drawn last.
 
     m_cursor_pos_px = m_window_size_px / 2.0F; // center of screen
     m_cursor_size_px = glm::vec2(cursor.texture->GetWidth(), cursor.texture->GetHeight());

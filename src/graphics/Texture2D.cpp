@@ -36,9 +36,9 @@ Graphics::Texture2D::Texture2D(
 void Graphics::Texture2D::LoadImageData(const SDL::Image& image, glm::ivec2 dst_offset) {
 
     // texture transfer
-    Systems::RenderSystem::TransferRequest request = {};
+    Components::TransferRequest request = {};
     request.cycle = false;
-    request.type = Systems::RenderSystem::RequestType::UPLOAD_TO_TEXTURE;
+    request.type = Components::RequestType::UPLOAD_TO_TEXTURE;
     SDL_GPUTextureRegion& region = request.data.texture;
     region.texture = m_texture.Get();
     region.w = image.GetWidth();

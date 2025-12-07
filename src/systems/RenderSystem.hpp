@@ -1,5 +1,6 @@
 #pragma once
 
+#include "components/Renderable.hpp"
 #include "core/Engine.hpp"
 #include "ecs/ECS.hpp"
 #include "graphics/pipelines/PipelineCache.hpp"
@@ -20,38 +21,8 @@ namespace Systems {
     class RenderSystem : public ECS::System {
 
         public:
-            enum class RequestType : uint8_t {
-                UPLOAD_TO_BUFFER,
-                UPLOAD_TO_TEXTURE
-            };
 
-            union RequestData {
-                SDL_GPUBufferRegion buffer;
-                SDL_GPUTextureRegion texture;
-            };
-
-            struct TransferRequest {
-                RequestType type;
-                RequestData data;
-                void* p_src;
-                bool cycle;
-            };
-
-            static uint32_t GetRequestLength(const TransferRequest& request) {
-
-                uint32_t length = 0U;
-                switch(request.type) {
-                    case RequestType::UPLOAD_TO_BUFFER:
-                        length = request.data.buffer.size;
-                        break;
-                    case RequestType::UPLOAD_TO_TEXTURE:
-                        length = request.data.texture.w * request.data.texture.h * 4;
-                        break;
-                    default:
-                        break;
-                }
-                return length;
-            }
+            static uint32_t GetRequestLength(const Components::TransferRequest& request);
 
             //! Initialize the renderer.
             RenderSystem(Core::Engine& engine);
@@ -92,7 +63,7 @@ namespace Systems {
             SDL::GpuTexture CreateTexture(SDL_GPUTextureCreateInfo& texture_info);
 
             //! Immediate upload of data to buffer.
-            void UploadDataToBuffer(const std::vector<TransferRequest>& transfers);
+            void UploadDataToBuffer(const std::vector<Components::TransferRequest>& transfers);
 
             //! Generate mipmaps for the given texture image.
             void GenerateMipMaps(SDL::GpuTexture& texture);
@@ -106,11 +77,12 @@ namespace Systems {
 
         private:
 
+            std::list<Components::Renderable*> SortDrawCalls();
 
             //! Create a transfer buffer on the GPU.
             SDL::GpuTransferBuffer CreateTransferBuffer(SDL_GPUTransferBufferUsage usage, uint32_t size);
 
-            void ProcessDataUpload(SDL_GPUCopyPass* p_copypass, const std::vector<TransferRequest>& transfers);
+            void ProcessDataUpload(SDL_GPUCopyPass* p_copypass, const std::vector<Components::TransferRequest>& transfers);
 
             //! Window used for rendering graphics to screen.
             SDL::Window m_window;

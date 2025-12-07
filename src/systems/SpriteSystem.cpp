@@ -92,7 +92,9 @@ void Systems::SpriteSystem::Update() {
             command.m_start_index = startIndex;
             command.m_vertex_offset = 0;//static_cast<int32_t>(numVertices);
             command.m_start_instance = 0U;
+
             renderable.m_layer = sprite.layer;
+            renderable.m_depth_override = sprite.draw_order;
         }
 
         UploadData(registry.GetSystem<Systems::RenderSystem>());
@@ -102,12 +104,12 @@ void Systems::SpriteSystem::Update() {
 void Systems::SpriteSystem::UploadData(Systems::RenderSystem& rendersystem) {
 
     // setup transfer buffers
-    std::vector<Systems::RenderSystem::TransferRequest> requests;
+    std::vector<Components::TransferRequest> requests;
     requests.reserve(2);
-    Systems::RenderSystem::TransferRequest request = {};
+    Components::TransferRequest request = {};
 
     request.cycle = false;
-    request.type = Systems::RenderSystem::RequestType::UPLOAD_TO_BUFFER;
+    request.type = Components::RequestType::UPLOAD_TO_BUFFER;
     SDL_GPUBufferRegion& vertexRegion = request.data.buffer;
     vertexRegion.buffer = m_vertex_buffer.Get();
     vertexRegion.offset = 0;
@@ -116,7 +118,7 @@ void Systems::SpriteSystem::UploadData(Systems::RenderSystem& rendersystem) {
     requests.push_back(request);
 
     request.cycle = false;
-    request.type = Systems::RenderSystem::RequestType::UPLOAD_TO_BUFFER;
+    request.type = Components::RequestType::UPLOAD_TO_BUFFER;
     SDL_GPUBufferRegion& indexRegion = request.data.buffer;
     indexRegion.buffer = m_index_buffer.Get();
     indexRegion.offset = 0;

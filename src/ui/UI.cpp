@@ -318,6 +318,7 @@ void UI::ImageElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenS
     sprite.topLeftUV = {0.0F, 0.0F};
     sprite.bottomRightUV = {1.0F, 1.0F};
     sprite.layer = Components::RenderLayer::LAYER_GUI;
+    sprite.draw_order = depth;
 
     glm::vec2 scale = GetAbsoluteSize() / screenSize;
 
@@ -397,6 +398,7 @@ void UI::TextElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSi
     textComponent.m_p_font = m_p_font;
     textComponent.m_color = m_color;
     textComponent.m_layer = Components::RenderLayer::LAYER_GUI;
+    textComponent.m_draw_order = depth;
 
     glm::vec2 center = screenSize / 2.0F;
     glm::vec2 translate = center - GetAbsolutePosition();

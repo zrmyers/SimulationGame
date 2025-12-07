@@ -10,6 +10,7 @@
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_video.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -18,6 +19,7 @@
 #include <glm/ext/scalar_constants.hpp>
 #include <glm/fwd.hpp>
 #include <glm/trigonometric.hpp>
+#include <unordered_map>
 #include <vector>
 
 #include "sdl/SDL.hpp"
@@ -29,6 +31,30 @@ struct PerVertexUniformData {
 
 // Total number of bytes to allocate for a transfer buffer.
 static constexpr uint32_t TRANSFER_BUFFER_SIZE = 128U * 1024U * 1024;
+
+// Bits used for generating key for sorting renderables.
+static constexpr uint32_t RENDER_LAYER_MASK = 0xFF000000U;
+static constexpr uint32_t RENDER_LAYER_SHIFT = 24U;
+
+static constexpr uint32_t RENDER_DEPTH_MASK = 0x00FFFFFFU;
+static constexpr uint32_t RENDER_DEPTH_SHIFT = 0U;
+
+uint32_t Systems::RenderSystem::GetRequestLength(const Components::TransferRequest &request) {
+
+    uint32_t length = 0U;
+    switch(request.type) {
+        case Components::RequestType::UPLOAD_TO_BUFFER:
+            length = request.data.buffer.size;
+            break;
+        case Components::RequestType::UPLOAD_TO_TEXTURE:
+            length = request.data.texture.w * request.data.texture.h * 4;
+            break;
+        default:
+            break;
+    }
+    return length;
+}
+
 
 Systems::RenderSystem::RenderSystem(Core::Engine& engine)
     : ECS::System(engine)
@@ -87,7 +113,7 @@ SDL::GpuTexture Systems::RenderSystem::CreateTexture(SDL_GPUTextureCreateInfo& t
     return SDL::GpuTexture(m_gpu, texture_info);
 }
 
-void Systems::RenderSystem::UploadDataToBuffer(const std::vector<TransferRequest>& transfers) {
+void Systems::RenderSystem::UploadDataToBuffer(const std::vector<Components::TransferRequest>& transfers) {
 
     SDL_GPUCommandBuffer* p_cmd = SDL_AcquireGPUCommandBuffer(m_gpu.Get());
     if (p_cmd == nullptr) {
@@ -119,6 +145,9 @@ void Systems::RenderSystem::GenerateMipMaps(SDL::GpuTexture& texture) {
 
 void Systems::RenderSystem::Update() {
 
+    // todo frustrum culling
+    std::list<Components::Renderable*> renderables = SortDrawCalls();
+
     SDL_GPUCommandBuffer* p_cmdbuf = SDL_AcquireGPUCommandBuffer(m_gpu.Get());
     if (p_cmdbuf == nullptr) {
         throw SDL::Error("SDL_AcquireGPUCommandBuffer() failed! ");
@@ -132,18 +161,16 @@ void Systems::RenderSystem::Update() {
     if (p_swapchainTexture != nullptr) {
 
         ECS::Registry& registry = GetEngine().GetEcsRegistry();
-        std::set<ECS::EntityID_t> entities = GetEntities();
         const auto& cameras = registry.GetComponentArray<Components::Camera>();
 
         SDL_GPUCopyPass* p_copyPass = SDL_BeginGPUCopyPass(p_cmdbuf);
         // Process uploads.
-        for (ECS::EntityID_t entity : entities) {
+        for (Components::Renderable* p_renderable : renderables) {
 
-            Components::Renderable& renderable = registry.GetComponent<Components::Renderable>(entity);
-            if (!renderable.m_requests.empty()) {
+            if (!p_renderable->m_requests.empty()) {
 
                 // Process transfer.
-                ProcessDataUpload(p_copyPass, renderable.m_requests);
+                ProcessDataUpload(p_copyPass, p_renderable->m_requests);
             }
         }
         SDL_EndGPUCopyPass(p_copyPass);
@@ -157,9 +184,9 @@ void Systems::RenderSystem::Update() {
         // Draw commands
         SDL_GPURenderPass* p_renderPass = SDL_BeginGPURenderPass(p_cmdbuf, &colorTargetInfo, 1U, nullptr);
 
-        for (ECS::EntityID_t entity : entities) {
+        for (Components::Renderable* p_renderable : renderables) {
 
-            Components::Renderable& renderable = registry.GetComponent<Components::Renderable>(entity);
+            Components::Renderable& renderable = *p_renderable;
             if (renderable.m_layer == Components::RenderLayer::LAYER_GUI) {
                 PerVertexUniformData uniform = {};
                 uniform.model = renderable.transform;
@@ -216,7 +243,54 @@ void Systems::RenderSystem::Update() {
 }
 
 
-void Systems::RenderSystem::ProcessDataUpload(SDL_GPUCopyPass* p_copypass, const std::vector<TransferRequest>& transfers) {
+std::list<Components::Renderable*> Systems::RenderSystem::SortDrawCalls() {
+
+    std::list<Components::Renderable*> renderables;
+    std::unordered_map<uint32_t, std::list<Components::Renderable*>> binnedRenderables;
+    std::vector<uint32_t> sortKeys;
+
+    ECS::Registry& registry = GetEngine().GetEcsRegistry();
+    std::set<ECS::EntityID_t> entities = GetEntities();
+    sortKeys.reserve(entities.size());
+
+    for (ECS::EntityID_t entityId : entities) {
+        Components::Renderable& renderable = registry.GetComponent<Components::Renderable>(entityId);
+
+        if (renderable.m_layer == Components::RenderLayer::LAYER_NONE) {
+
+            // skip renderables that are not currently visible.
+            continue;
+        }
+
+        uint32_t sortKey = static_cast<uint8_t>(renderable.m_layer) << RENDER_LAYER_SHIFT;
+
+        // calculate depth
+        if (renderable.m_depth_override > 0U) {
+            sortKey |= (static_cast<uint32_t>(renderable.m_depth_override) & RENDER_DEPTH_MASK);
+        }
+        else {
+
+            // todo use origin + transform and camera information to calculate depth value
+        }
+
+        binnedRenderables[sortKey].push_back(&renderable);
+        sortKeys.push_back(sortKey);
+    }
+
+    std::sort(sortKeys.begin(), sortKeys.end(),[](const uint32_t& left, uint32_t& right){
+        return left < right;
+    });
+
+    // now build list by splicing lists by keys
+    for (uint32_t key : sortKeys) {
+
+        renderables.splice(renderables.end(), binnedRenderables.at(key));
+    }
+
+    return renderables;
+}
+
+void Systems::RenderSystem::ProcessDataUpload(SDL_GPUCopyPass* p_copypass, const std::vector<Components::TransferRequest>& transfers) {
 
     uint32_t transferOffset = 0U;
 
@@ -224,7 +298,7 @@ void Systems::RenderSystem::ProcessDataUpload(SDL_GPUCopyPass* p_copypass, const
     uint8_t* p_data =static_cast<uint8_t*>( m_transfer_buffer.Map(true));
 
     // copy data to transfer buffer
-    for (const TransferRequest& request : transfers) {
+    for (const Components::TransferRequest& request : transfers) {
 
         uint32_t data_len = GetRequestLength(request);
 
@@ -235,12 +309,12 @@ void Systems::RenderSystem::ProcessDataUpload(SDL_GPUCopyPass* p_copypass, const
 
         SDL_memcpy(p_data + transferOffset, request.p_src, data_len);
 
-        if (request.type == RequestType::UPLOAD_TO_BUFFER) {
+        if (request.type == Components::RequestType::UPLOAD_TO_BUFFER) {
             SDL_GPUTransferBufferLocation src = {m_transfer_buffer.Get(), transferOffset};
 
             SDL_UploadToGPUBuffer(p_copypass, &src, &request.data.buffer, request.cycle);
         }
-        else if (request.type == RequestType::UPLOAD_TO_TEXTURE) {
+        else if (request.type == Components::RequestType::UPLOAD_TO_TEXTURE) {
             SDL_GPUTextureTransferInfo src = {m_transfer_buffer.Get(), transferOffset, 0U, 0U};
 
             SDL_UploadToGPUTexture(p_copypass, &src, &request.data.texture, request.cycle);

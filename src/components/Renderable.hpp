@@ -5,7 +5,6 @@
 #include <vector>
 #include <glm/mat4x4.hpp>
 #include "graphics/pipelines/PipelineCache.hpp"
-#include "systems/RenderSystem.hpp"
 
 namespace Components {
 
@@ -15,6 +14,23 @@ namespace Components {
         LAYER_3D_OPAQUE,
         LAYER_3D_TRANSPARENT,
         LAYER_GUI
+    };
+
+    enum class RequestType : uint8_t {
+        UPLOAD_TO_BUFFER,
+        UPLOAD_TO_TEXTURE
+    };
+
+    union RequestData {
+        SDL_GPUBufferRegion buffer;
+        SDL_GPUTextureRegion texture;
+    };
+
+    struct TransferRequest {
+        RequestType type;
+        RequestData data;
+        void* p_src;
+        bool cycle;
     };
 
     // @nested part of Renderable
@@ -41,6 +57,9 @@ namespace Components {
             //! Whether the renderable is ready for drawing.
             RenderLayer m_layer;
 
+            //! Used for manual draw call sorting. A value of 0 is invalid and means depth should be obtained from transform+reference point.
+            uint16_t m_depth_override;
+
             //! Which pipeline to bind.
             Graphics::IPipeline* m_p_pipeline;
 
@@ -50,7 +69,7 @@ namespace Components {
             SDL_GPUIndexElementSize m_index_size;
 
             //! Any transfers to execute.
-            std::vector<Systems::RenderSystem::TransferRequest> m_requests;
+            std::vector<TransferRequest> m_requests;
 
             // per draw resources.
             SDL_GPUTextureSamplerBinding textureSampler;
@@ -63,6 +82,7 @@ namespace Components {
 
             void Reset() {
                 m_layer = RenderLayer::LAYER_NONE;
+                m_depth_override = 0U;
 
                 // material
                 m_p_pipeline = nullptr;

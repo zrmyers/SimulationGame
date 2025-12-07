@@ -100,6 +100,7 @@ void Systems::TextSystem::Update() {
                 renderable.m_p_pipeline = m_p_textpipeline;
             }
             renderable.m_layer = text.m_layer;
+            renderable.m_depth_override = text.m_draw_order;
             renderable.transform = transform.m_transform;
 
             renderable.m_vertex_buffer_binding.buffer = m_vertex_buffer.Get();
@@ -202,16 +203,16 @@ void Systems::TextSystem::UpdateGeometryBuffer() {
     }
 }
 
-std::vector<Systems::RenderSystem::TransferRequest> Systems::TextSystem::SetupTransferBuffer(Systems::RenderSystem& renderSystem) {
+std::vector<Components::TransferRequest> Systems::TextSystem::SetupTransferBuffer(Systems::RenderSystem& renderSystem) {
 
     // copy the geometry data to the transfer buffer.
-    std::vector<Systems::RenderSystem::TransferRequest> requests;
+    std::vector<Components::TransferRequest> requests;
 
     // vertex data
     {
-        Systems::RenderSystem::TransferRequest request = {};
+        Components::TransferRequest request = {};
         request.cycle = true; // don't overwrite vertex data in previous frame.
-        request.type = RenderSystem::RequestType::UPLOAD_TO_BUFFER;
+        request.type = Components::RequestType::UPLOAD_TO_BUFFER;
         request.data.buffer.buffer = m_vertex_buffer.Get();
         request.data.buffer.offset = 0;
         request.data.buffer.size = sizeof(Graphics::UnlitTexturedVertex) * m_geometry_data.vertices.size();
@@ -221,9 +222,9 @@ std::vector<Systems::RenderSystem::TransferRequest> Systems::TextSystem::SetupTr
 
     // index data
     {
-        Systems::RenderSystem::TransferRequest request = {};
+        Components::TransferRequest request = {};
         request.cycle = true; // don't overwrite vertex data in previous frame.
-        request.type = RenderSystem::RequestType::UPLOAD_TO_BUFFER;
+        request.type = Components::RequestType::UPLOAD_TO_BUFFER;
         request.data.buffer.buffer = m_index_buffer.Get();
         request.data.buffer.offset = 0;
         request.data.buffer.size = sizeof(uint32_t) * m_geometry_data.indices.size();

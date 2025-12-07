@@ -45,7 +45,7 @@ namespace Systems {
             void UpdateGeometryBuffer();
 
             // Upload geometry to GPU
-            std::vector<Systems::RenderSystem::TransferRequest> SetupTransferBuffer(Systems::RenderSystem& renderSystem);
+            std::vector<Components::TransferRequest> SetupTransferBuffer(Systems::RenderSystem& renderSystem);
 
             // Update renderables
             void UpdateRenderable();
