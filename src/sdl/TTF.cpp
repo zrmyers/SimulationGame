@@ -26,6 +26,9 @@ SDL::TTF::Font::Font()
 
 SDL::TTF::Font::Font(const std::string& font_filename, float ptsize)
     : m_p_font(TTF_OpenFont(font_filename.c_str(), ptsize)) {
+    if (m_p_font == nullptr) {
+        throw SDL::Error("TTF_OpenFont() failed!");
+    }
 }
 
 SDL::TTF::Font::Font(Font&& other) noexcept

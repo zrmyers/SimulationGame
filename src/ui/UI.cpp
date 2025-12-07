@@ -13,6 +13,7 @@
 #include "systems/RenderSystem.hpp"
 #include "systems/TextSystem.hpp"
 #include <SDL3/SDL_gpu.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -427,7 +428,7 @@ UI::TextElement::TextElement()
     : m_color(1.0F, 1.0F, 1.0F, 1.0F) {
 }
 
-UI::TextElement& UI::TextElement::SetFont(std::shared_ptr<SDL::TTF::Font> p_font) {
+UI::TextElement& UI::TextElement::SetFont(std::shared_ptr<Graphics::Font> p_font) {
     m_p_font = std::move(p_font);
     return *this;
 }
@@ -439,7 +440,7 @@ UI::TextElement& UI::TextElement::SetText(std::shared_ptr<SDL::TTF::Text> p_text
 
 UI::TextElement& UI::TextElement::SetTextString(const std::string& str) {
     if (m_p_text == nullptr) {
-        throw std::runtime_error(
+        throw Core::EngineException(
             "UI::TextElement::SetTextString(): Attempt to set text string when m_p_text is not initialized.");
     }
     m_p_text->SetString(str);
@@ -453,7 +454,7 @@ UI::TextElement& UI::TextElement::SetTextColor(const glm::vec4& color) {
 
 glm::vec2 UI::TextElement::GetTextSize() const {
     if (m_p_text == nullptr) {
-        throw std::runtime_error(
+        throw Core::EngineException(
             "UI::TextElement::GetTextSize(): Attempt to get size of text when m_p_text is not initialized.");
     }
     int width = 0;
@@ -503,7 +504,7 @@ void UI::TextElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSi
 //----------------------------------------------------------------------------------------------------------------------
 // Nine Slice Style
 
-UI::NineSliceStyle UI::NineSliceStyle::Load(Core::Engine& engine, const std::vector<std::string>& images) {
+std::shared_ptr<UI::NineSliceStyle> UI::NineSliceStyle::Load(Core::Engine& engine, const std::vector<std::string>& images) {
 
     Core::AssetLoader& assetLoader = engine.GetAssetLoader();
     UI::NineSliceStyle style;
@@ -584,7 +585,7 @@ UI::NineSliceStyle UI::NineSliceStyle::Load(Core::Engine& engine, const std::vec
 
     style.m_border_width = style.CalculateBorderWidth();
 
-    return style;
+    return std::make_shared<NineSliceStyle>(std::move(style));
 }
 
 UI::NineSliceStyle::NineSliceStyle()
@@ -649,23 +650,36 @@ float UI::NineSliceStyle::CalculateBorderWidth() {
 //----------------------------------------------------------------------------------------------------------------------
 // Nine Slice Element
 
-UI::NineSlice& UI::NineSlice::SetStyle(const NineSliceStyle& style) {
+UI::NineSlice& UI::NineSlice::SetStyle(const std::shared_ptr<NineSliceStyle>& style) {
     m_style = style;
 
-    // Generate image elements for borders.
-    m_borders.reserve(NineSliceStyle::SLICE_COUNT);
+    if (m_borders.empty()) {
+        // Generate image elements for borders.
+        m_borders.reserve(NineSliceStyle::SLICE_COUNT);
 
-    for (size_t index = 0U; index < NineSliceStyle::SLICE_COUNT; index++) {
-        NineSliceStyle::Region region = static_cast<NineSliceStyle::Region>(index);
+        for (size_t index = 0U; index < NineSliceStyle::SLICE_COUNT; index++) {
+            NineSliceStyle::Region region = static_cast<NineSliceStyle::Region>(index);
 
-        const std::shared_ptr<Graphics::Texture2D>& p_texture = m_style.GetRegion(region);
+            const std::shared_ptr<Graphics::Texture2D>& p_texture = m_style->GetRegion(region);
 
-        std::unique_ptr<UI::ImageElement> p_imageElement = std::make_unique<UI::ImageElement>();
-        p_imageElement
-            ->SetTexture(p_texture)
-            .SetLayoutMode(LayoutMode::RELATIVE_TO_PARENT);
+            std::unique_ptr<UI::ImageElement> p_imageElement = std::make_unique<UI::ImageElement>();
+            p_imageElement
+                ->SetTexture(p_texture)
+                .SetLayoutMode(LayoutMode::RELATIVE_TO_PARENT);
 
-        m_borders.push_back(std::move(p_imageElement));
+            m_borders.push_back(std::move(p_imageElement));
+        }
+    }
+    else {
+
+        for (size_t index = 0U; index < NineSliceStyle::SLICE_COUNT; index++) {
+
+            NineSliceStyle::Region region = static_cast<NineSliceStyle::Region>(index);
+
+            const std::shared_ptr<Graphics::Texture2D>& p_texture = m_style->GetRegion(region);
+
+            m_borders.at(index)->SetTexture(p_texture);
+        }
     }
 
     return *this;
@@ -674,7 +688,7 @@ UI::NineSlice& UI::NineSlice::SetStyle(const NineSliceStyle& style) {
 void UI::NineSlice::CalculateSize(glm::vec2 parent_size) {
 
     // first calculate size of nine slice
-    float borderWidth = m_style.GetBorderWidth();
+    float borderWidth = m_style->GetBorderWidth();
 
     if (GetLayoutMode() == LayoutMode::RELATIVE_TO_PARENT) {
 
@@ -705,8 +719,31 @@ void UI::NineSlice::CalculateSize(glm::vec2 parent_size) {
         }
 
     }
+    else if (GetLayoutMode() == LayoutMode::FIT_TO_CHILDREN) {
+
+        glm::vec2 centerSize = parent_size - 2.0F * borderWidth;
+
+        float sizeX = 0.0F;
+        float sizeY = 0.0F;
+
+        for (auto& p_child : GetChildren()) {
+
+            p_child->CalculateSize(centerSize);
+
+            glm::vec2 childSize = p_child->GetAbsoluteSize();
+            sizeX = std::max(sizeX, childSize.x);
+            sizeY = std::max(sizeY, childSize.y);
+        }
+
+        centerSize.x = sizeX;
+        centerSize.y = sizeY;
+
+        SetAbsoluteSize(centerSize + 2.0F*borderWidth);
+
+        CalculateSliceSize(centerSize, borderWidth);
+    }
     else {
-        throw std::runtime_error("Unsupported layout option for nine slice.");
+        throw Core::EngineException("Unsupported layout option for nine slice.");
     }
 }
 
@@ -719,7 +756,7 @@ void UI::NineSlice::CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_po
 
     glm::vec2 absSize = GetAbsoluteSize();
     glm::vec2 absPosition = GetAbsolutePosition();
-    float borderSize = m_style.GetBorderWidth();
+    float borderSize = m_style->GetBorderWidth();
     glm::vec2 centerSize = absSize - 2.0F * borderSize;
 
     // calculate nine slice positions
@@ -819,6 +856,132 @@ void UI::NineSlice::CalculateSliceSize(glm::vec2 centerSize, float borderWidth) 
 //----------------------------------------------------------------------------------------------------------------------
 // Style
 
+UI::ButtonStyle::ButtonStyle()
+    : m_text_colors({glm::vec4(1.0F, 1.0F, 1.0F, 1.0F)}) {
+}
+
+void UI::ButtonStyle::SetFont(std::shared_ptr<Graphics::Font> p_font) {
+    m_p_text_font = std::move(p_font);
+}
+
+const std::shared_ptr<Graphics::Font>& UI::ButtonStyle::GetFont() {
+    return m_p_text_font;
+}
+
+void UI::ButtonStyle::SetNineSliceStyle(ButtonState state, std::shared_ptr<NineSliceStyle> p_style) {
+    m_frame_styles.at(static_cast<size_t>(state)) = std::move(p_style);
+}
+
+const std::shared_ptr<UI::NineSliceStyle>& UI::ButtonStyle::GetNineSliceStyle(ButtonState state) {
+    return m_frame_styles.at(static_cast<size_t>(state));
+}
+
+void UI::ButtonStyle::SetTextColor(ButtonState state, glm::vec4 color) {
+    m_text_colors.at(static_cast<size_t>(state)) = color;
+}
+
+const glm::vec4& UI::ButtonStyle::GetTextColor(ButtonState state) {
+    return m_text_colors.at(static_cast<size_t>(state));
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// Style
+
+UI::Button::Button()
+    : m_current_state(ButtonState::UNKNOWN)
+    , m_requested_state(ButtonState::DISABLED)
+    , m_p_frame(nullptr)
+    , m_p_text(nullptr) {
+
+    SetHoverEnterCallback([this](){
+        if (this->m_current_state != ButtonState::DISABLED) {
+            this->SetButtonState(ButtonState::FOCUSED);
+        }
+    });
+
+    SetHoverExitCallback([this]() {
+        if (this->m_current_state != ButtonState::DISABLED) {
+            this->SetButtonState(ButtonState::ENABLED);
+        }
+    });
+
+    SetMouseButtonPressCallback([this](MouseButtonID button){
+
+        if ((this->m_current_state != ButtonState::DISABLED) && (button == MouseButtonID::MOUSE_LEFT)) {
+            this->SetButtonState(ButtonState::ACTIVATED);
+        }
+    });
+
+    SetMouseButtonReleaseCallback([this](MouseButtonID button){
+
+        Core::Logger::Info("This happend!");
+        if ((this->m_current_state == ButtonState::ACTIVATED) && (button == MouseButtonID::MOUSE_LEFT)) {
+            this->SetButtonState(ButtonState::FOCUSED);
+
+            // click is registered!
+            if (m_click_callback) {
+                m_click_callback();
+            }
+        }
+    });
+}
+
+UI::Button& UI::Button::SetButtonStyle(std::shared_ptr<ButtonStyle> p_style) {
+    m_p_button_style = std::move(p_style);
+    return *this;
+}
+
+UI::Button& UI::Button::SetText(const std::string& text) {
+    m_button_text = text;
+    return *this;
+}
+
+// Changes the button state to a new button state.
+UI::Button& UI::Button::SetButtonState(ButtonState state) {
+
+    if (m_current_state != state) {
+
+        if ((m_current_state == ButtonState::UNKNOWN) && (m_p_button_style != nullptr)) {
+
+            // need to initialize elements
+            UI::NineSlice& frame = EmplaceChild<UI::NineSlice>();
+            m_p_frame = &frame;
+
+            UI::TextElement& text = frame.EmplaceChild<UI::TextElement>();
+            text.SetFont(m_p_button_style->GetFont());
+            text.SetText(m_p_button_style->GetFont()->CreateText(m_button_text));
+            text.SetFixedSize(text.GetTextSize());
+            text.SetOrigin({0.5F, 0.5F});
+            text.SetLayoutMode(LayoutMode::FIXED);
+            text.SetRelativePosition({0.5F, 0.5F});
+            m_p_text = &text;
+        }
+
+        m_p_frame->SetStyle(m_p_button_style->GetNineSliceStyle(state));
+        m_p_text->SetTextColor(m_p_button_style->GetTextColor(state));
+
+        m_current_state = state;
+    }
+
+    return *this;
+}
+
+// Set button state change callback.
+UI::Button& UI::Button::SetOnClickCallback(UI::OnClickCallback callback) {
+    m_click_callback = std::move(callback);
+    return *this;
+}
+
+void UI::Button::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
+
+    depth++;
+    for (auto& p_child : GetChildren()) {
+        p_child->UpdateGraphics(registry, screenSize, depth);
+    }
+}
+//----------------------------------------------------------------------------------------------------------------------
+// Style
+
 
 UI::Style UI::Style::Load(Core::Engine& engine, const std::string& filename) {
 
@@ -827,7 +990,6 @@ UI::Style UI::Style::Load(Core::Engine& engine, const std::string& filename) {
     UI::Style style;
 
     std::ifstream filestream(assetLoader.GetUiDir() + "/" + filename);
-
 
     nlohmann::json styleData = nlohmann::json::parse(filestream);
 
@@ -839,9 +1001,10 @@ UI::Style UI::Style::Load(Core::Engine& engine, const std::string& filename) {
             float fontSize = fontData["pt"];
             bool useSDF = fontData["sdf"];
             std::string name = fontData["filename"];
+            TTF_HorizontalAlignment alignment = ParseAlignment(fontData["alignment"]);
 
-            std::shared_ptr<SDL::TTF::Font> pFont = textSystem.CreateFont(assetLoader.GetFontDir() + "/" + name, fontSize);
-            pFont->SetSDF(useSDF);
+            std::shared_ptr<Graphics::Font> pFont =
+                std::make_shared<Graphics::Font>(assetLoader, textSystem, name, fontSize, useSDF, alignment);
 
             style.SetFont(fontID, pFont);
         }
@@ -864,35 +1027,101 @@ UI::Style UI::Style::Load(Core::Engine& engine, const std::string& filename) {
             imageFiles.push_back(nineSliceData["bottom"]);
             imageFiles.push_back(nineSliceData["center"]);
 
-            NineSliceStyle nineSliceStyle;
-            nineSliceStyle = NineSliceStyle::Load(engine, imageFiles);
+            std::shared_ptr<NineSliceStyle> nineSliceStyle = NineSliceStyle::Load(engine, imageFiles);
 
             style.SetNineSliceStyle(ninesliceId, std::move(nineSliceStyle));
+        }
+    }
+
+    if (styleData.contains("button")) {
+
+        for (auto& buttonData : styleData["button"]) {
+
+            std::string buttonId = buttonData["id"];
+            std::shared_ptr<ButtonStyle> p_buttonStyle = std::make_shared<ButtonStyle>();
+
+            p_buttonStyle->SetFont(style.GetFont(buttonData["font-id"]));
+
+            auto& disabledData = buttonData["disabled"];
+            p_buttonStyle->SetNineSliceStyle(ButtonState::DISABLED, style.GetNineSliceStyle(disabledData["nine-slice-id"]));
+            p_buttonStyle->SetTextColor(ButtonState::DISABLED, ParseColor(disabledData["text-color"]));
+
+            auto& enabledData = buttonData["enabled"];
+            p_buttonStyle->SetNineSliceStyle(ButtonState::ENABLED, style.GetNineSliceStyle(enabledData["nine-slice-id"]));
+            p_buttonStyle->SetTextColor(ButtonState::ENABLED, ParseColor(enabledData["text-color"]));
+
+            auto& focusData = buttonData["focused"];
+            p_buttonStyle->SetNineSliceStyle(ButtonState::FOCUSED, style.GetNineSliceStyle(focusData["nine-slice-id"]));
+            p_buttonStyle->SetTextColor(ButtonState::FOCUSED, ParseColor(focusData["text-color"]));
+
+            auto& activatedData = buttonData["activated"];
+            p_buttonStyle->SetNineSliceStyle(ButtonState::ACTIVATED, style.GetNineSliceStyle(activatedData["nine-slice-id"]));
+            p_buttonStyle->SetTextColor(ButtonState::ACTIVATED, ParseColor(activatedData["text-color"]));
+
+            style.SetButtonStyle(buttonId, std::move(p_buttonStyle));
         }
     }
     return style;
 }
 
-void UI::Style::SetFont(const std::string& font_id, std::shared_ptr<SDL::TTF::Font> p_font) {
+void UI::Style::SetFont(const std::string& font_id, std::shared_ptr<Graphics::Font> p_font) {
     m_fonts[font_id] = std::move(p_font);
 }
 
-std::shared_ptr<SDL::TTF::Font>& UI::Style::GetFont(const std::string& font_id) {
+std::shared_ptr<Graphics::Font>& UI::Style::GetFont(const std::string& font_id) {
     auto fontIter = m_fonts.find(font_id);
     if (fontIter == m_fonts.end()) {
-        throw std::runtime_error("GetFont() failed to find font " + font_id);
+        throw Core::EngineException("GetFont() failed to find font " + font_id);
     }
     return fontIter->second;
 }
 
-void UI::Style::SetNineSliceStyle(const std::string& style_id, NineSliceStyle&& style) {
+void UI::Style::SetNineSliceStyle(const std::string& style_id, std::shared_ptr<NineSliceStyle>&& style) {
     m_nine_slice_styles[style_id] = style;
 }
 
-UI::NineSliceStyle& UI::Style:: GetNineSliceStyle(const std::string& nineslice_id) {
+std::shared_ptr<UI::NineSliceStyle>& UI::Style::GetNineSliceStyle(const std::string& nineslice_id) {
     auto styleIter = m_nine_slice_styles.find(nineslice_id);
     if (styleIter == m_nine_slice_styles.end()) {
-        throw std::runtime_error("GetNineSliceStyle() failed to find style " + nineslice_id);
+        throw Core::EngineException("GetNineSliceStyle() failed to find style " + nineslice_id);
     }
     return styleIter->second;
+}
+
+void UI::Style::SetButtonStyle(const std::string& button_id, std::shared_ptr<ButtonStyle>&& style) {
+    m_button_style[button_id] = std::move(style);
+}
+
+std::shared_ptr<UI::ButtonStyle>& UI::Style::GetButtonStyle(const std::string& button_id) {
+    auto buttonIter = m_button_style.find(button_id);
+    if (buttonIter == m_button_style.end()) {
+        throw Core::EngineException("GetButtonStyle() failed to find style " + button_id);
+    }
+    return buttonIter->second;
+}
+
+TTF_HorizontalAlignment UI::Style::ParseAlignment(const std::string& asString) {
+    TTF_HorizontalAlignment alignment = TTF_HORIZONTAL_ALIGN_INVALID;
+
+    if (asString == "center") {
+        alignment = TTF_HORIZONTAL_ALIGN_CENTER;
+    }
+    else if (asString == "left") {
+        alignment = TTF_HORIZONTAL_ALIGN_LEFT;
+    }
+    else if (asString == "right") {
+        alignment = TTF_HORIZONTAL_ALIGN_RIGHT;
+    }
+
+    return alignment;
+}
+
+glm::vec4 UI::Style::ParseColor(nlohmann::json& colorData) {
+
+    glm::vec4 color;
+    color.r = colorData["r"];
+    color.g = colorData["g"];
+    color.b = colorData["b"];
+    color.a = colorData["a"];
+    return color;
 }

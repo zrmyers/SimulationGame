@@ -4,6 +4,7 @@
 #include "core/Engine.hpp"
 #include "core/IGame.hpp"
 #include "ecs/ECS.hpp"
+#include "graphics/Font.hpp"
 #include "sdl/TTF.hpp"
 
 class SimulationGame : public Core::IGame {
@@ -18,7 +19,7 @@ class SimulationGame : public Core::IGame {
 
         void InitializeGUI();
 
-        std::shared_ptr<SDL::TTF::Font> m_font;
+        std::shared_ptr<Graphics::Font> m_p_font;
         ECS::Entity m_text_entity;
 
         ECS::Entity m_camera_entity;

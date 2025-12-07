@@ -4,7 +4,8 @@
             "id": "Default-UI",
             "pt": 32,
             "sdf": true,
-            "filename": "Oblegg-Regular.otf"
+            "filename": "Oblegg-Regular.otf",
+            "alignment": "center"
         }
     ],
     "nine-slice": [
@@ -55,6 +56,48 @@
             "left": "ui/button-active-left.png",
             "right": "ui/button-active-right.png",
             "center": "ui/button-center.png"
+        }
+    ],
+    "button": [
+        {
+            "id": "simple",
+            "font-id": "Default-UI",
+            "disabled": {
+                "nine-slice-id": "button-disabled-style",
+                "text-color": {
+                    "r": 1.0,
+                    "g": 1.0,
+                    "b": 1.0,
+                    "a": 1.0
+                }
+            },
+            "enabled": {
+                "nine-slice-id": "button-enabled-style",
+                "text-color": {
+                    "r": 1.0,
+                    "g": 1.0,
+                    "b": 1.0,
+                    "a": 1.0
+                }
+            },
+            "focused": {
+                "nine-slice-id": "button-active-style",
+                "text-color": {
+                    "r": 1.0,
+                    "g": 1.0,
+                    "b": 0.0,
+                    "a": 1.0
+                }
+            },
+            "activated": {
+                "nine-slice-id": "button-active-style",
+                "text-color": {
+                    "r": 0.5,
+                    "g": 0.5,
+                    "b": 0.0,
+                    "a": 1.0
+                }
+            }
         }
     ]
 }

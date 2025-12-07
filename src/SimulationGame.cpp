@@ -35,22 +35,20 @@ SimulationGame::SimulationGame(Core::Engine& engine)
     : Core::IGame(engine) {
     Core::Logger::Info("Initializing Game.");
     ECS::Registry& registry = engine.GetEcsRegistry();
-    Core::AssetLoader& assetLoader = engine.GetAssetLoader();
     Systems::RenderSystem& renderer = registry.GetSystem<Systems::RenderSystem>();
     Systems::TextSystem& textRenderer = registry.GetSystem<Systems::TextSystem>();
     Systems::GuiSystem& guiSystem = registry.GetSystem<Systems::GuiSystem>();
 
-    m_font = textRenderer.CreateFont(assetLoader.GetFontDir() + "/Oblegg-Regular.otf", 50.0F); // NOLINT
-    m_font->SetHorizontalAlignment(TTF_HORIZONTAL_ALIGN_CENTER);
-    m_font->SetSDF(true);
+    m_p_font = textRenderer.CreateFont(
+        "Oblegg-Regular.otf", 50.0F, true, TTF_HORIZONTAL_ALIGN_CENTER);
 
     // setup text object
     m_text_entity = ECS::Entity(registry);
     m_text_entity.EmplaceComponent<Components::Transform>();
     Components::Text& text = m_text_entity.EmplaceComponent<Components::Text>();
-    text.m_p_font = m_font;
+    text.m_p_font = m_p_font;
     text.m_color = glm::vec4(0.0F, 1.0F, 0.0F, 1.0F);
-    text.m_p_text = textRenderer.CreateText(m_font, "Hello\n12345");
+    text.m_p_text = m_p_font->CreateText("Hello\n12345");
     text.m_layer = Components::RenderLayer::LAYER_3D_OPAQUE;
 
     // setup camera object
@@ -106,7 +104,7 @@ void SimulationGame::InitializeGUI() {
     canvas.SetRenderMode(Components::Canvas::RenderMode::SCREEN);
 
     UI::Style uiStyle = UI::Style::Load(GetEngine(), "ui-style.json");
-    UI::NineSliceStyle boxStyle = uiStyle.GetNineSliceStyle("box-style");
+    std::shared_ptr<UI::NineSliceStyle> boxStyle = uiStyle.GetNineSliceStyle("box-style");
 
     UI::NineSlice& nineslice = canvas.EmplaceChild<UI::NineSlice>();
     nineslice
@@ -115,62 +113,22 @@ void SimulationGame::InitializeGUI() {
         .SetRelativeSize({0.5F, 0.5F})
         .SetOrigin({0.5F, 0.5F});
 
-    std::shared_ptr<SDL::TTF::Font> font = uiStyle.GetFont("Default-UI");
-    std::shared_ptr<SDL::TTF::Text> text1 = textSystem.CreateText(font, "Start");
-    std::shared_ptr<SDL::TTF::Text> text2 = textSystem.CreateText(font, "Settings");
-    std::shared_ptr<SDL::TTF::Text> text3 = textSystem.CreateText(font, "Quit");
-
     UI::VerticalLayout& verticalLayout = nineslice.EmplaceChild<UI::VerticalLayout>();
     verticalLayout.SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
 
-    UI::NineSlice& startButtonImage = verticalLayout.EmplaceChild<UI::NineSlice>();
-    startButtonImage
-        .SetStyle(uiStyle.GetNineSliceStyle("button-enabled-style"));
-
-    UI::TextElement& startText = startButtonImage.EmplaceChild<UI::TextElement>();
-    startText
-        .SetFont(font)
-        .SetText(text1)
-        .SetTextColor({1.0F, 1.0F, 0.0F, 1.0F})
-        .SetLayoutMode(UI::LayoutMode::FIXED)
-        .SetFixedSize(startText.GetTextSize())
-        .SetRelativePosition({0.5F, 0.5F})
-        .SetOrigin({0.5F, 0.5F});
-
-    UI::NineSlice& settingsButtonImage = verticalLayout.EmplaceChild<UI::NineSlice>();
-    settingsButtonImage.SetStyle(uiStyle.GetNineSliceStyle("button-enabled-style"))
-        .SetHoverEnterCallback([](){Core::Logger::Info("Settings hover enter!");})
-        .SetHoverExitCallback([](){Core::Logger::Info("Settings hover exit!");});
-
-    UI::TextElement& settingsText = settingsButtonImage.EmplaceChild<UI::TextElement>();
-    settingsText
-        .SetFont(font)
-        .SetText(text2)
-        .SetTextColor({1.0F, 1.0F, 0.0F, 1.0F})
-        .SetLayoutMode(UI::LayoutMode::FIXED)
-        .SetFixedSize(settingsText.GetTextSize())
-        .SetRelativePosition({0.5F, 0.5F})
-        .SetOrigin({0.5F, 0.5F});
-
-    UI::NineSlice& quitButtonImage = verticalLayout.EmplaceChild<UI::NineSlice>();
-    quitButtonImage.SetStyle(uiStyle.GetNineSliceStyle("button-enabled-style"))
-        .SetMouseButtonReleaseCallback([&engine](UI::MouseButtonID buttonID){
-            switch(buttonID) {
-                case UI::MouseButtonID::MOUSE_LEFT:
-                    engine.RequestShutdown();
-                    break;
-                default:
-                    break;
-            }
+    UI::Button& startButton = verticalLayout.EmplaceChild<UI::Button>();
+    startButton.SetButtonStyle(uiStyle.GetButtonStyle("simple"))
+        .SetText("Start")
+        .SetButtonState(UI::ButtonState::DISABLED);
+    UI::Button& settingsButton = verticalLayout.EmplaceChild<UI::Button>();
+    settingsButton.SetButtonStyle(uiStyle.GetButtonStyle("simple"))
+        .SetText("Settings")
+        .SetButtonState(UI::ButtonState::ENABLED);
+    UI::Button& quitButton = verticalLayout.EmplaceChild<UI::Button>();
+    quitButton.SetButtonStyle(uiStyle.GetButtonStyle("simple"))
+        .SetText("Quit")
+        .SetButtonState(UI::ButtonState::ENABLED)
+        .SetOnClickCallback([&engine](){
+            engine.RequestShutdown();
         });
-
-    UI::TextElement& quitText = quitButtonImage.EmplaceChild<UI::TextElement>();
-    quitText
-        .SetFont(font)
-        .SetText(text3)
-        .SetTextColor({1.0F, 1.0F, 0.0F, 1.0F})
-        .SetLayoutMode(UI::LayoutMode::FIXED)
-        .SetFixedSize(quitText.GetTextSize())
-        .SetRelativePosition({0.5F, 0.5F})
-        .SetOrigin({0.5F, 0.5F});
 }

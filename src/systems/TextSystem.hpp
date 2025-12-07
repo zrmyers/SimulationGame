@@ -5,6 +5,7 @@
 #include "ecs/ECS.hpp"
 #include "graphics/pipelines/PipelineCache.hpp"
 #include "graphics/pipelines/UnlitTexturePipeline.hpp"
+#include "graphics/Font.hpp"
 #include "sdl/SDL.hpp"
 #include "sdl/TTF.hpp"
 #include <SDL3_ttf/SDL_ttf.h>
@@ -29,13 +30,11 @@ namespace Systems {
             TextSystem(Core::Engine& engine);
 
             //! Create a font object. This is used for creating text.
-            std::shared_ptr<SDL::TTF::Font> CreateFont(const std::string& filename, float ptsize);
-
-            //! Create a text object.
-            std::shared_ptr<SDL::TTF::Text> CreateText(std::shared_ptr<SDL::TTF::Font>& p_font, const std::string& text);
+            std::shared_ptr<Graphics::Font> CreateFont(const std::string& filename, float ptsize, bool useSDF, TTF_HorizontalAlignment alignment);
 
             void Update() override;
 
+            SDL::TTF::TextEngine& GetTextEngine();
         private:
 
             // Get Text Metrics

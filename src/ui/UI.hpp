@@ -3,19 +3,24 @@
 #include "core/Engine.hpp"
 #include "ecs/ECS.hpp"
 #include "sdl/SDL.hpp"
+#include "graphics/Font.hpp"
 #include "sdl/TTF.hpp"
 #include "graphics/Texture2D.hpp"
 #include <SDL3/SDL_stdinc.h>
+#include <SDL3_ttf/SDL_ttf.h>
+#include <array>
 #include <cstdint>
 #include <functional>
 #include <glm/fwd.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+// defines the base elements from which a UI can be built.
 namespace UI {
 
     enum class MouseButtonID : uint8_t {
@@ -230,7 +235,7 @@ namespace UI {
             TextElement();
 
             //! Sets the font for the font element.
-            TextElement& SetFont(std::shared_ptr<SDL::TTF::Font> p_font);
+            TextElement& SetFont(std::shared_ptr<Graphics::Font> p_font);
             TextElement& SetText(std::shared_ptr<SDL::TTF::Text> p_text);
 
             //! sets the text string
@@ -243,7 +248,7 @@ namespace UI {
             void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
         private:
 
-            std::shared_ptr<SDL::TTF::Font> m_p_font;
+            std::shared_ptr<Graphics::Font> m_p_font;
             std::shared_ptr<SDL::TTF::Text> m_p_text;
 
             glm::vec4 m_color;
@@ -268,7 +273,7 @@ namespace UI {
             // number of textures that make up a nine-slice.
             static constexpr size_t SLICE_COUNT = 9U;
 
-            static NineSliceStyle Load(Core::Engine& engine, const std::vector<std::string>& images);
+            static std::shared_ptr<NineSliceStyle> Load(Core::Engine& engine, const std::vector<std::string>& images);
 
             NineSliceStyle();
 
@@ -289,7 +294,7 @@ namespace UI {
             NineSlice() = default;
 
             //! Set the NineSlice style.
-            NineSlice& SetStyle(const NineSliceStyle& style);
+            NineSlice& SetStyle(const std::shared_ptr<NineSliceStyle>& style);
 
             void CalculateSize(glm::vec2 parent_size) override;
 
@@ -301,10 +306,93 @@ namespace UI {
 
             void CalculateSliceSize(glm::vec2 centerSize, float borderWidth);
 
-            NineSliceStyle m_style;
+            std::shared_ptr<NineSliceStyle> m_style;
 
             // elements used for rendering the nineslice.
             std::vector<std::unique_ptr<UI::ImageElement>> m_borders;
+    };
+
+    enum class ButtonState : int8_t {
+        UNKNOWN = -1,
+        DISABLED,
+        ENABLED, // button can be focused, selected, and activated
+        FOCUSED, // when mouse hover is detected.
+        ACTIVATED, // processing click
+    };
+
+    static const constexpr size_t NUM_BUTTON_STATES = 5U;
+
+    //! Callback when a click is detected.
+    //!
+    //! A click occurs when the left mouse button is pressed and released without leaving the button. A click is
+    //! cancelled when the mouse cursor leaves the UI button before the mouse button is released.
+    using OnClickCallback = std::function<void()>;
+
+    class ButtonStyle {
+
+        public:
+
+            ButtonStyle();
+
+            void SetFont(std::shared_ptr<Graphics::Font> p_font);
+            const std::shared_ptr<Graphics::Font>& GetFont();
+            void SetNineSliceStyle(ButtonState state, std::shared_ptr<NineSliceStyle> p_style);
+            const std::shared_ptr<NineSliceStyle>& GetNineSliceStyle(ButtonState state);
+            void SetTextColor(ButtonState state, glm::vec4 color);
+            const glm::vec4& GetTextColor(ButtonState state);
+
+        private:
+
+            std::shared_ptr<Graphics::Font> m_p_text_font;
+            std::array<std::shared_ptr<NineSliceStyle>, NUM_BUTTON_STATES> m_frame_styles;
+            std::array<glm::vec4, NUM_BUTTON_STATES> m_text_colors {};
+    };
+
+    // Basic button.
+    //
+    // Basic button registers default handlers for mouse button press and release, as well as detection of hovering.
+    class Button : public Element {
+
+        public:
+
+            Button();
+
+            Button& SetButtonStyle(std::shared_ptr<ButtonStyle> p_style);
+            Button& SetText(const std::string& text);
+
+            // Changes the button state to a new button state.
+            //
+            // This must be called after the button style and text have been configured.
+            Button& SetButtonState(ButtonState state);
+
+            // Set button state change callback.
+            Button& SetOnClickCallback(OnClickCallback callback);
+
+            // main place where graphics are updated.
+            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
+        private:
+
+            //! Reference to button style
+            std::shared_ptr<ButtonStyle> m_p_button_style;
+
+            //! Current button state
+            ButtonState m_current_state;
+
+            //! Requested button state
+            ButtonState m_requested_state;
+
+            //! pointer to nine-slice that makes up background of button
+            NineSlice* m_p_frame;
+
+            //! pointer to text element
+            TextElement* m_p_text;
+
+            //! Function to call when the button state changes.
+            OnClickCallback m_click_callback;
+
+            //! button text
+            std::string m_button_text;
+
     };
 
     class Style {
@@ -315,18 +403,28 @@ namespace UI {
 
             Style() = default;
 
-            void SetFont(const std::string& font_id, std::shared_ptr<SDL::TTF::Font> p_font);
-            std::shared_ptr<SDL::TTF::Font>& GetFont(const std::string& font_id);
+            void SetFont(const std::string& font_id, std::shared_ptr<Graphics::Font> p_font);
+            std::shared_ptr<Graphics::Font>& GetFont(const std::string& font_id);
 
-            void SetNineSliceStyle(const std::string& style_id, NineSliceStyle&& style);
-            NineSliceStyle& GetNineSliceStyle(const std::string& nineslice_id);
+            void SetNineSliceStyle(const std::string& style_id, std::shared_ptr<NineSliceStyle>&& style);
+            std::shared_ptr<NineSliceStyle>& GetNineSliceStyle(const std::string& nineslice_id);
+
+            void SetButtonStyle(const std::string& button_id, std::shared_ptr<ButtonStyle>&& style);
+            std::shared_ptr<ButtonStyle>& GetButtonStyle(const std::string& button_id);
 
         private:
 
+            static TTF_HorizontalAlignment ParseAlignment(const std::string& asString);
+            static glm::vec4 ParseColor(nlohmann::json& colorData);
+
             //! Set of fonts that are used in style.
-            std::unordered_map<std::string, std::shared_ptr<SDL::TTF::Font>> m_fonts;
+            std::unordered_map<std::string, std::shared_ptr<Graphics::Font>> m_fonts;
 
             //! Set of Nine-Slice-Elements used in style.
-            std::unordered_map<std::string, NineSliceStyle> m_nine_slice_styles;
+            std::unordered_map<std::string, std::shared_ptr<NineSliceStyle>> m_nine_slice_styles;
+
+            //! Set of button styles
+            std::unordered_map<std::string, std::shared_ptr<ButtonStyle>> m_button_style;
     };
+
 }

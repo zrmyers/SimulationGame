@@ -57,13 +57,10 @@ Systems::TextSystem::TextSystem(Core::Engine& engine)
     m_textengine = SDL::TTF::TextEngine(renderSystem.GetGpuDevice());
 }
 
-std::shared_ptr<SDL::TTF::Font> Systems::TextSystem::CreateFont(const std::string& filename, float ptsize) { // NOLINT
+std::shared_ptr<Graphics::Font> Systems::TextSystem::CreateFont(
+    const std::string& filename, float ptsize, bool useSDF, TTF_HorizontalAlignment alignment) {
 
-    return std::make_shared<SDL::TTF::Font>(filename, ptsize);
-}
-
-std::shared_ptr<SDL::TTF::Text> Systems::TextSystem::CreateText(std::shared_ptr<SDL::TTF::Font>& p_font, const std::string& text) { // NOLINT
-    return std::make_shared<SDL::TTF::Text>(m_textengine, *p_font, text);
+    return std::make_shared<Graphics::Font>(GetEngine().GetAssetLoader(), *this, filename, ptsize, useSDF, alignment);
 }
 
 void Systems::TextSystem::Update() {
@@ -130,6 +127,10 @@ void Systems::TextSystem::Update() {
         }
     }
 
+}
+
+SDL::TTF::TextEngine& Systems::TextSystem::GetTextEngine() {
+    return m_textengine;
 }
 
 void Systems::TextSystem::GetTextMetrics(const TTF_GPUAtlasDrawSequence* p_draw_sequence, glm::vec2& min, glm::vec2& max) const {

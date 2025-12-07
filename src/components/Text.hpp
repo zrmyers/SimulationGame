@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Renderable.hpp"
+#include "graphics/Font.hpp"
 #include "sdl/TTF.hpp"
 #include <string>
 #include <glm/vec4.hpp>
@@ -14,7 +15,7 @@ namespace Components {
         glm::vec4 m_color;
 
         //! The font with which to create the text.
-        std::shared_ptr<SDL::TTF::Font> m_p_font;
+        std::shared_ptr<Graphics::Font> m_p_font;
 
         //! The text object. created by Text system
         std::shared_ptr<SDL::TTF::Text> m_p_text;
