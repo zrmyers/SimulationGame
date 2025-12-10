@@ -2,22 +2,17 @@
 #include "components/Camera.hpp"
 #include "components/Canvas.hpp"
 #include "components/Renderable.hpp"
-#include "components/Sprite.hpp"
 #include "components/Text.hpp"
 #include "components/Transform.hpp"
 #include "core/AssetLoader.hpp"
 #include "core/IGame.hpp"
 #include "core/Logger.hpp"
 #include "ecs/ECS.hpp"
-#include "graphics/Texture2D.hpp"
-#include "sdl/SDL.hpp"
 #include "sdl/TTF.hpp"
 #include "systems/GuiSystem.hpp"
 #include "systems/RenderSystem.hpp"
-#include "graphics/ShaderCross.hpp"
 #include <SDL3/SDL_gpu.h>
 #include <SDL3_ttf/SDL_ttf.h>
-#include <array>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/scalar_constants.hpp>
@@ -25,9 +20,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include <utility>
 
-#include "glm/mat4x4.hpp"
 #include "systems/TextSystem.hpp"
 #include "ui/UI.hpp"
 

@@ -32,6 +32,8 @@ namespace Systems {
             RenderSystem& operator=(RenderSystem&& other) = delete;
             ~RenderSystem() override;
 
+            void SetVsync(bool vsync_enabled);
+
             SDL::GpuDevice& GetGpuDevice();
 
             glm::ivec2 GetWindowSize() const;

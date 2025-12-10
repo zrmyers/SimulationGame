@@ -4,6 +4,7 @@
 #include "components/Renderable.hpp"
 #include "core/Engine.hpp"
 #include "core/Logger.hpp"
+#include "core/Settings.hpp"
 #include "ecs/ECS.hpp"
 #include "graphics/ShaderCross.hpp"
 #include <SDL3/SDL_gpu.h>
@@ -58,18 +59,41 @@ uint32_t Systems::RenderSystem::GetRequestLength(const Components::TransferReque
 
 Systems::RenderSystem::RenderSystem(Core::Engine& engine)
     : ECS::System(engine)
-    , m_window("Simulation Game", 1024, 768, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE)
     , m_gpu(SDL_GPU_SHADERFORMAT_SPIRV, true, NULL) {
-
-    m_window.SetPosition( SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
     Core::Logger::Info("OK: Created device with driver: " + std::string(m_gpu.GetDriver()));
 
+    Core::GraphicsSettings& graphics = engine.GetSettings().GetGraphicsSettings();
+    SDL_WindowFlags windowFlags = graphics.GetFullscreen()? SDL_WINDOW_FULLSCREEN : 0;
+    windowFlags |= SDL_WINDOW_VULKAN;
+    glm::ivec2 resolution = graphics.GetDisplayResolution();
+
+    m_window = SDL::Window("Simulation Game", resolution.x, resolution.y, windowFlags);
+
+    Core::Logger::Info("OK: Created window");
+    m_window.SetPosition( SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+
     m_gpu.ClaimWindow(m_window);
+
+    SetVsync(graphics.GetVsyncEnabled());
 
     m_transfer_buffer = CreateTransferBuffer(SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD, TRANSFER_BUFFER_SIZE);
 }
 
+void Systems::RenderSystem::SetVsync(bool vsync_enabled) {
+
+    SDL_GPUPresentMode presentMode = SDL_GPU_PRESENTMODE_IMMEDIATE;
+
+    bool supportsMailbox = SDL_WindowSupportsGPUPresentMode(m_gpu.Get(), m_window.Get(), SDL_GPU_PRESENTMODE_MAILBOX);
+    if (vsync_enabled) {
+
+        presentMode = supportsMailbox? SDL_GPU_PRESENTMODE_MAILBOX : SDL_GPU_PRESENTMODE_VSYNC;
+    }
+
+    if (!SDL_SetGPUSwapchainParameters(m_gpu.Get(), m_window.Get(), SDL_GPU_SWAPCHAINCOMPOSITION_SDR, presentMode)) {
+        throw SDL::Error("SDL_SetGPUSwapchainParameters() failed!");
+    }
+}
 
 Systems::RenderSystem::~RenderSystem() {
     m_gpu.ReleaseWindow(m_window);

@@ -8,6 +8,7 @@
 #include "AssetLoader.hpp"
 #include "Environment.hpp"
 #include "IGame.hpp"
+#include "Settings.hpp"
 #include "sdl/SDL.hpp"
 #include "ecs/ECS.hpp"
 
@@ -47,6 +48,9 @@ namespace Core {
             //! Get the ECS registry
             ECS::Registry& GetEcsRegistry();
 
+            //! Get the settings
+            Settings& GetSettings();
+
             //! Set the Game Instance.
             void SetGameInstance(std::unique_ptr<IGame>&& game);
 
@@ -77,6 +81,9 @@ namespace Core {
 
             //! ECS registry.
             ECS::Registry m_registry;
+
+            //! Game Settings
+            Settings m_settings;
 
             //! Game instance
             std::unique_ptr<IGame> m_game_instance;

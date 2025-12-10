@@ -1,5 +1,6 @@
 #include "SDL.hpp"
 #include <SDL3/SDL_error.h>
+#include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_iostream.h>
@@ -69,6 +70,19 @@ void SDL::Context::HideCursor() { // NOLINT
 
 bool SDL::Context::CursorVisible() { // NOLINT
     return SDL_CursorVisible();
+}
+
+std::string SDL::Context::GetPrefPath(const std::string& org, const std::string& app) { // NOLINT(readability-convert-member-functions-to-static)
+    std::string path;
+
+    char* p_prefPath = SDL_GetPrefPath(org.c_str(), app.c_str());
+    if (p_prefPath == nullptr) {
+        throw SDL::Error("SDL_GetPrefPath() failed!");
+    }
+
+    path = p_prefPath;
+    SDL_free(p_prefPath);
+    return path;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -145,6 +159,10 @@ void* SDL::Image::GetPixels() const {
 
 //----------------------------------------------------------------------------------------------------------------------
 // SDL Window
+
+SDL::Window::Window()
+    : m_p_window(nullptr) {
+}
 
 SDL::Window::Window(const char* title, int width, int height, SDL_WindowFlags flags)
     : m_p_window(

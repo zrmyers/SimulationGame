@@ -9,7 +9,7 @@
 #include <SDL3/SDL_video.h>
 #include <glslang/Public/ShaderLang.h>
 #include <string>
-#include "Logger.hpp"
+#include "Settings.hpp"
 #include "sdl/SDL.hpp"
 
 Core::EngineException::EngineException(const std::string& msg)
@@ -28,6 +28,10 @@ Core::Engine::Engine(const std::list<const char*>& args)
     , m_last_time_sec(0.0F)
     , m_keep_running(true) {
     m_sdl.HideCursor();
+
+    std::string preferences = m_sdl.GetPrefPath("Siberian Husky Interactive Games", "Simulation Game");
+
+    m_settings = Settings::Load(preferences + "/settings.json");
 }
 
 Core::Engine::~Engine() {
@@ -39,6 +43,10 @@ Core::AssetLoader& Core::Engine::GetAssetLoader() {
 
 ECS::Registry& Core::Engine::GetEcsRegistry() {
     return m_registry;
+}
+
+Core::Settings& Core::Engine::GetSettings() {
+    return m_settings;
 }
 
 void Core::Engine::SetGameInstance(std::unique_ptr<IGame>&& p_game) {

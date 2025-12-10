@@ -104,6 +104,9 @@ namespace SDL {
 
             //! Check if system cursor is currently visible.
             bool CursorVisible();
+
+            //! Get Preferences Path.
+            std::string GetPrefPath(const std::string& org, const std::string& app);
     };
 
     //! Wrapper around SDL surface object which holds image data.
@@ -146,6 +149,7 @@ namespace SDL {
                 SDL_WindowFlags flags;
             };
 
+            Window();
             Window(const char* title, int width, int height, SDL_WindowFlags flags);
             Window(const Window& other) = delete;
             Window(Window&& other) noexcept;

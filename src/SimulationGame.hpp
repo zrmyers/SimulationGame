@@ -1,11 +1,9 @@
 #pragma once
 
-#include "components/Renderable.hpp"
 #include "core/Engine.hpp"
 #include "core/IGame.hpp"
 #include "ecs/ECS.hpp"
 #include "graphics/Font.hpp"
-#include "sdl/TTF.hpp"
 
 class SimulationGame : public Core::IGame {
 

@@ -59,6 +59,7 @@ add_executable(${PROJECT_NAME}
     ./src/core/Environment.cpp
     ./src/core/Filesystem.cpp
     ./src/core/Logger.cpp
+    ./src/core/Settings.cpp
     ./src/graphics/Font.cpp
     ./src/graphics/ShaderCross.cpp
     ./src/graphics/Texture2D.cpp

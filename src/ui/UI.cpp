@@ -854,7 +854,7 @@ void UI::NineSlice::CalculateSliceSize(glm::vec2 centerSize, float borderWidth) 
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// Style
+// Button Style
 
 UI::ButtonStyle::ButtonStyle()
     : m_text_colors({glm::vec4(1.0F, 1.0F, 1.0F, 1.0F)}) {
@@ -885,7 +885,7 @@ const glm::vec4& UI::ButtonStyle::GetTextColor(ButtonState state) {
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// Style
+// Button
 
 UI::Button::Button()
     : m_current_state(ButtonState::UNKNOWN)
