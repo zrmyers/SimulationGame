@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
+#include <glm/common.hpp>
 #include <memory>
 #include <nlohmann/json_fwd.hpp>
 #include <stdexcept>
@@ -114,6 +115,17 @@ void UI::Element::CalculateSize(glm::vec2 parent_size) {
             p_child->CalculateSize(GetAbsoluteSize());
         }
     }
+    else if (m_layout_mode == LayoutMode::FIT_TO_CHILDREN) {
+
+        glm::vec2 childMaxSize = {0.0F, 0.0F};
+        for (auto& p_child : m_children) {
+            p_child->CalculateSize(parent_size);
+
+            childMaxSize = glm::max(childMaxSize, p_child->GetAbsoluteSize());
+        }
+
+        SetAbsoluteSize(childMaxSize);
+    }
 }
 
 void UI::Element::CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_position) {
@@ -137,7 +149,7 @@ void UI::Element::OnHover(glm::vec2 prev_position_px, glm::vec2 current_position
 
     if (prevCollision || currentCollision) {
 
-        if (m_hover_enter_callback && !prevCollision && currentCollision) {
+        if (m_hover_enter_callback && currentCollision) {
             m_hover_enter_callback();
         }
 
@@ -242,11 +254,21 @@ void UI::HorizontalLayout::CalculateSize(glm::vec2 parent_size) {
     uint32_t num_fixed = 0U;
     uint32_t num_relative = 0U;
     // iterate through each child, processing children with fixed size layout first.
-    glm::vec2 totalSize = {0.0F, 0.0F};
+    glm::vec2 totalSize = {0.0F, -1.0F};
+
+    if (GetLayoutMode() == LayoutMode::RELATIVE_TO_PARENT) {
+
+        // Calculate own size first.
+        SetAbsoluteSize(parent_size * GetRelativeSize()  + GetOffsetSize());
+    }
+    else if (GetLayoutMode() == LayoutMode::FIXED) {
+
+        SetAbsoluteSize(GetFixedSize());
+    }
 
     for (auto& p_child : GetChildren()) {
 
-        if (p_child->GetLayoutMode() == LayoutMode::FIXED) {
+        if (p_child->GetLayoutMode() == LayoutMode::FIXED || p_child->GetLayoutMode() == LayoutMode::FIT_TO_CHILDREN) {
             p_child->CalculateSize(parent_size);
             glm::vec2 childFixedSize = p_child->GetAbsoluteSize();
             totalSize.x += childFixedSize.x;
@@ -258,17 +280,21 @@ void UI::HorizontalLayout::CalculateSize(glm::vec2 parent_size) {
         }
     }
 
+    if (totalSize.y < 0.0F) {
+        totalSize.y = parent_size.y;
+    }
+
     if (num_relative > 0) {
 
         // divide up remaining space among relative sized children.
         glm::vec2 horizontalPartitionSize
             = glm::vec2((parent_size.x - totalSize.x)/static_cast<float>(num_relative)
-                , std::max(parent_size.y, totalSize.y));
+                , totalSize.y);
         // calculate size of children.
         for (auto& p_child : GetChildren()) {
 
             horizontalPartitionSize.x = std::max(horizontalPartitionSize.x, 0.0F);
-            if (p_child->GetLayoutMode() != LayoutMode::FIXED) {
+            if (p_child->GetLayoutMode() == LayoutMode::RELATIVE_TO_PARENT) {
                 p_child->CalculateSize(horizontalPartitionSize);
                 glm::vec2 childSize = p_child->GetAbsoluteSize();
                 totalSize.x += childSize.x;
@@ -277,7 +303,9 @@ void UI::HorizontalLayout::CalculateSize(glm::vec2 parent_size) {
         }
     }
 
-    SetAbsoluteSize(totalSize);
+    if (GetLayoutMode()  == LayoutMode::FIT_TO_CHILDREN) {
+        SetAbsoluteSize(totalSize);
+    }
 
 }
 
@@ -314,11 +342,21 @@ void UI::VerticalLayout::CalculateSize(glm::vec2 parent_size) {
     uint32_t num_fixed = 0U;
     uint32_t num_relative = 0U;
     // iterate through each child, processing children with fixed size layout first.
-    glm::vec2 totalSize = {0.0F, 0.0F};
+    glm::vec2 totalSize = {-1.0F, 0.0F};
+
+    if (GetLayoutMode() == LayoutMode::RELATIVE_TO_PARENT) {
+
+        // Calculate own size first.
+        SetAbsoluteSize(parent_size * GetRelativeSize()  + GetOffsetSize());
+    }
+    else if (GetLayoutMode() == LayoutMode::FIXED) {
+
+        SetAbsoluteSize(GetFixedSize());
+    }
 
     for (auto& p_child : GetChildren()) {
 
-        if (p_child->GetLayoutMode() == LayoutMode::FIXED) {
+        if (p_child->GetLayoutMode() == LayoutMode::FIXED || p_child->GetLayoutMode() == LayoutMode::FIT_TO_CHILDREN) {
             p_child->CalculateSize(parent_size);
             glm::vec2 childFixedSize = p_child->GetAbsoluteSize();
             totalSize.y += childFixedSize.y;
@@ -330,17 +368,21 @@ void UI::VerticalLayout::CalculateSize(glm::vec2 parent_size) {
         }
     }
 
+    if (totalSize.x < 0.0F) {
+        totalSize.x = parent_size.x;
+    }
+
     if (num_relative > 0) {
 
         // divide up remaining space among relative sized children.
         glm::vec2 verticalPartitionSize
-            = glm::vec2(std::max(parent_size.x, totalSize.x),
+            = glm::vec2(totalSize.x,
              (parent_size.y - totalSize.y)/static_cast<float>(num_relative));
         // calculate size of children.
         for (auto& p_child : GetChildren()) {
 
             verticalPartitionSize.y = std::max(verticalPartitionSize.y, 0.0F);
-            if (p_child->GetLayoutMode() != LayoutMode::FIXED) {
+            if (p_child->GetLayoutMode() == LayoutMode::RELATIVE_TO_PARENT) {
                 p_child->CalculateSize(verticalPartitionSize);
                 glm::vec2 childSize = p_child->GetAbsoluteSize();
                 totalSize.y += childSize.y;
@@ -349,7 +391,9 @@ void UI::VerticalLayout::CalculateSize(glm::vec2 parent_size) {
         }
     }
 
-    SetAbsoluteSize(totalSize);
+    if (GetLayoutMode() == LayoutMode::FIT_TO_CHILDREN) {
+        SetAbsoluteSize(totalSize);
+    }
 }
 
 void UI::VerticalLayout::CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_position) {
@@ -894,27 +938,27 @@ UI::Button::Button()
     , m_p_text(nullptr) {
 
     SetHoverEnterCallback([this](){
-        if (this->m_current_state != ButtonState::DISABLED) {
+        if (this->m_current_state == ButtonState::ENABLED) {
             this->SetButtonState(ButtonState::FOCUSED);
         }
     });
 
     SetHoverExitCallback([this]() {
-        if (this->m_current_state != ButtonState::DISABLED) {
+        if (this->m_current_state == ButtonState::FOCUSED || this->m_current_state == ButtonState::ACTIVATED) {
             this->SetButtonState(ButtonState::ENABLED);
         }
     });
 
     SetMouseButtonPressCallback([this](MouseButtonID button){
 
-        if ((this->m_current_state != ButtonState::DISABLED) && (button == MouseButtonID::MOUSE_LEFT)) {
+        if ((this->m_current_state == ButtonState::ENABLED) || (this->m_current_state == ButtonState::FOCUSED)
+            && (button == MouseButtonID::MOUSE_LEFT)) {
             this->SetButtonState(ButtonState::ACTIVATED);
         }
     });
 
     SetMouseButtonReleaseCallback([this](MouseButtonID button){
 
-        Core::Logger::Info("This happend!");
         if ((this->m_current_state == ButtonState::ACTIVATED) && (button == MouseButtonID::MOUSE_LEFT)) {
             this->SetButtonState(ButtonState::FOCUSED);
 
@@ -979,6 +1023,20 @@ void UI::Button::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, i
         p_child->UpdateGraphics(registry, screenSize, depth);
     }
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+// Spacer
+
+UI::Spacer::Spacer() {
+    SetLayoutMode(LayoutMode::RELATIVE_TO_PARENT);
+}
+
+void UI::Spacer::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
+    for (auto& p_child : GetChildren()) {
+        p_child->UpdateGraphics(registry, screenSize, depth);
+    }
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // Style
 
@@ -1057,6 +1115,10 @@ UI::Style UI::Style::Load(Core::Engine& engine, const std::string& filename) {
             auto& activatedData = buttonData["activated"];
             p_buttonStyle->SetNineSliceStyle(ButtonState::ACTIVATED, style.GetNineSliceStyle(activatedData["nine-slice-id"]));
             p_buttonStyle->SetTextColor(ButtonState::ACTIVATED, ParseColor(activatedData["text-color"]));
+
+            auto& selectedData = buttonData["selected"];
+            p_buttonStyle->SetNineSliceStyle(ButtonState::SELECTED, style.GetNineSliceStyle(selectedData["nine-slice-id"]));
+            p_buttonStyle->SetTextColor(ButtonState::SELECTED, ParseColor(selectedData["text-color"]));
 
             style.SetButtonStyle(buttonId, std::move(p_buttonStyle));
         }

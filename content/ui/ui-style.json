@@ -2,7 +2,7 @@
     "font": [
         {
             "id": "Default-UI",
-            "pt": 32,
+            "pt": 24,
             "sdf": true,
             "filename": "Oblegg-Regular.otf",
             "alignment": "center"
@@ -65,10 +65,10 @@
             "disabled": {
                 "nine-slice-id": "button-disabled-style",
                 "text-color": {
-                    "r": 1.0,
-                    "g": 1.0,
-                    "b": 1.0,
-                    "a": 1.0
+                    "r": 0.9,
+                    "g": 0.9,
+                    "b": 0.9,
+                    "a": 0.9
                 }
             },
             "enabled": {
@@ -94,6 +94,15 @@
                 "text-color": {
                     "r": 0.5,
                     "g": 0.5,
+                    "b": 0.0,
+                    "a": 1.0
+                }
+            },
+            "selected": {
+                "nine-slice-id": "button-enabled-style",
+                "text-color": {
+                    "r": 1.0,
+                    "g": 0.64,
                     "b": 0.0,
                     "a": 1.0
                 }

@@ -318,6 +318,7 @@ namespace UI {
         ENABLED, // button can be focused, selected, and activated
         FOCUSED, // when mouse hover is detected.
         ACTIVATED, // processing click
+        SELECTED, // button is selected
     };
 
     static const constexpr size_t NUM_BUTTON_STATES = 5U;
@@ -393,6 +394,15 @@ namespace UI {
             //! button text
             std::string m_button_text;
 
+    };
+
+    class Spacer : public Element {
+
+        public:
+
+            Spacer();
+
+            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
     };
 
     class Style {

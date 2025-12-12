@@ -4,6 +4,7 @@
 #include "core/IGame.hpp"
 #include "ecs/ECS.hpp"
 #include "graphics/Font.hpp"
+#include "menu/MenuManager.hpp"
 
 class SimulationGame : public Core::IGame {
 
@@ -24,6 +25,6 @@ class SimulationGame : public Core::IGame {
 
         float m_rotateAngle{0.0F};
 
-        ECS::Entity m_gui_entity;
+        Menu::MenuManager m_menu_manager;
 
 };

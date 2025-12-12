@@ -63,6 +63,9 @@ add_executable(${PROJECT_NAME}
     ./src/graphics/Font.cpp
     ./src/graphics/ShaderCross.cpp
     ./src/graphics/Texture2D.cpp
+    ./src/menu/MainMenu.cpp
+    ./src/menu/MenuManager.cpp
+    ./src/menu/SettingsMenu.cpp
     ./src/sdl/SDL.cpp
     ./src/sdl/TTF.cpp
     ./src/systems/GuiSystem.cpp

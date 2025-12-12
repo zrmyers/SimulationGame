@@ -8,6 +8,8 @@
 #include "core/IGame.hpp"
 #include "core/Logger.hpp"
 #include "ecs/ECS.hpp"
+#include "menu/MainMenu.hpp"
+#include "menu/SettingsMenu.hpp"
 #include "sdl/TTF.hpp"
 #include "systems/GuiSystem.hpp"
 #include "systems/RenderSystem.hpp"
@@ -80,48 +82,18 @@ void SimulationGame::Update() {
             .Rotate(m_rotateAngle, glm::vec3(0.0F, 1.0F, 0.0F));
     }
 
+    m_menu_manager.Update();
 }
 
 void SimulationGame::InitializeGUI() {
 
-    Core::Engine& engine = GetEngine();
-    Core::AssetLoader& assetLoader = GetEngine().GetAssetLoader();
-    ECS::Registry& registry = GetEngine().GetEcsRegistry();
-    Systems::RenderSystem& renderSystem = registry.GetSystem<Systems::RenderSystem>();
-    Systems::TextSystem& textSystem = registry.GetSystem<Systems::TextSystem>();
+    std::shared_ptr<UI::Style> uiStyle = std::make_shared<UI::Style>(UI::Style::Load(GetEngine(), "ui-style.json"));
+    std::unique_ptr<Menu::MainMenu> p_menu =
+        std::make_unique<Menu::MainMenu>(GetEngine(), m_menu_manager, uiStyle);
+    std::unique_ptr<Menu::SettingsMenu> p_settings =
+        std::make_unique<Menu::SettingsMenu>(GetEngine(), m_menu_manager, uiStyle);
+    m_menu_manager.AddMenu("MainMenu", std::move(p_menu));
+    m_menu_manager.AddMenu("Settings", std::move(p_settings));
 
-    m_gui_entity = ECS::Entity(registry);
-
-    auto& canvas = m_gui_entity.EmplaceComponent<Components::Canvas>();
-
-    canvas.SetRenderMode(Components::Canvas::RenderMode::SCREEN);
-
-    UI::Style uiStyle = UI::Style::Load(GetEngine(), "ui-style.json");
-    std::shared_ptr<UI::NineSliceStyle> boxStyle = uiStyle.GetNineSliceStyle("box-style");
-
-    UI::NineSlice& nineslice = canvas.EmplaceChild<UI::NineSlice>();
-    nineslice
-        .SetStyle(boxStyle)
-        .SetRelativePosition({0.5, 0.5})
-        .SetRelativeSize({0.5F, 0.5F})
-        .SetOrigin({0.5F, 0.5F});
-
-    UI::VerticalLayout& verticalLayout = nineslice.EmplaceChild<UI::VerticalLayout>();
-    verticalLayout.SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
-
-    UI::Button& startButton = verticalLayout.EmplaceChild<UI::Button>();
-    startButton.SetButtonStyle(uiStyle.GetButtonStyle("simple"))
-        .SetText("Start")
-        .SetButtonState(UI::ButtonState::DISABLED);
-    UI::Button& settingsButton = verticalLayout.EmplaceChild<UI::Button>();
-    settingsButton.SetButtonStyle(uiStyle.GetButtonStyle("simple"))
-        .SetText("Settings")
-        .SetButtonState(UI::ButtonState::ENABLED);
-    UI::Button& quitButton = verticalLayout.EmplaceChild<UI::Button>();
-    quitButton.SetButtonStyle(uiStyle.GetButtonStyle("simple"))
-        .SetText("Quit")
-        .SetButtonState(UI::ButtonState::ENABLED)
-        .SetOnClickCallback([&engine](){
-            engine.RequestShutdown();
-        });
+    m_menu_manager.RequestChangeActiveMenu("MainMenu");
 }
