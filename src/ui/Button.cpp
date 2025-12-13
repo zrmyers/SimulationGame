@@ -5,7 +5,6 @@
 
 UI::Button::Button()
     : m_current_state(ButtonState::UNKNOWN)
-    , m_requested_state(ButtonState::DISABLED)
     , m_p_frame(nullptr)
     , m_p_text(nullptr) {
 
@@ -55,9 +54,9 @@ UI::Button& UI::Button::SetText(const std::string& text) {
 // Changes the button state to a new button state.
 UI::Button& UI::Button::SetButtonState(ButtonState state) {
 
-    if (m_current_state != state) {
+    if ((m_current_state != state) && (m_p_button_style != nullptr)) {
 
-        if ((m_current_state == ButtonState::UNKNOWN) && (m_p_button_style != nullptr)) {
+        if (m_current_state == ButtonState::UNKNOWN) {
 
             // need to initialize elements
             UI::NineSlice& frame = EmplaceChild<UI::NineSlice>();

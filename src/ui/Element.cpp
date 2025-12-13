@@ -191,6 +191,14 @@ std::vector<std::unique_ptr<UI::Element>>& UI::Element::GetChildren() {
     return m_children;
 }
 
+size_t UI::Element::GetChildCount() {
+    return m_children.size();
+}
+
+UI::Element& UI::Element::GetChild(size_t child_index) {
+    return *m_children.at(child_index);
+}
+
 bool UI::Element::CheckCollision(glm::vec2 point_px) const {
     return ((point_px.x >= m_absolute_position.x)
         && (point_px.x <= (m_absolute_position.x + m_absolute_size.x))

@@ -1,7 +1,13 @@
 #pragma once
 
+#include "CheckBoxStyle.hpp"
 #include "NineSliceStyle.hpp"
 #include "ButtonStyle.hpp"
+#include "core/Engine.hpp"
+#include "graphics/Texture2D.hpp"
+#include <memory>
+#include <string>
+#include <unordered_map>
 
 namespace UI {
 
@@ -23,10 +29,15 @@ namespace UI {
             void SetButtonStyle(const std::string& button_id, std::shared_ptr<ButtonStyle>&& style);
             std::shared_ptr<ButtonStyle>& GetButtonStyle(const std::string& button_id);
 
+            void SetCheckBoxStyle(const std::string& checkbox_id, std::shared_ptr<CheckBoxStyle>&& style);
+            std::shared_ptr<CheckBoxStyle>& GetCheckBoxStyle(const std::string& checkbox_id);
+
         private:
 
             static TTF_HorizontalAlignment ParseAlignment(const std::string& asString);
             static glm::vec4 ParseColor(nlohmann::json& colorData);
+
+            static std::shared_ptr<Graphics::Texture2D> LoadImage(Core::Engine& engine, const std::string& name);
 
             //! Set of fonts that are used in style.
             std::unordered_map<std::string, std::shared_ptr<Graphics::Font>> m_fonts;
@@ -36,6 +47,9 @@ namespace UI {
 
             //! Set of button styles
             std::unordered_map<std::string, std::shared_ptr<ButtonStyle>> m_button_style;
+
+            //! Set of checkbox styles
+            std::unordered_map<std::string, std::shared_ptr<CheckBoxStyle>> m_checkbox_style;
     };
 
 }

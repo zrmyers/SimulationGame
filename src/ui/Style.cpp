@@ -1,7 +1,15 @@
 #include "Style.hpp"
 
+#include <SDL3/SDL_gpu.h>
 #include <fstream>
+#include <memory>
+#include "CheckBoxStyle.hpp"
+#include "core/AssetLoader.hpp"
+#include "core/Engine.hpp"
+#include "graphics/Texture2D.hpp"
 #include "nlohmann/json.hpp"
+#include "sdl/SDL.hpp"
+#include "systems/RenderSystem.hpp"
 #include "systems/TextSystem.hpp"
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -90,6 +98,24 @@ UI::Style UI::Style::Load(Core::Engine& engine, const std::string& filename) {
             style.SetButtonStyle(buttonId, std::move(p_buttonStyle));
         }
     }
+
+    if (styleData.contains("checkbox")) {
+        for (auto& checkboxData : styleData["checkbox"]) {
+
+            std::string checkbox_id = checkboxData["id"];
+
+            std::shared_ptr<CheckBoxStyle> p_checkBoxStyle = std::make_shared<CheckBoxStyle>();
+
+            p_checkBoxStyle->SetImage(CheckBoxState::OFF, LoadImage(engine, checkboxData["off"]));
+            p_checkBoxStyle->SetImage(CheckBoxState::ON, LoadImage(engine, checkboxData["on"]));
+            p_checkBoxStyle->SetImage(CheckBoxState::ON_FOCUSED, LoadImage(engine, checkboxData["on-focused"]));
+            p_checkBoxStyle->SetImage(CheckBoxState::OFF_FOCUSED, LoadImage(engine, checkboxData["off-focused"]));
+            p_checkBoxStyle->SetImage(CheckBoxState::ON_ACTIVATED, LoadImage(engine, checkboxData["on-activated"]));
+            p_checkBoxStyle->SetImage(CheckBoxState::OFF_ACTIVATED, LoadImage(engine, checkboxData["off-activated"]));
+
+            style.SetCheckBoxStyle(checkbox_id, std::move(p_checkBoxStyle));
+        }
+    }
     return style;
 }
 
@@ -129,6 +155,18 @@ std::shared_ptr<UI::ButtonStyle>& UI::Style::GetButtonStyle(const std::string& b
     return buttonIter->second;
 }
 
+void UI::Style::SetCheckBoxStyle(const std::string& checkbox_id, std::shared_ptr<CheckBoxStyle>&& style) {
+    m_checkbox_style[checkbox_id] = style;
+}
+
+std::shared_ptr<UI::CheckBoxStyle>& UI::Style::GetCheckBoxStyle(const std::string& checkbox_id) {
+    auto checkboxIter = m_checkbox_style.find(checkbox_id);
+    if (checkboxIter == m_checkbox_style.end()) {
+        throw Core::EngineException("GetCheckBoxStyle() failed to find style " + checkbox_id);
+    }
+    return checkboxIter->second;
+}
+
 TTF_HorizontalAlignment UI::Style::ParseAlignment(const std::string& asString) {
     TTF_HorizontalAlignment alignment = TTF_HORIZONTAL_ALIGN_INVALID;
 
@@ -153,4 +191,32 @@ glm::vec4 UI::Style::ParseColor(nlohmann::json& colorData) {
     color.b = colorData["b"];
     color.a = colorData["a"];
     return color;
+}
+
+std::shared_ptr<Graphics::Texture2D> UI::Style::LoadImage(Core::Engine& engine, const std::string& name) {
+
+    Systems::RenderSystem& renderSystem = engine.GetEcsRegistry().GetSystem<Systems::RenderSystem>();
+    Core::AssetLoader& assetLoader = engine.GetAssetLoader();
+
+    SDL::Image image(assetLoader.GetImageDir() + "/" + name);
+
+    SDL_GPUSamplerCreateInfo samplerInfo = {};
+    samplerInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerInfo.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR;
+    samplerInfo.mag_filter = SDL_GPU_FILTER_LINEAR;
+    samplerInfo.min_filter = SDL_GPU_FILTER_LINEAR;
+    samplerInfo.enable_anisotropy = true;
+    samplerInfo.max_anisotropy = 16;
+
+    std::shared_ptr<SDL::GpuSampler> pSampler
+         = std::make_shared<SDL::GpuSampler>(renderSystem.CreateSampler(samplerInfo));
+
+    std::shared_ptr<Graphics::Texture2D> pTexture
+        = std::make_shared<Graphics::Texture2D>(engine,std::move(pSampler),image.GetWidth(), image.GetHeight(), false);
+
+    pTexture->LoadImageData(image);
+
+    return pTexture;
 }

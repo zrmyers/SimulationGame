@@ -43,9 +43,6 @@ namespace UI {
             //! Current button state
             ButtonState m_current_state;
 
-            //! Requested button state
-            ButtonState m_requested_state;
-
             //! pointer to nine-slice that makes up background of button
             NineSlice* m_p_frame;
 

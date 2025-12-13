@@ -1,8 +1,11 @@
 #include "SettingsMenu.hpp"
 #include "MenuManager.hpp"
 #include "core/Engine.hpp"
+#include "core/Logger.hpp"
 #include "ecs/ECS.hpp"
 #include "components/Canvas.hpp"
+#include "ui/CheckBox.hpp"
+#include "ui/CheckBoxStyle.hpp"
 #include "ui/Spacer.hpp"
 #include "ui/VerticalLayout.hpp"
 #include "ui/HorizontalLayout.hpp"
@@ -100,6 +103,20 @@ void Menu::SettingsMenu::Activate() {
     settingsSelector.EmplaceChild<UI::Spacer>();
 
     SelectButton(graphics);
+
+    UI::CheckBox& checkbox = verticalLayout.EmplaceChild<UI::CheckBox>();
+    checkbox.SetStyle(m_p_style->GetCheckBoxStyle("simple"))
+        .SetCheckBoxStateCallback([](bool state){
+            if (state) {
+                Core::Logger::Info("Checkbox is on");
+            }
+            else {
+                Core::Logger::Info("Checkbox is off");
+            }
+        })
+        .SetCheckBoxState(UI::CheckBoxState::ON)
+        .SetLayoutMode(UI::LayoutMode::FIXED)
+        .SetFixedSize({32.0F, 32.0F});
 
     verticalLayout.EmplaceChild<UI::Spacer>();
 

@@ -74,6 +74,8 @@ add_executable(${PROJECT_NAME}
     ./src/systems/TextSystem.cpp
     ./src/ui/Button.cpp
     ./src/ui/ButtonStyle.cpp
+    ./src/ui/CheckBox.cpp
+    ./src/ui/CheckBoxStyle.cpp
     ./src/ui/Element.cpp
     ./src/ui/HorizontalLayout.cpp
     ./src/ui/ImageElement.cpp
@@ -81,6 +83,7 @@ add_executable(${PROJECT_NAME}
     ./src/ui/NineSliceStyle.cpp
     ./src/ui/Spacer.cpp
     ./src/ui/Style.cpp
+    ./src/ui/Switch.cpp
     ./src/ui/TextElement.cpp
     ./src/ui/VerticalLayout.cpp
 )

@@ -89,6 +89,8 @@ namespace UI {
             }
 
             std::vector<std::unique_ptr<Element>>& GetChildren();
+            size_t GetChildCount();
+            Element& GetChild(size_t child_index);
 
             bool CheckCollision(glm::vec2 point_px) const;
 

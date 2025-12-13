@@ -108,5 +108,16 @@
                 }
             }
         }
+    ],
+    "checkbox": [
+        {
+            "id": "simple",
+            "on": "ui/checkbox-on.png",
+            "off": "ui/checkbox-off.png",
+            "on-focused": "ui/checkbox-on-focused.png",
+            "off-focused": "ui/checkbox-off-focused.png",
+            "on-activated": "ui/checkbox-on-activated.png",
+            "off-activated": "ui/checkbox-off-activated.png"
+        }
     ]
 }
