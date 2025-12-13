@@ -72,7 +72,17 @@ add_executable(${PROJECT_NAME}
     ./src/systems/RenderSystem.cpp
     ./src/systems/SpriteSystem.cpp
     ./src/systems/TextSystem.cpp
-    ./src/ui/UI.cpp
+    ./src/ui/Button.cpp
+    ./src/ui/ButtonStyle.cpp
+    ./src/ui/Element.cpp
+    ./src/ui/HorizontalLayout.cpp
+    ./src/ui/ImageElement.cpp
+    ./src/ui/NineSlice.cpp
+    ./src/ui/NineSliceStyle.cpp
+    ./src/ui/Spacer.cpp
+    ./src/ui/Style.cpp
+    ./src/ui/TextElement.cpp
+    ./src/ui/VerticalLayout.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ./src)

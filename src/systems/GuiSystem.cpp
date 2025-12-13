@@ -9,12 +9,10 @@
 #include "components/Transform.hpp"
 #include "components/Canvas.hpp"
 #include "sdl/SDL.hpp"
-#include "ui/UI.hpp"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_mouse.h>
 #include <cstdint>
 #include <glm/fwd.hpp>
-#include <iostream>
 #include <string>
 #include <vector>
 

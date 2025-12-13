@@ -3,9 +3,9 @@
 #include "MenuManager.hpp"
 #include "core/Engine.hpp"
 #include "ecs/ECS.hpp"
-#include "ui/UI.hpp"
+#include "ui/Button.hpp"
+#include "ui/Style.hpp"
 #include <memory>
-#include <unordered_map>
 
 namespace Menu {
 

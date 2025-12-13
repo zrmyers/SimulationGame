@@ -3,7 +3,9 @@
 #include "core/Engine.hpp"
 #include "ecs/ECS.hpp"
 #include "components/Canvas.hpp"
-#include "ui/UI.hpp"
+#include "ui/Spacer.hpp"
+#include "ui/VerticalLayout.hpp"
+#include "ui/HorizontalLayout.hpp"
 
 Menu::SettingsMenu::SettingsMenu(Core::Engine& engine, MenuManager& manager, std::shared_ptr<UI::Style> p_style)
     : m_p_engine(&engine)

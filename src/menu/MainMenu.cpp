@@ -3,7 +3,9 @@
 #include "core/Engine.hpp"
 #include "ecs/ECS.hpp"
 #include "components/Canvas.hpp"
-#include "ui/UI.hpp"
+#include "ui/NineSlice.hpp"
+#include "ui/VerticalLayout.hpp"
+#include "ui/Button.hpp"
 
 Menu::MainMenu::MainMenu(Core::Engine& engine, MenuManager& manager, std::shared_ptr<UI::Style> p_style)
     : m_p_engine(&engine)

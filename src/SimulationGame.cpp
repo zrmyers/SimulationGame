@@ -24,7 +24,6 @@
 #include <string>
 
 #include "systems/TextSystem.hpp"
-#include "ui/UI.hpp"
 
 SimulationGame::SimulationGame(Core::Engine& engine)
     : Core::IGame(engine) {

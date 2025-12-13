@@ -3,7 +3,7 @@
 #include "glm/vec2.hpp"
 #include <memory>
 #include <vector>
-#include "ui/UI.hpp"
+#include "ui/Element.hpp"
 
 namespace Components {
 

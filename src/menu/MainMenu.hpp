@@ -3,7 +3,7 @@
 #include "MenuManager.hpp"
 #include "core/Engine.hpp"
 #include "ecs/ECS.hpp"
-#include "ui/UI.hpp"
+#include "ui/Style.hpp"
 #include <memory>
 
 namespace Menu {
