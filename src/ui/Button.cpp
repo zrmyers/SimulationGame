@@ -48,6 +48,9 @@ UI::Button& UI::Button::SetButtonStyle(std::shared_ptr<ButtonStyle> p_style) {
 
 UI::Button& UI::Button::SetText(const std::string& text) {
     m_button_text = text;
+    if (m_p_text != nullptr) {
+        m_p_text->SetTextString(m_button_text);
+    }
     return *this;
 }
 

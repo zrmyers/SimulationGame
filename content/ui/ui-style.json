@@ -119,5 +119,12 @@
             "on-activated": "ui/checkbox-on-activated.png",
             "off-activated": "ui/checkbox-off-activated.png"
         }
+    ],
+    "dropdown": [
+        {
+            "id": "simple",
+            "selection-button-id": "simple",
+            "options-button-id": "simple"
+        }
     ]
 }

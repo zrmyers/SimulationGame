@@ -1,4 +1,5 @@
 #include "NineSlice.hpp"
+#include "Element.hpp"
 
 //----------------------------------------------------------------------------------------------------------------------
 // Nine Slice Element
@@ -173,6 +174,16 @@ void UI::NineSlice::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize
     for (auto& child : GetChildren()) {
         child->UpdateGraphics(registry, screenSize, depth);
     }
+}
+
+
+void UI::NineSlice::ClearGraphics() {
+
+    for (auto& slice : m_borders) {
+        slice->ClearGraphics();
+    }
+
+    UI::Element::ClearGraphics();
 }
 
 void UI::NineSlice::CalculateSliceSize(glm::vec2 centerSize, float borderWidth) {

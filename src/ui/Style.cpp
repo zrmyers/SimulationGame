@@ -4,6 +4,7 @@
 #include <fstream>
 #include <memory>
 #include "CheckBoxStyle.hpp"
+#include "DropDownStyle.hpp"
 #include "core/AssetLoader.hpp"
 #include "core/Engine.hpp"
 #include "graphics/Texture2D.hpp"
@@ -116,6 +117,20 @@ UI::Style UI::Style::Load(Core::Engine& engine, const std::string& filename) {
             style.SetCheckBoxStyle(checkbox_id, std::move(p_checkBoxStyle));
         }
     }
+
+    if (styleData.contains("dropdown")) {
+        for (auto& dropdownData : styleData["dropdown"]) {
+
+            std::string dropdown_id = dropdownData["id"];
+
+            std::shared_ptr<DropDownStyle> p_style = std::make_shared<DropDownStyle>();
+
+            p_style->SetSelectionButtonStyle(style.GetButtonStyle(dropdownData["selection-button-id"]));
+            p_style->SetOptionsButtonStyle(style.GetButtonStyle(dropdownData["options-button-id"]));
+
+            style.SetDropDownStyle(dropdown_id, std::move(p_style));
+        }
+    }
     return style;
 }
 
@@ -132,7 +147,7 @@ std::shared_ptr<Graphics::Font>& UI::Style::GetFont(const std::string& font_id) 
 }
 
 void UI::Style::SetNineSliceStyle(const std::string& style_id, std::shared_ptr<NineSliceStyle>&& style) {
-    m_nine_slice_styles[style_id] = style;
+    m_nine_slice_styles[style_id] = std::move(style);
 }
 
 std::shared_ptr<UI::NineSliceStyle>& UI::Style::GetNineSliceStyle(const std::string& nineslice_id) {
@@ -156,7 +171,7 @@ std::shared_ptr<UI::ButtonStyle>& UI::Style::GetButtonStyle(const std::string& b
 }
 
 void UI::Style::SetCheckBoxStyle(const std::string& checkbox_id, std::shared_ptr<CheckBoxStyle>&& style) {
-    m_checkbox_style[checkbox_id] = style;
+    m_checkbox_style[checkbox_id] = std::move(style);
 }
 
 std::shared_ptr<UI::CheckBoxStyle>& UI::Style::GetCheckBoxStyle(const std::string& checkbox_id) {
@@ -165,6 +180,18 @@ std::shared_ptr<UI::CheckBoxStyle>& UI::Style::GetCheckBoxStyle(const std::strin
         throw Core::EngineException("GetCheckBoxStyle() failed to find style " + checkbox_id);
     }
     return checkboxIter->second;
+}
+
+void UI::Style::SetDropDownStyle(const std::string& dropdown_id, std::shared_ptr<DropDownStyle>&& style) {
+    m_dropdown_style[dropdown_id] = std::move(style);
+}
+
+std::shared_ptr<UI::DropDownStyle>& UI::Style::GetDropDownStyle(const std::string& dropdown_id) {
+    auto dropdownIter = m_dropdown_style.find(dropdown_id);
+    if (dropdownIter == m_dropdown_style.end()) {
+        throw Core::EngineException("GetDropDownStyle() failed to find style " + dropdown_id);
+    }
+    return dropdownIter->second;
 }
 
 TTF_HorizontalAlignment UI::Style::ParseAlignment(const std::string& asString) {

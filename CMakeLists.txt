@@ -76,6 +76,8 @@ add_executable(${PROJECT_NAME}
     ./src/ui/ButtonStyle.cpp
     ./src/ui/CheckBox.cpp
     ./src/ui/CheckBoxStyle.cpp
+    ./src/ui/DropDown.cpp
+    ./src/ui/DropDownStyle.cpp
     ./src/ui/Element.cpp
     ./src/ui/HorizontalLayout.cpp
     ./src/ui/ImageElement.cpp

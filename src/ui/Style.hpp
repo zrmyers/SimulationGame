@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CheckBoxStyle.hpp"
+#include "DropDownStyle.hpp"
 #include "NineSliceStyle.hpp"
 #include "ButtonStyle.hpp"
 #include "core/Engine.hpp"
@@ -32,6 +33,9 @@ namespace UI {
             void SetCheckBoxStyle(const std::string& checkbox_id, std::shared_ptr<CheckBoxStyle>&& style);
             std::shared_ptr<CheckBoxStyle>& GetCheckBoxStyle(const std::string& checkbox_id);
 
+            void SetDropDownStyle(const std::string& dropdown_id, std::shared_ptr<DropDownStyle>&& style);
+            std::shared_ptr<DropDownStyle>& GetDropDownStyle(const std::string& dropdown_id);
+
         private:
 
             static TTF_HorizontalAlignment ParseAlignment(const std::string& asString);
@@ -50,6 +54,9 @@ namespace UI {
 
             //! Set of checkbox styles
             std::unordered_map<std::string, std::shared_ptr<CheckBoxStyle>> m_checkbox_style;
+
+            //! Set of dropdown button styles
+            std::unordered_map<std::string, std::shared_ptr<DropDownStyle>> m_dropdown_style;
     };
 
 }

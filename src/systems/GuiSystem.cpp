@@ -55,9 +55,13 @@ void Systems::GuiSystem::Update() {
 
     for (ECS::EntityID_t entityID : entities) {
 
-        auto& canvas = registry.GetComponent<Components::Canvas>(entityID);
+        // need to reverify that component still has canvas. This is because gui actions can create or destroy
+        // canvases.
 
-        ProcessCanvas(canvas, events);
+        if (registry.HasComponent<Components::Canvas>(entityID)) {
+            auto& canvas = registry.GetComponent<Components::Canvas>(entityID);
+            ProcessCanvas(canvas, events);
+        }
     }
 
 }

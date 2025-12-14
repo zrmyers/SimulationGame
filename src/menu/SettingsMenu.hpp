@@ -8,7 +8,6 @@
 #include "ui/Style.hpp"
 #include "ui/Switch.hpp"
 #include "ui/HorizontalLayout.hpp"
-#include "ui/UI.hpp"
 #include <memory>
 #include <unordered_map>
 

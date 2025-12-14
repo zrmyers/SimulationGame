@@ -88,6 +88,7 @@ namespace UI {
             template<typename T>
             T& EmplaceChild() {
                 std::unique_ptr<Element>& child = m_children.emplace_back(std::make_unique<T>());
+                child->m_p_parent = this;
                 return *(static_cast<T*>(child.get()));
             }
 
@@ -101,6 +102,15 @@ namespace UI {
             Element& SetHoverExitCallback(HoverCallback_t callback);
             Element& SetMouseButtonPressCallback(MouseButtonCallback_t callback);
             Element& SetMouseButtonReleaseCallback(MouseButtonCallback_t callback);
+
+            // Used by child elements to make it clear that graphics need to be updated.
+            void SetDirty();
+
+            // Used by gui system to clear dirty flag after graphics update.
+            void ClearDirty();
+
+            // Get whether the given element is dirty.
+            bool GetDirty() const;
 
         protected:
 
@@ -154,6 +164,9 @@ namespace UI {
             // Set of child elements.
             std::vector<std::unique_ptr<Element>> m_children;
 
+            // Pointer to parent.
+            Element* m_p_parent {nullptr};
+
             // on hover enter callback
             HoverCallback_t m_hover_enter_callback;
 
@@ -163,5 +176,8 @@ namespace UI {
             //
             MouseButtonCallback_t m_on_press_callback;
             MouseButtonCallback_t m_on_release_callback;
+
+            // Whether the element is changed since last graphics update.
+            bool m_is_dirty {true};
     };
 }

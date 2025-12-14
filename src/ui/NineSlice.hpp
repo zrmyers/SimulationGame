@@ -20,6 +20,7 @@ namespace UI {
 
             void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
 
+            void ClearGraphics() override;
         private:
 
             void CalculateSliceSize(glm::vec2 centerSize, float borderWidth);

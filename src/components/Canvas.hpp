@@ -45,26 +45,14 @@ namespace Components {
 
                 CalculateSize(displaySize);
                 CalculatePosition(displaySize, {0.0F, 0.0F});
-
-                m_is_dirty = false;
-            }
-
-            // Sets the dirty flag. This tells the UI system to recalculate the layout.
-            //
-            // is_dirty is cleared when the layout is recalculated.
-            void SetDirty() {
-                m_is_dirty = true;
-            }
-
-            // Get the dirty flag.
-            bool GetDirty() const {
-                return m_is_dirty;
             }
 
             void UpdateGraphics(ECS::Registry &registry, glm::vec2 screenSize, int depth) override {
                 for (auto& child : GetChildren()) {
                     child->UpdateGraphics(registry, screenSize, depth);
                 }
+
+                ClearDirty();
             }
 
         private:

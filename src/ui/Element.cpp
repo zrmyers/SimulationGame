@@ -191,6 +191,7 @@ void UI::Element::SetAbsolutePosition(glm::vec2 position) {
 }
 
 void UI::Element::AddChild(std::unique_ptr<Element>&& child) {
+    child->m_p_parent = this;
     m_children.emplace_back(std::move(child));
 }
 
@@ -231,4 +232,31 @@ UI::Element& UI::Element::SetMouseButtonPressCallback(MouseButtonCallback_t call
 UI::Element& UI::Element::SetMouseButtonReleaseCallback(MouseButtonCallback_t callback) {
     m_on_release_callback = std::move(callback);
     return *this;
+}
+
+void UI::Element::SetDirty() {
+
+    m_is_dirty = true;
+
+    if (m_p_parent != nullptr) {
+        m_p_parent->SetDirty();
+    }
+}
+
+void UI::Element::ClearDirty() {
+
+    m_is_dirty = false;
+
+    for (auto& p_child : m_children) {
+
+        if (p_child->GetDirty()) {
+            p_child->ClearDirty();
+        }
+    }
+}
+
+// Get whether the given element is dirty.
+bool UI::Element::GetDirty() const {
+
+    return m_is_dirty;
 }
