@@ -283,10 +283,77 @@ SDL_GPUTextureFormat SDL::GpuDevice::GetSwapchainTextureFormat(Window& window) {
     return SDL_GetGPUSwapchainTextureFormat(m_p_gpu, window.Get());
 }
 
+SDL_GPUCommandBuffer* SDL::GpuDevice::AcquireGPUCommandBuffer() {
+    SDL_GPUCommandBuffer* p_buffer = SDL_AcquireGPUCommandBuffer(m_p_gpu);
+    if (p_buffer == nullptr) {
+        throw SDL::Error("SDL_AcquireGPUCommandBuffer() failed!");
+    }
+    return p_buffer;
+}
+
+void SDL::GpuDevice::SubmitGPUCommandBuffer(SDL_GPUCommandBuffer* p_buffer) { // NOLINT
+    if(!SDL_SubmitGPUCommandBuffer(p_buffer)) {
+        throw SDL::Error("SDL_SubmitGPUCommandBuffer() failed!");
+    }
+}
+
+SDL::GpuFence SDL::GpuDevice::SubmitGPUCommandBufferAndAcquireFence(SDL_GPUCommandBuffer* p_buffer) {
+
+    SDL_GPUFence* p_fence = SDL_SubmitGPUCommandBufferAndAcquireFence(p_buffer);
+    if (p_fence == nullptr) {
+        throw SDL::Error("SDL_SubmitGPUCommandBufferAndAcquireFence() failed!");
+    }
+    return SDL::GpuFence(p_fence, m_p_gpu);
+}
+
 SDL_GPUDevice* SDL::GpuDevice::Get() {
     return m_p_gpu;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+// SDL GPU Fence
+
+SDL::GpuFence::GpuFence(SDL_GPUFence* p_fence, SDL_GPUDevice* p_device)
+    : m_p_fence(p_fence)
+    , m_p_device(p_device) {
+}
+
+SDL::GpuFence::GpuFence(GpuFence&& other) noexcept
+    : m_p_fence(other.m_p_fence)
+    , m_p_device(other.m_p_device) {
+    other.m_p_fence = nullptr;
+    other.m_p_device = nullptr;
+}
+
+SDL::GpuFence& SDL::GpuFence::operator=(GpuFence&& other) noexcept {
+    std::swap(m_p_fence, other.m_p_fence);
+    std::swap(m_p_device, other.m_p_device);
+    return *this;
+}
+
+SDL::GpuFence::~GpuFence() {
+    if (m_p_fence != nullptr) {
+        Release();
+    }
+}
+
+bool SDL::GpuFence::IsValid() {
+    return (m_p_fence != nullptr && m_p_device != nullptr);
+}
+
+void SDL::GpuFence::Release() {
+
+    SDL_ReleaseGPUFence(m_p_device, m_p_fence);
+    m_p_device = nullptr;
+    m_p_fence = nullptr;
+}
+
+void SDL::GpuFence::WaitFor() {
+
+    if (!SDL_WaitForGPUFences(m_p_device, true, &m_p_fence, 1U)) {
+        throw SDL::Error("SDL_WaitForGPUFences() failed!");
+    }
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 // SDL Shader

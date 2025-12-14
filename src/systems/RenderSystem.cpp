@@ -77,7 +77,8 @@ Systems::RenderSystem::RenderSystem(Core::Engine& engine)
 
     SetVsync(graphics.GetVsyncEnabled());
 
-    m_transfer_buffer = CreateTransferBuffer(SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD, TRANSFER_BUFFER_SIZE);
+    m_async_transfer_buffer = CreateTransferBuffer(SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD, TRANSFER_BUFFER_SIZE);
+    m_sync_transfer_buffer = CreateTransferBuffer(SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD, TRANSFER_BUFFER_SIZE);
 }
 
 void Systems::RenderSystem::SetVsync(bool vsync_enabled) {
@@ -144,32 +145,31 @@ SDL::GpuTexture Systems::RenderSystem::CreateTexture(SDL_GPUTextureCreateInfo& t
 
 void Systems::RenderSystem::UploadDataToBuffer(const std::vector<Components::TransferRequest>& transfers) {
 
-    SDL_GPUCommandBuffer* p_cmd = SDL_AcquireGPUCommandBuffer(m_gpu.Get());
-    if (p_cmd == nullptr) {
-        throw SDL::Error("SDL_AcquireGPUCommandBuffer() failed!");
+    // ensure previous transfer completed, before we start the next one.
+    if (m_sync_transfer_fence.IsValid()) {
+
+        m_sync_transfer_fence.WaitFor();
+        m_sync_transfer_fence.Release(); // will automatically be released when its destructor is called as well.
     }
+
+    SDL_GPUCommandBuffer* p_cmd = m_gpu.AcquireGPUCommandBuffer();
+
     SDL_GPUCopyPass* p_copy = SDL_BeginGPUCopyPass(p_cmd);
 
-    ProcessDataUpload(p_copy, transfers);
+    ProcessDataUpload(p_copy, transfers, m_sync_transfer_buffer, false);
 
     SDL_EndGPUCopyPass(p_copy);
-    if (!SDL_SubmitGPUCommandBuffer(p_cmd)) {
-        throw SDL::Error("SDL_SubmitGPUCommandBuffer() failed!");
-    }
+
+    m_sync_transfer_fence = m_gpu.SubmitGPUCommandBufferAndAcquireFence(p_cmd);
 }
 
 void Systems::RenderSystem::GenerateMipMaps(SDL::GpuTexture& texture) {
 
-    SDL_GPUCommandBuffer* p_cmd = SDL_AcquireGPUCommandBuffer(m_gpu.Get());
-    if (p_cmd == nullptr) {
-        throw SDL::Error("SDL_GPUCommandBuffer() failed!");
-    }
+    SDL_GPUCommandBuffer* p_cmd = m_gpu.AcquireGPUCommandBuffer();
 
     SDL_GenerateMipmapsForGPUTexture(p_cmd, texture.Get());
 
-    if(!SDL_SubmitGPUCommandBuffer(p_cmd)) {
-        throw SDL::Error("SDL_SubmitGPUCommandBuffer() failed!");
-    }
+    m_gpu.SubmitGPUCommandBuffer(p_cmd);
 }
 
 void Systems::RenderSystem::Update() {
@@ -177,10 +177,7 @@ void Systems::RenderSystem::Update() {
     // todo frustrum culling
     std::list<Components::Renderable*> renderables = SortDrawCalls();
 
-    SDL_GPUCommandBuffer* p_cmdbuf = SDL_AcquireGPUCommandBuffer(m_gpu.Get());
-    if (p_cmdbuf == nullptr) {
-        throw SDL::Error("SDL_AcquireGPUCommandBuffer() failed! ");
-    }
+    SDL_GPUCommandBuffer* p_cmdbuf = m_gpu.AcquireGPUCommandBuffer();
 
     SDL_GPUTexture* p_swapchainTexture = nullptr;
     if (!SDL_WaitAndAcquireGPUSwapchainTexture(p_cmdbuf, m_window.Get(), &p_swapchainTexture, nullptr, nullptr)) {
@@ -199,7 +196,7 @@ void Systems::RenderSystem::Update() {
             if (!p_renderable->m_requests.empty()) {
 
                 // Process transfer.
-                ProcessDataUpload(p_copyPass, p_renderable->m_requests);
+                ProcessDataUpload(p_copyPass, p_renderable->m_requests, m_async_transfer_buffer, true);
             }
         }
         SDL_EndGPUCopyPass(p_copyPass);
@@ -268,7 +265,7 @@ void Systems::RenderSystem::Update() {
         SDL_EndGPURenderPass(p_renderPass);
     }
 
-    SDL_SubmitGPUCommandBuffer(p_cmdbuf);
+    m_gpu.SubmitGPUCommandBuffer(p_cmdbuf);
 }
 
 
@@ -319,12 +316,12 @@ std::list<Components::Renderable*> Systems::RenderSystem::SortDrawCalls() {
     return renderables;
 }
 
-void Systems::RenderSystem::ProcessDataUpload(SDL_GPUCopyPass* p_copypass, const std::vector<Components::TransferRequest>& transfers) {
+void Systems::RenderSystem::ProcessDataUpload(SDL_GPUCopyPass* p_copypass, const std::vector<Components::TransferRequest>& transfers, SDL::GpuTransferBuffer& transferBuffer, bool cycle) {
 
     uint32_t transferOffset = 0U;
 
     // map the transfer buffer.  Cycle to ensure that we don't overwrite transfer buffers that are currently bound.
-    uint8_t* p_data =static_cast<uint8_t*>( m_transfer_buffer.Map(true));
+    uint8_t* p_data =static_cast<uint8_t*>( transferBuffer.Map(cycle));
 
     // copy data to transfer buffer
     for (const Components::TransferRequest& request : transfers) {
@@ -339,12 +336,12 @@ void Systems::RenderSystem::ProcessDataUpload(SDL_GPUCopyPass* p_copypass, const
         SDL_memcpy(p_data + transferOffset, request.p_src, data_len);
 
         if (request.type == Components::RequestType::UPLOAD_TO_BUFFER) {
-            SDL_GPUTransferBufferLocation src = {m_transfer_buffer.Get(), transferOffset};
+            SDL_GPUTransferBufferLocation src = {transferBuffer.Get(), transferOffset};
 
             SDL_UploadToGPUBuffer(p_copypass, &src, &request.data.buffer, request.cycle);
         }
         else if (request.type == Components::RequestType::UPLOAD_TO_TEXTURE) {
-            SDL_GPUTextureTransferInfo src = {m_transfer_buffer.Get(), transferOffset, 0U, 0U};
+            SDL_GPUTextureTransferInfo src = {transferBuffer.Get(), transferOffset, 0U, 0U};
 
             SDL_UploadToGPUTexture(p_copypass, &src, &request.data.texture, request.cycle);
         }
@@ -352,5 +349,5 @@ void Systems::RenderSystem::ProcessDataUpload(SDL_GPUCopyPass* p_copypass, const
         transferOffset += data_len;
     }
 
-    m_transfer_buffer.Unmap();
+    transferBuffer.Unmap();
 }

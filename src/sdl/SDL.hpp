@@ -24,6 +24,7 @@ namespace SDL {
     class Context;
     class Window;
     class GpuDevice;
+    class GpuFence;
     class ShaderCross;
     class Shader;
 
@@ -195,12 +196,46 @@ namespace SDL {
 
             SDL_GPUTextureFormat GetSwapchainTextureFormat(Window& window);
 
+            SDL_GPUCommandBuffer* AcquireGPUCommandBuffer();
+
+            void SubmitGPUCommandBuffer(SDL_GPUCommandBuffer* p_buffer);
+
+            GpuFence SubmitGPUCommandBufferAndAcquireFence(SDL_GPUCommandBuffer* p_buffer);
+
             //! Get the SDL pointer.
             SDL_GPUDevice* Get();
 
         private:
 
             SDL_GPUDevice* m_p_gpu;
+    };
+
+    class GpuFence {
+
+        public:
+
+            // RAII
+            GpuFence() = default;
+            GpuFence(SDL_GPUFence* p_fence, SDL_GPUDevice* p_device);
+            GpuFence(const GpuFence&) = delete;
+            GpuFence(GpuFence&& other) noexcept;
+            GpuFence& operator=(const GpuFence&) = delete;
+            GpuFence& operator=(GpuFence&& other) noexcept;
+            ~GpuFence();
+
+            // Check if the fence is valid.
+            bool IsValid();
+
+            // Release the fence.
+            void Release();
+
+            // Wait for the fence.
+            void WaitFor();
+
+        private:
+
+            SDL_GPUFence* m_p_fence{nullptr};
+            SDL_GPUDevice* m_p_device{nullptr};
     };
 
     class Shader {

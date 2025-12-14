@@ -88,7 +88,7 @@ namespace Systems {
             //! Create a transfer buffer on the GPU.
             SDL::GpuTransferBuffer CreateTransferBuffer(SDL_GPUTransferBufferUsage usage, uint32_t size);
 
-            void ProcessDataUpload(SDL_GPUCopyPass* p_copypass, const std::vector<Components::TransferRequest>& transfers);
+            void ProcessDataUpload(SDL_GPUCopyPass* p_copypass, const std::vector<Components::TransferRequest>& transfers, SDL::GpuTransferBuffer& transferBuffer, bool cycle);
 
             //! Window used for rendering graphics to screen.
             SDL::Window m_window;
@@ -100,6 +100,10 @@ namespace Systems {
             Graphics::PipelineCache m_pipeline_cache;
 
             //! Buffer used for transferring data to GPU.
-            SDL::GpuTransferBuffer m_transfer_buffer;
+            SDL::GpuTransferBuffer m_async_transfer_buffer;
+            SDL::GpuTransferBuffer m_sync_transfer_buffer;
+
+            //! Fence for synchronous gpu upload.
+            SDL::GpuFence m_sync_transfer_fence;
     };
 }
