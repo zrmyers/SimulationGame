@@ -2,6 +2,7 @@
 
 #include "components/Sprite.hpp"
 #include "components/Transform.hpp"
+#include "ecs/ECS.hpp"
 
 //----------------------------------------------------------------------------------------------------------------------
 // Image Element
@@ -47,5 +48,17 @@ void UI::ImageElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenS
 
     for (auto& p_child : GetChildren()) {
         p_child->UpdateGraphics(registry, screenSize, depth);
+    }
+}
+
+void UI::ImageElement::ClearGraphics() {
+    if (m_entity.IsValid()) {
+
+        // best way to reset is to clear the entity entirely.
+        m_entity = ECS::Entity();
+    }
+
+    for (auto& p_child : GetChildren()) {
+        p_child->ClearGraphics();
     }
 }

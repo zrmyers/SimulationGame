@@ -25,6 +25,8 @@ namespace UI {
             glm::vec2 GetTextSize() const;
 
             void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
+
+            void ClearGraphics() override;
         private:
 
             std::shared_ptr<Graphics::Font> m_p_font;

@@ -50,14 +50,24 @@ namespace Core {
 
             Settings();
 
+            void SetFilename(std::string filename);
+
+            //! load from filename
+            void Load();
+
+            //! save to filename
+            void Save();
+
             GraphicsSettings& GetGraphicsSettings();
             const GraphicsSettings& GetGraphicsSettings() const;
 
             nlohmann::json ToJson() const;
             void LoadJson(nlohmann::json& settingsData);
 
+
         private:
 
+            std::string m_filename;
             GraphicsSettings m_graphics;
     };
 }

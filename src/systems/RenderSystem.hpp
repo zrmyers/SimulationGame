@@ -32,7 +32,11 @@ namespace Systems {
             RenderSystem& operator=(RenderSystem&& other) = delete;
             ~RenderSystem() override;
 
+            //! Enable or disable VSYNC
             void SetVsync(bool vsync_enabled);
+
+            //! Enable or disable fullscreen
+            void SetFullscreen(bool fullscreen);
 
             SDL::GpuDevice& GetGpuDevice();
 

@@ -95,6 +95,11 @@ void Systems::RenderSystem::SetVsync(bool vsync_enabled) {
     }
 }
 
+void Systems::RenderSystem::SetFullscreen(bool fullscreen) {
+
+    m_window.SetFullscreen(fullscreen);
+}
+
 Systems::RenderSystem::~RenderSystem() {
     m_gpu.ReleaseWindow(m_window);
 }

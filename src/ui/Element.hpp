@@ -77,6 +77,9 @@ namespace UI {
             //! Update the element. If element is visible, updates sprite and text primitives.
             virtual void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) = 0;
 
+            //! Clear Graphics for the given element.
+            virtual void ClearGraphics();
+
             glm::vec2 GetAbsoluteSize() const;
             glm::vec2 GetAbsolutePosition() const;
 

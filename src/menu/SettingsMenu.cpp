@@ -1,12 +1,16 @@
 #include "SettingsMenu.hpp"
 #include "MenuManager.hpp"
 #include "core/Engine.hpp"
-#include "core/Logger.hpp"
+#include "core/Settings.hpp"
 #include "ecs/ECS.hpp"
 #include "components/Canvas.hpp"
+#include "graphics/Font.hpp"
+#include "systems/RenderSystem.hpp"
+#include "ui/ButtonStyle.hpp"
 #include "ui/CheckBox.hpp"
 #include "ui/CheckBoxStyle.hpp"
 #include "ui/Spacer.hpp"
+#include "ui/Switch.hpp"
 #include "ui/VerticalLayout.hpp"
 #include "ui/HorizontalLayout.hpp"
 
@@ -48,77 +52,20 @@ void Menu::SettingsMenu::Activate() {
         .SetOrigin({0.5F, 0.5F})
         .SetRelativePosition({0.5F, 0.5F});
 
-    settingsSelector.EmplaceChild<UI::Spacer>();
-
-    UI::Button& gameplay = settingsSelector.EmplaceChild<UI::Button>();
-    gameplay.SetButtonStyle(m_p_style->GetButtonStyle("simple"))
-        .SetText("Gameplay")
-        .SetButtonState(UI::ButtonState::ENABLED)
-        .SetOnClickCallback([&gameplay, this](){
-            this->SelectButton(gameplay);
-        })
-        .SetFixedSize({256.0F, 96.0F})
-        .SetLayoutMode(UI::LayoutMode::FIXED);
-
-    UI::Button& controls = settingsSelector.EmplaceChild<UI::Button>();
-    controls.SetButtonStyle(m_p_style->GetButtonStyle("simple"))
-        .SetText("Controls")
-        .SetButtonState(UI::ButtonState::ENABLED)
-        .SetOnClickCallback([&controls, this](){
-            this->SelectButton(controls);
-        })
-        .SetFixedSize({256.0F, 96.0F})
-        .SetLayoutMode(UI::LayoutMode::FIXED);
-
-    UI::Button& graphics = settingsSelector.EmplaceChild<UI::Button>();
-    graphics.SetButtonStyle(m_p_style->GetButtonStyle("simple"))
-        .SetText("Graphics")
-        .SetButtonState(UI::ButtonState::ENABLED)
-        .SetOnClickCallback([&graphics, this](){
-            this->SelectButton(graphics);
-        })
-        .SetFixedSize({256.0F, 96.0F})
-        .SetLayoutMode(UI::LayoutMode::FIXED);
-
-    UI::Button& audio = settingsSelector.EmplaceChild<UI::Button>();
-    audio.SetButtonStyle(m_p_style->GetButtonStyle("simple"))
-        .SetText("Audio")
-        .SetButtonState(UI::ButtonState::ENABLED)
-        .SetOnClickCallback([&audio, this](){
-            this->SelectButton(audio);
-        })
-        .SetFixedSize({256.0F, 96.0F})
-        .SetLayoutMode(UI::LayoutMode::FIXED);
-
-    UI::Button& accessibility = settingsSelector.EmplaceChild<UI::Button>();
-    accessibility.SetButtonStyle(m_p_style->GetButtonStyle("simple"))
-        .SetText("Accessibility")
-        .SetButtonState(UI::ButtonState::ENABLED)
-        .SetOnClickCallback([&accessibility, this](){
-            this->SelectButton(accessibility);
-        })
-        .SetFixedSize({256.0F, 96.0F})
-        .SetLayoutMode(UI::LayoutMode::FIXED);
+    UI::Switch& switcher = verticalLayout.EmplaceChild<UI::Switch>();
+    m_p_submenu_switch = &switcher;
 
     settingsSelector.EmplaceChild<UI::Spacer>();
 
-    SelectButton(graphics);
+    BuildGameplaySettingsSubmenu(settingsSelector, switcher);
+    BuildControlsSettingsSubmenu(settingsSelector, switcher);
+    BuildGraphicsSettingsSubmenu(settingsSelector, switcher);
+    BuildAudioSettingsSubmenu(settingsSelector, switcher);
+    BuildAccessibilitySettingsSubmenu(settingsSelector, switcher);
 
-    UI::CheckBox& checkbox = verticalLayout.EmplaceChild<UI::CheckBox>();
-    checkbox.SetStyle(m_p_style->GetCheckBoxStyle("simple"))
-        .SetCheckBoxStateCallback([](bool state){
-            if (state) {
-                Core::Logger::Info("Checkbox is on");
-            }
-            else {
-                Core::Logger::Info("Checkbox is off");
-            }
-        })
-        .SetCheckBoxState(UI::CheckBoxState::ON)
-        .SetLayoutMode(UI::LayoutMode::FIXED)
-        .SetFixedSize({32.0F, 32.0F});
+    settingsSelector.EmplaceChild<UI::Spacer>();
 
-    verticalLayout.EmplaceChild<UI::Spacer>();
+    SelectButton(SubmenuID::GRAPHICS);
 
     UI::HorizontalLayout& navBar = verticalLayout.EmplaceChild<UI::HorizontalLayout>();
     navBar.SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
@@ -143,12 +90,177 @@ void Menu::SettingsMenu::Deactivate() {
     m_entity = ECS::Entity();
 }
 
-void Menu::SettingsMenu::SelectButton(UI::Button& newButton) {
+void Menu::SettingsMenu::SelectButton(SubmenuID submenuID) {
 
-    if (m_p_current_button != nullptr) {
-        m_p_current_button->SetButtonState(UI::ButtonState::ENABLED);
+    const auto& submenuIter = m_switch_index.find(submenuID);
+    if (submenuIter != m_switch_index.end()) {
+
+        if (m_p_current_button != nullptr) {
+            m_p_current_button->SetButtonState(UI::ButtonState::ENABLED);
+        }
+
+        Submenu& submenu = submenuIter->second;
+        submenu.p_button->SetButtonState(UI::ButtonState::SELECTED);
+        m_p_current_button = submenu.p_button;
+
+        m_p_submenu_switch->SelectChild(submenu.switch_index);
     }
+}
 
-    newButton.SetButtonState(UI::ButtonState::SELECTED);
-    m_p_current_button = &newButton;
+void Menu::SettingsMenu::BuildGameplaySettingsSubmenu(UI::HorizontalLayout& selectorPanel, UI::Switch& switcher) {
+
+    Submenu submenu = {};
+    submenu.switch_index = switcher.GetChildCount();
+    switcher.EmplaceChild<UI::Spacer>();
+
+    UI::Button& gameplay = selectorPanel.EmplaceChild<UI::Button>();
+    gameplay.SetButtonStyle(m_p_style->GetButtonStyle("simple"))
+        .SetText("Gameplay")
+        .SetButtonState(UI::ButtonState::ENABLED)
+        .SetOnClickCallback([this](){
+            this->SelectButton(SubmenuID::GAMEPLAY);
+        })
+        .SetFixedSize({256.0F, 96.0F})
+        .SetLayoutMode(UI::LayoutMode::FIXED);
+
+    submenu.p_button = &gameplay;
+    m_switch_index[SubmenuID::GAMEPLAY] = submenu;
+}
+
+void Menu::SettingsMenu::BuildControlsSettingsSubmenu(UI::HorizontalLayout& selectorPanel, UI::Switch& switcher) {
+
+    Submenu submenu = {};
+    submenu.switch_index = switcher.GetChildCount();
+    switcher.EmplaceChild<UI::Spacer>();
+
+    UI::Button& controls = selectorPanel.EmplaceChild<UI::Button>();
+    controls.SetButtonStyle(m_p_style->GetButtonStyle("simple"))
+        .SetText("Controls")
+        .SetButtonState(UI::ButtonState::ENABLED)
+        .SetOnClickCallback([this](){
+            this->SelectButton(SubmenuID::CONTROLS);
+        })
+        .SetFixedSize({256.0F, 96.0F})
+        .SetLayoutMode(UI::LayoutMode::FIXED);
+
+    submenu.p_button = &controls;
+    m_switch_index[SubmenuID::CONTROLS] = submenu;
+}
+
+void Menu::SettingsMenu::BuildGraphicsSettingsSubmenu(UI::HorizontalLayout& selectorPanel, UI::Switch& switcher) {
+
+    Core::Settings& settings = m_p_engine->GetSettings();
+    Systems::RenderSystem& renderSystem = m_p_engine->GetEcsRegistry().GetSystem<Systems::RenderSystem>();
+
+    Submenu submenu = {};
+    submenu.switch_index = switcher.GetChildCount();
+    UI::HorizontalLayout& graphicsSubmenu = switcher.EmplaceChild<UI::HorizontalLayout>();
+
+    // center
+    graphicsSubmenu.EmplaceChild<UI::Spacer>();
+    UI::VerticalLayout& optionsList = graphicsSubmenu.EmplaceChild<UI::VerticalLayout>();
+    graphicsSubmenu.EmplaceChild<UI::Spacer>();
+
+    // add some space to top of list
+    optionsList.EmplaceChild<UI::Spacer>()
+        .SetFixedSize({32.0F, 8.0F})
+        .SetLayoutMode(UI::LayoutMode::FIXED);
+
+    AddToggleOption(
+        optionsList,
+        "Fullscreen",
+        settings.GetGraphicsSettings().GetFullscreen(),
+        [&settings,&renderSystem](bool state){
+            settings.GetGraphicsSettings().SetFullscreen(state);
+            renderSystem.SetFullscreen(state);
+            settings.Save();
+    });
+    AddToggleOption(
+        optionsList,
+        "VSync",
+        settings.GetGraphicsSettings().GetVsyncEnabled(),
+        [&settings,&renderSystem](bool state){
+            settings.GetGraphicsSettings().SetVsyncEnabled(state);
+            renderSystem.SetVsync(state);
+            settings.Save();
+    });
+
+    UI::Button& graphics = selectorPanel.EmplaceChild<UI::Button>();
+    graphics.SetButtonStyle(m_p_style->GetButtonStyle("simple"))
+        .SetText("Graphics")
+        .SetButtonState(UI::ButtonState::ENABLED)
+        .SetOnClickCallback([this](){
+            this->SelectButton(SubmenuID::GRAPHICS);
+        })
+        .SetFixedSize({256.0F, 96.0F})
+        .SetLayoutMode(UI::LayoutMode::FIXED);
+
+    submenu.p_button = &graphics;
+    m_switch_index[SubmenuID::GRAPHICS] = submenu;
+}
+
+void Menu::SettingsMenu::BuildAudioSettingsSubmenu(UI::HorizontalLayout& selectorPanel, UI::Switch& switcher) {
+
+    Submenu submenu = {};
+    submenu.switch_index = switcher.GetChildCount();
+    switcher.EmplaceChild<UI::Spacer>();
+
+    UI::Button& audio = selectorPanel.EmplaceChild<UI::Button>();
+    audio.SetButtonStyle(m_p_style->GetButtonStyle("simple"))
+        .SetText("Audio")
+        .SetButtonState(UI::ButtonState::ENABLED)
+        .SetOnClickCallback([this](){
+            this->SelectButton(SubmenuID::AUDIO);
+        })
+        .SetFixedSize({256.0F, 96.0F})
+        .SetLayoutMode(UI::LayoutMode::FIXED);
+
+    submenu.p_button = &audio;
+    m_switch_index[SubmenuID::AUDIO] = submenu;
+}
+
+void Menu::SettingsMenu::BuildAccessibilitySettingsSubmenu(UI::HorizontalLayout& selectorPanel, UI::Switch& switcher) {
+
+    Submenu submenu = {};
+    submenu.switch_index = switcher.GetChildCount();
+    switcher.EmplaceChild<UI::Spacer>();
+
+    UI::Button& accessibility = selectorPanel.EmplaceChild<UI::Button>();
+    accessibility.SetButtonStyle(m_p_style->GetButtonStyle("simple"))
+        .SetText("Accessibility")
+        .SetButtonState(UI::ButtonState::ENABLED)
+        .SetOnClickCallback([this](){
+            this->SelectButton(SubmenuID::ACCESSIBILITY);
+        })
+        .SetFixedSize({256.0F, 96.0F})
+        .SetLayoutMode(UI::LayoutMode::FIXED);
+
+    submenu.p_button = &accessibility;
+    m_switch_index[SubmenuID::ACCESSIBILITY] = submenu;
+}
+
+
+void Menu::SettingsMenu::AddToggleOption(
+    UI::Element& parent, const std::string& textLabel, bool initialState, UI::CheckBoxStateCallback_t callback) {
+
+    const std::shared_ptr<Graphics::Font>& p_font = m_p_style->GetFont("Default-UI");
+
+    UI::HorizontalLayout& optionLayout = parent.EmplaceChild<UI::HorizontalLayout>();
+    optionLayout.SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
+
+    UI::TextElement& labelText = optionLayout.EmplaceChild<UI::TextElement>();
+    labelText.SetFont(p_font)
+        .SetText(p_font->CreateText(textLabel))
+        .SetFixedSize({128.0F, 32.0F})
+        .SetLayoutMode(UI::LayoutMode::FIXED)
+        .SetOrigin({0.5F, 0.5F})
+        .SetRelativePosition({0.5F, 0.5F});
+
+    // Add full screen checkbox
+    UI::CheckBox& fullscreen = optionLayout.EmplaceChild<UI::CheckBox>();
+    fullscreen.SetStyle(m_p_style->GetCheckBoxStyle("simple"))
+        .SetCheckBoxStateCallback(std::move(callback))
+        .SetCheckBoxState(initialState? UI::CheckBoxState::ON : UI::CheckBoxState::OFF)
+        .SetLayoutMode(UI::LayoutMode::FIXED)
+        .SetFixedSize({32.0F, 32.0F});
 }

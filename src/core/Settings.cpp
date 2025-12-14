@@ -4,6 +4,7 @@
 #include "core/Filesystem.hpp"
 #include "sdl/SDL.hpp"
 #include <SDL3/SDL_video.h>
+#include <algorithm>
 #include <fstream>
 
 #include "nlohmann/json.hpp"
@@ -88,29 +89,45 @@ void Core::GraphicsSettings::LoadJson(nlohmann::json& graphicsData) {
 Core::Settings Core::Settings::Load(const std::string& filename) {
     Settings settings;
 
+    settings.SetFilename(filename);
+
     if (!Filesystem::FileExists(filename)) {
 
         settings.GetGraphicsSettings() = GraphicsSettings::DetermineDefaults();
 
-        // save to file
-        nlohmann::json settingsData = settings.ToJson();
-
-        std::ofstream outFile(filename);
-        outFile << std::setw(4) << settingsData;
+        settings.Save();
     }
     else {
 
-        std::ifstream inFile(filename);
-
-        nlohmann::json settingsData = nlohmann::json::parse(inFile);
-
-        settings.LoadJson(settingsData);
+        settings.Load();
     }
 
     return settings;
 }
 
 Core::Settings::Settings() {
+}
+
+void Core::Settings::SetFilename(std::string filename) {
+    m_filename = std::move(filename);
+}
+
+void Core::Settings::Load() {
+
+    std::ifstream inFile(m_filename);
+
+    nlohmann::json settingsData = nlohmann::json::parse(inFile);
+
+    LoadJson(settingsData);
+}
+
+void Core::Settings::Save() {
+
+    // save to file
+    nlohmann::json settingsData = ToJson();
+
+    std::ofstream outFile(m_filename);
+    outFile << std::setw(4) << settingsData;
 }
 
 Core::GraphicsSettings& Core::Settings::GetGraphicsSettings() {

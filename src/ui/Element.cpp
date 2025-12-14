@@ -167,6 +167,13 @@ void UI::Element::OnMouseRelease(glm::vec2 release_position, MouseButtonID butto
     }
 }
 
+void UI::Element::ClearGraphics() {
+
+    for (auto& p_child : m_children) {
+        p_child->ClearGraphics();
+    }
+}
+
 glm::vec2 UI::Element::GetAbsoluteSize() const {
     return m_absolute_size;
 }

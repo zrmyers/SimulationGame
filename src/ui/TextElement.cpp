@@ -2,6 +2,7 @@
 
 #include "components/Transform.hpp"
 #include "components/Text.hpp"
+#include "ecs/ECS.hpp"
 
 //----------------------------------------------------------------------------------------------------------------------
 // Text Element
@@ -80,5 +81,16 @@ void UI::TextElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSi
 
     for (auto& p_child : GetChildren()) {
         p_child->UpdateGraphics(registry, screenSize, depth);
+    }
+}
+
+void UI::TextElement::ClearGraphics() {
+
+    if (m_entity.IsValid()) {
+        m_entity = ECS::Entity();
+    }
+
+    for (auto& p_child : GetChildren()) {
+        p_child->ClearGraphics();
     }
 }

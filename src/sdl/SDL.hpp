@@ -163,6 +163,9 @@ namespace SDL {
             //! Set the position of the window.
             void SetPosition(int width, int height);
 
+            //! Set the window in fullscreen mode
+            void SetFullscreen(bool fullscreen);
+
             //! Get the size of the window.
             glm::ivec2 GetWindowSize() const;
 

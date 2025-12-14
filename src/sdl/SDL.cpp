@@ -215,6 +215,13 @@ void SDL::Window::SetPosition(int width, int height) {
     }
 }
 
+void SDL::Window::SetFullscreen(bool fullscreen) {
+
+    if (!SDL_SetWindowFullscreen(m_p_window, fullscreen)) {
+        throw Error("SDL_SetWindowFullscreen() failed!");
+    }
+}
+
 glm::ivec2 SDL::Window::GetWindowSize() const {
 
     glm::ivec2 windowSize(0.0F);
