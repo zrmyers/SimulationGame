@@ -632,6 +632,14 @@ namespace ECS {
             }
 
             template<typename T>
+            bool HasComponent(EntityID_t entity) {
+
+                const Signature_t& componentSignature = GetComponentSignature<T>();
+                const Signature_t& entitySignature = GetEntitySignature(entity);
+                return (entitySignature & componentSignature).any();
+            }
+
+            template<typename T>
             void RemoveComponent(EntityID_t entity) {
                 m_component_manager.RemoveComponent<T>(entity);
 
@@ -748,9 +756,7 @@ namespace ECS {
                     throw Exception("HasComponent(): entity is not initialized!");
                 }
 
-                const Signature_t& componentSignature = m_p_registry->GetComponentSignature<T>();
-                const Signature_t& entitySignature = m_p_registry->GetEntitySignature(m_id);
-                return (entitySignature & componentSignature).any();
+                return m_p_registry->HasComponent<T>(m_id);
             }
 
             template<typename T>
