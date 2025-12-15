@@ -26,15 +26,15 @@ namespace UI {
             DropDown& SetValueChangedCallback(DropDownValueChangeCallback_t callback);
 
             //! Update the currently displayed graphics.
-            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
+            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) override;
 
         private:
 
             //! Spawn drop-down menu
-            void SpawnDropDown(ECS::Registry& registry, glm::vec2 screenSize, int depth);
+            void SpawnDropDown(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth);
 
             //! De-spawn drop-down menu
-            void DespawnDropDown(ECS::Registry& registry, glm::vec2 screenSize, int depth);
+            void DespawnDropDown(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth);
 
             //! The style to use for spawned buttons.
             std::shared_ptr<DropDownStyle> m_p_style;

@@ -22,6 +22,6 @@ namespace UI {
             //! @param[in] parent_position The absolute position of the parent element.
             void CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_position) override;
 
-            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
+            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) override;
     };
 }

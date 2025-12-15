@@ -90,7 +90,7 @@ UI::Button& UI::Button::SetOnClickCallback(UI::OnClickCallback callback) {
     return *this;
 }
 
-void UI::Button::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
+void UI::Button::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) {
 
     depth++;
     for (auto& p_child : GetChildren()) {

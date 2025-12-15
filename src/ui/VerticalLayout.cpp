@@ -79,7 +79,7 @@ void UI::VerticalLayout::CalculatePosition(glm::vec2 parent_size, glm::vec2 pare
     }
 }
 
-void UI::VerticalLayout::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
+void UI::VerticalLayout::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) {
     depth++;
     for (auto& p_child : GetChildren()) {
         p_child->UpdateGraphics(registry, screenSize, depth);

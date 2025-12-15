@@ -28,7 +28,7 @@ namespace Components {
         RenderLayer layer {RenderLayer::LAYER_NONE};
 
         // Used for draw call sorting.
-        uint32_t draw_order;
+        uint16_t draw_order;
     };
 
 }

@@ -81,7 +81,7 @@ void UI::HorizontalLayout::CalculatePosition(glm::vec2 parent_size, glm::vec2 pa
     }
 }
 
-void UI::HorizontalLayout::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
+void UI::HorizontalLayout::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) {
 
     depth++;
     for (auto& p_child : GetChildren()) {

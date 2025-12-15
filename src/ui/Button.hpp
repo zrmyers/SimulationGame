@@ -34,7 +34,7 @@ namespace UI {
             Button& SetOnClickCallback(OnClickCallback callback);
 
             // main place where graphics are updated.
-            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
+            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) override;
         private:
 
             //! Reference to button style

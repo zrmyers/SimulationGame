@@ -58,7 +58,7 @@ UI::DropDown& UI::DropDown::SetValueChangedCallback(DropDownValueChangeCallback_
     return *this;
 }
 
-void UI::DropDown::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
+void UI::DropDown::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) {
 
     if (m_selection_in_progress && !m_dropdown_entity.IsValid()) {
 
@@ -76,7 +76,7 @@ void UI::DropDown::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize,
     }
 }
 
-void UI::DropDown::SpawnDropDown(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
+void UI::DropDown::SpawnDropDown(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) {
 
     // How wide to make the button
     float optionsWidth = GetAbsoluteSize().x;
@@ -84,6 +84,10 @@ void UI::DropDown::SpawnDropDown(ECS::Registry& registry, glm::vec2 screenSize, 
     m_dropdown_entity = ECS::Entity(registry);
     Components::Canvas& canvas = m_dropdown_entity.FindOrEmplaceComponent<Components::Canvas>();
     canvas.SetRenderMode(Components::Canvas::RenderMode::SCREEN);
+
+    uint8_t canvasDepth = GetCanvasDepth(depth);
+    canvasDepth++;
+    canvas.SetDepth(canvasDepth);
 
     UI::VerticalLayout& optionsList = canvas.EmplaceChild<UI::VerticalLayout>();
     optionsList.SetOffsetPosition(GetAbsolutePosition()+ glm::vec2(0.0F, 96.0F));
@@ -110,6 +114,6 @@ void UI::DropDown::SpawnDropDown(ECS::Registry& registry, glm::vec2 screenSize, 
 
 }
 
-void UI::DropDown::DespawnDropDown(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
+void UI::DropDown::DespawnDropDown(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) {
     m_dropdown_entity = ECS::Entity();
 }

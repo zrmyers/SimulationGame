@@ -24,7 +24,7 @@ namespace Components {
         RenderLayer m_layer{};
 
         //! Draw Order.
-        uint32_t m_draw_order{0U};
+        uint16_t m_draw_order{0U};
 
         Text() : m_color(1.0F, 1.0F, 1.0F, 1.0F), m_layer(RenderLayer::LAYER_NONE) { };
     };

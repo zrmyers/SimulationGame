@@ -24,7 +24,7 @@ namespace UI {
             //! Get the pixel size of characters in the text string.
             glm::vec2 GetTextSize() const;
 
-            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
+            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) override;
 
             void ClearGraphics() override;
         private:

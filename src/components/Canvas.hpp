@@ -7,6 +7,13 @@
 
 namespace Components {
 
+    //! Used for affecting draw order between multiple convases.
+    //!
+    //! Canvas Depth sets the most-significant 8 bits for the depth field in the underlying primitive (sprite/text) for
+    //! an element. This allows elements from one canvas to be drawn on top of all elements of another canvas if the
+    //! first canvas has a higher depth value than the other.
+    using CanvasDepth_t = uint8_t;
+
     //! The canvas represents the top-level UI object in a scene.
     //!
     //! The canvas is a container for all other UI objects, performs the following functions:
@@ -47,7 +54,10 @@ namespace Components {
                 CalculatePosition(displaySize, {0.0F, 0.0F});
             }
 
-            void UpdateGraphics(ECS::Registry &registry, glm::vec2 screenSize, int depth) override {
+            void UpdateGraphics(ECS::Registry &registry, glm::vec2 screenSize, UI::Depth_t depth) override {
+
+                UI::SetCanvasDepth(depth, m_depth);
+
                 for (auto& child : GetChildren()) {
                     child->UpdateGraphics(registry, screenSize, depth);
                 }
@@ -55,11 +65,19 @@ namespace Components {
                 ClearDirty();
             }
 
+            void SetDepth(uint8_t depth) {
+                m_depth = depth;
+            }
+
+            uint8_t GetDepth() const {
+                return m_depth;
+            }
+
         private:
             //! Whether the canvas is in screen or world mode.
             RenderMode m_render_mode {RenderMode::SCREEN};
 
-            //! Whether the canvas layout needs to be recalculated.
-            bool m_is_dirty{true};
+            //! The canvas depth used for sorting during rendering.
+            uint8_t m_depth {0U};
     };
 }

@@ -47,7 +47,7 @@ glm::vec2 UI::TextElement::GetTextSize() const {
     return glm::vec2(width, height);
 }
 
-void UI::TextElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
+void UI::TextElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) {
 
     if (!m_entity.IsValid()) {
         m_entity = ECS::Entity(registry);

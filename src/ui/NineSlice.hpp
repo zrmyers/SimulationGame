@@ -18,7 +18,7 @@ namespace UI {
 
             void CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_position) override;
 
-            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
+            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) override;
 
             void ClearGraphics() override;
         private:

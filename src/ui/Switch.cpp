@@ -17,7 +17,7 @@ void UI::Switch::SelectChild(size_t index) {
     }
 }
 
-void UI::Switch::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
+void UI::Switch::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) {
 
     if (m_selected_child < GetChildCount()) {
 

@@ -164,7 +164,7 @@ void UI::NineSlice::CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_po
     }
 }
 
-void UI::NineSlice::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
+void UI::NineSlice::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) {
 
     depth++;
     for (auto& slice : m_borders) {

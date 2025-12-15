@@ -15,7 +15,7 @@ UI::ImageElement& UI::ImageElement::SetTexture(std::shared_ptr<Graphics::Texture
     return *this;
 }
 
-void UI::ImageElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
+void UI::ImageElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) {
 
     if (!m_entity.IsValid()) {
         m_entity = ECS::Entity(registry);

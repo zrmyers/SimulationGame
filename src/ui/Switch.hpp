@@ -16,7 +16,7 @@ namespace UI {
             void SelectChild(size_t index);
 
             //! Update the currently displayed graphics.
-            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
+            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) override;
 
         private:
 

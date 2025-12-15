@@ -15,7 +15,7 @@ namespace UI {
 
             ImageElement& SetTexture(std::shared_ptr<Graphics::Texture2D> p_texture);
 
-            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
+            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) override;
 
             void ClearGraphics() override;
         private:

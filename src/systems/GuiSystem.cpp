@@ -53,17 +53,40 @@ void Systems::GuiSystem::Update() {
 
     std::set<ECS::EntityID_t> entities = GetEntities();
 
+    // Event processing is only routed to the highest priority canvas. (where the depth value is used as a priority)
+    // First, we need to find that canvas. This prevents buttons underneath a drop-down menu from being able to be selected.
+    Components::Canvas* p_highestPriority = nullptr;
     for (ECS::EntityID_t entityID : entities) {
 
-        // need to reverify that component still has canvas. This is because gui actions can create or destroy
-        // canvases.
-
         if (registry.HasComponent<Components::Canvas>(entityID)) {
+
             auto& canvas = registry.GetComponent<Components::Canvas>(entityID);
-            ProcessCanvas(canvas, events);
+            if (p_highestPriority == nullptr) {
+                p_highestPriority = &canvas;
+            }
+            else if (canvas.GetDepth() > p_highestPriority->GetDepth()) {
+                p_highestPriority = &canvas;
+            }
         }
     }
 
+    if (p_highestPriority != nullptr) {
+        ProcessCanvas(*p_highestPriority, events);
+    }
+
+    // Once we have processed events we are ready to update graphics
+    for (ECS::EntityID_t entityID : entities) {
+
+        if (registry.HasComponent<Components::Canvas>(entityID)) {
+
+            auto& canvas = registry.GetComponent<Components::Canvas>(entityID);
+
+            if (canvas.GetDirty()) {
+                canvas.CalculateLayout(m_window_size_px);
+                canvas.UpdateGraphics(registry, m_window_size_px, 1U);
+            }
+        }
+    }
 }
 
 void Systems::GuiSystem::NotifyEntityDestroyed(ECS::EntityID_t entityID) {
@@ -146,11 +169,6 @@ void Systems::GuiSystem::ProcessCanvas(Components::Canvas& canvas, const std::ve
         }
     }
 
-    if (canvas.GetDirty()) {
-
-        canvas.CalculateLayout(m_window_size_px);
-        canvas.UpdateGraphics(GetEngine().GetEcsRegistry(), m_window_size_px, 1);
-    }
 }
 
 void Systems::GuiSystem::HandleMouseMotion(const SDL_MouseMotionEvent& event) {

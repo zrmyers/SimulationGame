@@ -147,7 +147,7 @@ UI::CheckBox&  UI::CheckBox::SetCheckBoxState(CheckBoxState state) {
     return *this;
 }
 
-void UI::CheckBox::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) {
+void UI::CheckBox::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) {
 
     depth++;
     for (auto& p_child : GetChildren()) {

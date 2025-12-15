@@ -10,6 +10,6 @@ namespace UI {
 
             Spacer();
 
-            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) override;
+            void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) override;
     };
 }

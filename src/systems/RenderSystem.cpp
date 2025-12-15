@@ -37,7 +37,10 @@ static constexpr uint32_t TRANSFER_BUFFER_SIZE = 128U * 1024U * 1024;
 static constexpr uint32_t RENDER_LAYER_MASK = 0xFF000000U;
 static constexpr uint32_t RENDER_LAYER_SHIFT = 24U;
 
-static constexpr uint32_t RENDER_DEPTH_MASK = 0x00FFFFFFU;
+// reserved 8 bits for future use.
+
+// only 16-bits for depth.
+static constexpr uint32_t RENDER_DEPTH_MASK = 0x0000FFFFU;
 static constexpr uint32_t RENDER_DEPTH_SHIFT = 0U;
 
 uint32_t Systems::RenderSystem::GetRequestLength(const Components::TransferRequest &request) {

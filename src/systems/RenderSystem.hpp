@@ -88,7 +88,7 @@ namespace Systems {
             //! Create a transfer buffer on the GPU.
             SDL::GpuTransferBuffer CreateTransferBuffer(SDL_GPUTransferBufferUsage usage, uint32_t size);
 
-            void ProcessDataUpload(SDL_GPUCopyPass* p_copypass, const std::vector<Components::TransferRequest>& transfers, SDL::GpuTransferBuffer& transferBuffer, bool cycle);
+            static void ProcessDataUpload(SDL_GPUCopyPass* p_copypass, const std::vector<Components::TransferRequest>& transfers, SDL::GpuTransferBuffer& transferBuffer, bool cycle);
 
             //! Window used for rendering graphics to screen.
             SDL::Window m_window;

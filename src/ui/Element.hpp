@@ -13,6 +13,22 @@ namespace ECS {
 // defines the base elements from which a UI can be built.
 namespace UI {
 
+    using Depth_t = uint16_t;
+
+    // upper 8 bits indicate which canvas an element is being drawn for.
+    static constexpr Depth_t CANVAS_DEPTH_MASK = 0xFF00U;
+    static constexpr uint32_t CANVAS_DEPTH_SHIFT = 8U;
+
+    static constexpr uint8_t GetCanvasDepth(Depth_t depth) {
+        return static_cast<uint8_t>((depth & CANVAS_DEPTH_MASK) >> CANVAS_DEPTH_SHIFT);
+    }
+
+    static constexpr void SetCanvasDepth(Depth_t& depth, uint8_t canvas_depth) {
+        Depth_t value = depth & ~CANVAS_DEPTH_MASK;
+        value |= static_cast<Depth_t>(canvas_depth) << CANVAS_DEPTH_SHIFT;
+        depth = value;
+    }
+
     enum class MouseButtonID : uint8_t {
         MOUSE_LEFT = 0,
         MOUSE_RIGHT
@@ -75,7 +91,7 @@ namespace UI {
             void OnMouseRelease(glm::vec2 release_position, MouseButtonID button_id);
 
             //! Update the element. If element is visible, updates sprite and text primitives.
-            virtual void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, int depth) = 0;
+            virtual void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) = 0;
 
             //! Clear Graphics for the given element.
             virtual void ClearGraphics();
