@@ -15,6 +15,8 @@
 #include "ui/Switch.hpp"
 #include "ui/VerticalLayout.hpp"
 #include "ui/HorizontalLayout.hpp"
+#include <glm/ext/vector_int2.hpp>
+#include <sstream>
 #include <string>
 
 Menu::SettingsMenu::SettingsMenu(Core::Engine& engine, MenuManager& manager, std::shared_ptr<UI::Style> p_style)
@@ -169,10 +171,16 @@ void Menu::SettingsMenu::BuildGraphicsSettingsSubmenu(UI::HorizontalLayout& sele
         .SetFixedSize({32.0F, 8.0F})
         .SetLayoutMode(UI::LayoutMode::FIXED);
 
+    m_supported_resolutions = Core::GraphicsSettings::GetSupportedResolutions();
+
     AddDropdownMenu(
         optionsList,
         "Resolution",
-        {"A", "B", "C", "D"}, 3);
+        Core::GraphicsSettings::ResolutionsToStrings(m_supported_resolutions),
+        Core::GraphicsSettings::FindClosestResolution(
+            m_supported_resolutions,
+            settings.GetGraphicsSettings().GetDisplayResolution()));
+
     AddToggleOption(
         optionsList,
         "Fullscreen",
@@ -297,5 +305,5 @@ void Menu::SettingsMenu::AddDropdownMenu(
         .SetOptions(std::move(choices))
         .SelectOption(selected)
         .SetLayoutMode(UI::LayoutMode::FIXED)
-        .SetFixedSize({96.0F, 96.0F});
+        .SetFixedSize({160.0F, 96.0F});
 }

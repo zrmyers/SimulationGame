@@ -20,8 +20,8 @@ Systems::GuiSystem::GuiSystem(Core::Engine& engine)
     : ECS::System(engine)
     , m_window_size_px(engine.GetEcsRegistry().GetSystem<Systems::RenderSystem>().GetWindowSize())
     , m_cursor_size_px(0.0F)
+    , m_prev_cursor_pos_px(0.0F)
     , m_cursor_pos_px(0.0F) {
-
 }
 
 void Systems::GuiSystem::Update() {
@@ -61,10 +61,7 @@ void Systems::GuiSystem::Update() {
         if (registry.HasComponent<Components::Canvas>(entityID)) {
 
             auto& canvas = registry.GetComponent<Components::Canvas>(entityID);
-            if (p_highestPriority == nullptr) {
-                p_highestPriority = &canvas;
-            }
-            else if (canvas.GetDepth() > p_highestPriority->GetDepth()) {
+            if ((p_highestPriority == nullptr) || (canvas.GetDepth() > p_highestPriority->GetDepth())) {
                 p_highestPriority = &canvas;
             }
         }

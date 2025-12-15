@@ -58,5 +58,8 @@ namespace Menu {
             UI::Button* m_p_current_button;
 
             std::unordered_map<SubmenuID, Submenu> m_switch_index;
+
+            // Graphics info
+            std::vector<glm::ivec2> m_supported_resolutions;
     };
 }

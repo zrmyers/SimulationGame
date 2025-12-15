@@ -42,8 +42,11 @@ UI::DropDown& UI::DropDown::SelectOption(size_t select) {
 
         m_selected = select;
         m_selection_in_progress = false;
-
         SetDirty();
+
+        if (m_value_change_callback) {
+            m_value_change_callback(m_selected);
+        }
     }
     return *this;
 }

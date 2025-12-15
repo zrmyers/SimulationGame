@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+#include <glm/ext/vector_int2.hpp>
 #include <glm/vec2.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include <string>
@@ -21,7 +23,12 @@ namespace Core {
 
             static GraphicsSettings DetermineDefaults();
 
-            GraphicsSettings();
+            static std::vector<glm::ivec2> GetSupportedResolutions();
+            static std::vector<std::string> ResolutionsToStrings(const std::vector<glm::ivec2>& resolutions);
+            static std::string ResolutionToString(glm::ivec2 resolution);
+            static size_t FindClosestResolution(const std::vector<glm::ivec2>& supportedResolutions, glm::ivec2 resolution);
+
+            GraphicsSettings() = default;
 
             void SetDisplayResolution(glm::ivec2 display_resolution);
             glm::ivec2 GetDisplayResolution() const;
