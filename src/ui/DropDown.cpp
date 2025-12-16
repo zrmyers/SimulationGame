@@ -107,7 +107,7 @@ void UI::DropDown::SpawnDropDown(ECS::Registry& registry, glm::vec2 screenSize, 
             .SetOnClickCallback([this, optionIndex](){
                 this->SelectOption(optionIndex);
             })
-            .SetFixedSize({optionsWidth, 96.0F})
+            .SetFixedSize({optionsWidth, 40.0F})
             .SetLayoutMode(UI::LayoutMode::FIXED);
         optionIndex++;
     }

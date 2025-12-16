@@ -56,6 +56,31 @@
             "left": "ui/button-active-left.png",
             "right": "ui/button-active-right.png",
             "center": "ui/button-center.png"
+        },
+        {
+            "id": "small-button-active",
+            "image": "ui/small-button-active.png",
+            "border-width-px": 4
+        },
+        {
+            "id": "small-button-disabled",
+            "image": "ui/small-button-disabled.png",
+            "border-width-px": 4
+        },
+        {
+            "id": "small-button-enabled",
+            "image": "ui/small-button-enabled.png",
+            "border-width-px": 4
+        },
+        {
+            "id": "small-button-focused",
+            "image": "ui/small-button-focused.png",
+            "border-width-px": 4
+        },
+        {
+            "id": "small-button-selected",
+            "image": "ui/small-button-selected.png",
+            "border-width-px": 4
         }
     ],
     "button": [
@@ -107,6 +132,55 @@
                     "a": 1.0
                 }
             }
+        },
+        {
+            "id": "small-button",
+            "font-id": "Default-UI",
+            "disabled": {
+                "nine-slice-id": "small-button-disabled",
+                "text-color": {
+                    "r": 0.5,
+                    "g": 0.5,
+                    "b": 0.5,
+                    "a": 0.5
+                }
+            },
+            "enabled": {
+                "nine-slice-id": "small-button-enabled",
+                "text-color": {
+                    "r": 1.0,
+                    "g": 0.64,
+                    "b": 0.0,
+                    "a": 1.0
+                }
+            },
+            "focused": {
+                "nine-slice-id": "small-button-focused",
+                "text-color": {
+                    "r": 1.0,
+                    "g": 0.64,
+                    "b": 0.0,
+                    "a": 1.0
+                }
+            },
+            "activated": {
+                "nine-slice-id": "small-button-active",
+                "text-color": {
+                    "r": 0.5,
+                    "g": 0.5,
+                    "b": 0.0,
+                    "a": 1.0
+                }
+            },
+            "selected": {
+                "nine-slice-id": "small-button-selected",
+                "text-color": {
+                    "r": 1.0,
+                    "g": 1.0,
+                    "b": 0.0,
+                    "a": 1.0
+                }
+            }
         }
     ],
     "checkbox": [
@@ -124,7 +198,7 @@
         {
             "id": "simple",
             "selection-button-id": "simple",
-            "options-button-id": "simple"
+            "options-button-id": "small-button"
         }
     ]
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Element.hpp"
+#include "core/Engine.hpp"
 #include "graphics/Texture2D.hpp"
 
 namespace UI {
@@ -23,6 +24,7 @@ namespace UI {
             // number of textures that make up a nine-slice.
             static constexpr size_t SLICE_COUNT = 9U;
 
+            static std::shared_ptr<NineSliceStyle> Load(Core::Engine& engine, const std::string& imageName, int32_t borderWidth);
             static std::shared_ptr<NineSliceStyle> Load(Core::Engine& engine, const std::vector<std::string>& images);
 
             NineSliceStyle();

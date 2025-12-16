@@ -62,6 +62,11 @@ std::vector<glm::ivec2> Core::GraphicsSettings::GetSupportedResolutions() {
             break;
         }
 
+        // support minimum of 1024x768 resolution.
+        if (p_mode->w < 1024) {
+            continue;
+        }
+
         supportedResolutions.push_back({p_mode->w, p_mode->h});
     }
 

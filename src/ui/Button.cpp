@@ -1,37 +1,69 @@
 #include "Button.hpp"
+#include "ButtonStyle.hpp"
 
 //----------------------------------------------------------------------------------------------------------------------
 // Button
 
 UI::Button::Button()
     : m_current_state(ButtonState::UNKNOWN)
+    , m_selected(false)
     , m_p_frame(nullptr)
     , m_p_text(nullptr) {
 
     SetHoverEnterCallback([this](){
-        if (this->m_current_state == ButtonState::ENABLED) {
-            this->SetButtonState(ButtonState::FOCUSED);
+        switch (m_current_state) {
+
+            case ButtonState::ENABLED:
+                this->SetButtonState(ButtonState::FOCUSED);
+                break;
+
+            case ButtonState::UNKNOWN:
+            case ButtonState::DISABLED:
+            case ButtonState::FOCUSED:
+            case ButtonState::ACTIVATED:
+            case ButtonState::SELECTED:
+                break;
         }
     });
 
     SetHoverExitCallback([this]() {
-        if (this->m_current_state == ButtonState::FOCUSED || this->m_current_state == ButtonState::ACTIVATED) {
-            this->SetButtonState(ButtonState::ENABLED);
+        switch (m_current_state) {
+
+            case ButtonState::FOCUSED:
+            case ButtonState::ACTIVATED:
+                SetButtonState(m_selected? ButtonState::SELECTED : ButtonState::ENABLED);
+                break;
+
+            case ButtonState::UNKNOWN:
+            case ButtonState::DISABLED:
+            case ButtonState::ENABLED:
+            case ButtonState::SELECTED:
+                break;
         }
     });
 
     SetMouseButtonPressCallback([this](MouseButtonID button){
 
-        if ((this->m_current_state == ButtonState::ENABLED) || (this->m_current_state == ButtonState::FOCUSED)
-            && (button == MouseButtonID::MOUSE_LEFT)) {
-            this->SetButtonState(ButtonState::ACTIVATED);
+        switch(m_current_state) {
+
+            case ButtonState::ENABLED:
+            case ButtonState::FOCUSED:
+            case ButtonState::SELECTED:
+                this->SetButtonState(ButtonState::ACTIVATED);
+                break;
+
+            case ButtonState::UNKNOWN:
+            case ButtonState::DISABLED:
+            case ButtonState::ACTIVATED:
+                break;
         }
     });
 
     SetMouseButtonReleaseCallback([this](MouseButtonID button){
 
         if ((this->m_current_state == ButtonState::ACTIVATED) && (button == MouseButtonID::MOUSE_LEFT)) {
-            this->SetButtonState(ButtonState::FOCUSED);
+
+            this->SetButtonState(m_selected? ButtonState::SELECTED : ButtonState::FOCUSED);
 
             // click is registered!
             if (m_click_callback) {
@@ -77,6 +109,13 @@ UI::Button& UI::Button::SetButtonState(ButtonState state) {
 
         m_p_frame->SetStyle(m_p_button_style->GetNineSliceStyle(state));
         m_p_text->SetTextColor(m_p_button_style->GetTextColor(state));
+
+        if (state == ButtonState::SELECTED) {
+            m_selected = true;
+        }
+        else if (state == ButtonState::ENABLED) {
+            m_selected = false;
+        }
 
         m_current_state = state;
     }

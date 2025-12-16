@@ -5,6 +5,7 @@
 #include <memory>
 #include "CheckBoxStyle.hpp"
 #include "DropDownStyle.hpp"
+#include "NineSliceStyle.hpp"
 #include "core/AssetLoader.hpp"
 #include "core/Engine.hpp"
 #include "graphics/Texture2D.hpp"
@@ -49,19 +50,33 @@ UI::Style UI::Style::Load(Core::Engine& engine, const std::string& filename) {
         for (auto& nineSliceData : styleData["nine-slice"]) {
 
             std::string ninesliceId = nineSliceData["id"];
-            std::vector<std::string> imageFiles;
-            imageFiles.reserve(NineSliceStyle::SLICE_COUNT);
-            imageFiles.push_back(nineSliceData["top-left"]);
-            imageFiles.push_back(nineSliceData["top-right"]);
-            imageFiles.push_back(nineSliceData["bottom-left"]);
-            imageFiles.push_back(nineSliceData["bottom-right"]);
-            imageFiles.push_back(nineSliceData["top"]);
-            imageFiles.push_back(nineSliceData["left"]);
-            imageFiles.push_back(nineSliceData["right"]);
-            imageFiles.push_back(nineSliceData["bottom"]);
-            imageFiles.push_back(nineSliceData["center"]);
+            std::shared_ptr<NineSliceStyle> nineSliceStyle = nullptr;
 
-            std::shared_ptr<NineSliceStyle> nineSliceStyle = NineSliceStyle::Load(engine, imageFiles);
+            if (nineSliceData.contains("image")) {
+
+                // need to slice up image into parts
+                std::string image_id = nineSliceData["image"];
+                int borderWidth = nineSliceData["border-width-px"];
+
+                nineSliceStyle = NineSliceStyle::Load(engine, image_id, borderWidth);
+
+            } else {
+
+                // button has been pre-sliced.
+                std::vector<std::string> imageFiles;
+                imageFiles.reserve(NineSliceStyle::SLICE_COUNT);
+                imageFiles.push_back(nineSliceData["top-left"]);
+                imageFiles.push_back(nineSliceData["top-right"]);
+                imageFiles.push_back(nineSliceData["bottom-left"]);
+                imageFiles.push_back(nineSliceData["bottom-right"]);
+                imageFiles.push_back(nineSliceData["top"]);
+                imageFiles.push_back(nineSliceData["left"]);
+                imageFiles.push_back(nineSliceData["right"]);
+                imageFiles.push_back(nineSliceData["bottom"]);
+                imageFiles.push_back(nineSliceData["center"]);
+
+                nineSliceStyle = NineSliceStyle::Load(engine, imageFiles);
+            }
 
             style.SetNineSliceStyle(ninesliceId, std::move(nineSliceStyle));
         }

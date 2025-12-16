@@ -3,6 +3,97 @@
 //----------------------------------------------------------------------------------------------------------------------
 // Nine Slice Style
 
+std::shared_ptr<UI::NineSliceStyle> UI::NineSliceStyle::Load(Core::Engine& engine, const std::string& imageName, int32_t borderWidth) {
+
+    Core::AssetLoader& assetLoader = engine.GetAssetLoader();
+    UI::NineSliceStyle style;
+
+    style.m_textures.resize(SLICE_COUNT);
+
+    Systems::RenderSystem& renderSystem = engine.GetEcsRegistry().GetSystem<Systems::RenderSystem>();
+    std::shared_ptr<SDL::GpuSampler> p_cornerSampler;
+    std::shared_ptr<SDL::GpuSampler> p_horizontalSampler;
+    std::shared_ptr<SDL::GpuSampler> p_verticalSampler;
+    std::shared_ptr<SDL::GpuSampler> p_fillSampler;
+
+    // Create samplers
+    SDL_GPUSamplerCreateInfo samplerCreateInfo = {};
+    samplerCreateInfo.min_filter = SDL_GPU_FILTER_LINEAR;
+    samplerCreateInfo.mag_filter = SDL_GPU_FILTER_LINEAR;
+    samplerCreateInfo.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR;
+    samplerCreateInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerCreateInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerCreateInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerCreateInfo.enable_anisotropy = false;
+    samplerCreateInfo.max_anisotropy = 0; // NOLINT
+
+    p_cornerSampler = std::make_shared<SDL::GpuSampler>(renderSystem.CreateSampler(samplerCreateInfo));
+    samplerCreateInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+    p_horizontalSampler = std::make_shared<SDL::GpuSampler>(renderSystem.CreateSampler(samplerCreateInfo));
+    samplerCreateInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerCreateInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+    p_verticalSampler = std::make_shared<SDL::GpuSampler>(renderSystem.CreateSampler(samplerCreateInfo));
+    samplerCreateInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+    samplerCreateInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+    p_fillSampler = std::make_shared<SDL::GpuSampler>(renderSystem.CreateSampler(samplerCreateInfo));
+
+    // load image
+    SDL::Image image(assetLoader.GetImageDir() + "/" + imageName);
+
+    // instantiate textures
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::TOP_LEFT_CORNER)]
+        = std::make_shared<Graphics::Texture2D>(
+            engine, p_cornerSampler, borderWidth, borderWidth, false);
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::TOP_RIGHT_CORNER)]
+        = std::make_shared<Graphics::Texture2D>(
+            engine, p_cornerSampler, borderWidth, borderWidth, false);
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::BOTTOM_LEFT_CORNER)]
+        = std::make_shared<Graphics::Texture2D>(
+            engine, p_cornerSampler, borderWidth, borderWidth, false);
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::BOTTOM_RIGHT_CORNER)]
+        = std::make_shared<Graphics::Texture2D>(
+            engine, p_cornerSampler, borderWidth, borderWidth, false);
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::TOP_EDGE)]
+        = std::make_shared<Graphics::Texture2D>(
+            engine, p_horizontalSampler, image.GetWidth() - (2 * borderWidth), borderWidth, false);
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::BOTTOM_EDGE)]
+        = std::make_shared<Graphics::Texture2D>(
+            engine, p_horizontalSampler, image.GetWidth() - (2 * borderWidth), borderWidth, false);
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::LEFT_EDGE)]
+        = std::make_shared<Graphics::Texture2D>(
+            engine, p_verticalSampler, borderWidth, image.GetHeight() - (2 * borderWidth), false);
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::RIGHT_EDGE)]
+        = std::make_shared<Graphics::Texture2D>(
+            engine, p_verticalSampler, borderWidth, image.GetHeight() - (2 * borderWidth), false);
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::CENTER)]
+        = std::make_shared<Graphics::Texture2D>(
+            engine, p_fillSampler, image.GetWidth() - (2 * borderWidth), image.GetHeight() - (2 * borderWidth), false);
+
+    // load image data
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::TOP_LEFT_CORNER)]
+        ->LoadImageData(image, {0, 0}, {borderWidth, borderWidth});
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::TOP_RIGHT_CORNER)]
+        ->LoadImageData(image, {image.GetWidth() - borderWidth, 0}, {borderWidth, borderWidth});
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::BOTTOM_LEFT_CORNER)]
+        ->LoadImageData(image, {0, image.GetHeight() - borderWidth}, {borderWidth, borderWidth});
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::BOTTOM_RIGHT_CORNER)]
+        ->LoadImageData(image, {image.GetWidth() - borderWidth, image.GetHeight() - borderWidth}, {borderWidth, borderWidth});
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::TOP_EDGE)]
+        ->LoadImageData(image, { borderWidth, 0}, {image.GetWidth() - (2* borderWidth), borderWidth});
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::BOTTOM_EDGE)]
+        ->LoadImageData(image, { borderWidth, image.GetHeight() - borderWidth}, {image.GetWidth() - (2* borderWidth), borderWidth});
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::LEFT_EDGE)]
+        ->LoadImageData(image, { 0, borderWidth}, {borderWidth, image.GetHeight() - (2*borderWidth)});
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::RIGHT_EDGE)]
+        ->LoadImageData(image, { image.GetWidth() - borderWidth, borderWidth}, {borderWidth, image.GetHeight() - (2*borderWidth)});
+    style.m_textures[static_cast<size_t>(NineSliceStyle::Region::CENTER)]
+        ->LoadImageData(image, { borderWidth, borderWidth}, {image.GetWidth() - (2* borderWidth), image.GetHeight() - (2*borderWidth)});
+
+    style.m_border_width = static_cast<float>(borderWidth);
+
+    return std::make_shared<NineSliceStyle>(std::move(style));
+}
+
 std::shared_ptr<UI::NineSliceStyle> UI::NineSliceStyle::Load(Core::Engine& engine, const std::vector<std::string>& images) {
 
     Core::AssetLoader& assetLoader = engine.GetAssetLoader();

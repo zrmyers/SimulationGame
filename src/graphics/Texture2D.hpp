@@ -21,7 +21,16 @@ namespace Graphics {
                 bool generate_mipmap);
 
             //! Uploads image data to the texture.
-            void LoadImageData(const SDL::Image& image, glm::ivec2 dst_offset = {0, 0});
+            void LoadImageData(const SDL::Image& image,
+                glm::ivec2 dst_offset = {0, 0});
+
+            //! Uploads image data to the texture.
+            //!
+            //! Extracts subregion of image to texture.
+            void LoadImageData(const SDL::Image& image,
+                glm::uvec2 src_offset,
+                glm::uvec2 src_extent,
+                glm::ivec2 dst_offset = {0, 0});
 
             uint32_t GetWidth() const;
             uint32_t GetHeight() const;
