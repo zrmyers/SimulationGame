@@ -93,7 +93,7 @@ void UI::DropDown::SpawnDropDown(ECS::Registry& registry, glm::vec2 screenSize, 
     canvas.SetDepth(canvasDepth);
 
     UI::VerticalLayout& optionsList = canvas.EmplaceChild<UI::VerticalLayout>();
-    optionsList.SetOffsetPosition(GetAbsolutePosition()+ glm::vec2(0.0F, 96.0F));
+    optionsList.SetOffsetPosition(GetAbsolutePosition()+ glm::vec2(0.0F, GetAbsoluteSize().y));
 
     const std::shared_ptr<ButtonStyle>& p_options_style = m_p_style->GetOptionsButtonStyle();
 

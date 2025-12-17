@@ -1,10 +1,34 @@
 #include "MenuManager.hpp"
 #include "core/Logger.hpp"
+#include <utility>
 
 
 Menu::MenuManager::MenuManager()
     : m_p_active(nullptr)
     , m_p_requested(nullptr) {
+}
+
+Menu::MenuManager::MenuManager(MenuManager&& other) noexcept
+    : m_p_active(other.m_p_active)
+    , m_p_requested(other.m_p_requested) {
+    other.m_p_active = nullptr;
+    other.m_p_requested = nullptr;
+    std::swap(m_menus, other.m_menus);
+}
+
+
+Menu::MenuManager& Menu::MenuManager::operator=(MenuManager&& other) noexcept {
+    std::swap(m_menus, other.m_menus);
+    std::swap(m_p_active, other.m_p_active);
+    std::swap(m_p_requested, other.m_p_requested);
+    return *this;
+}
+
+
+Menu::MenuManager::~MenuManager() {
+    if (m_p_active != nullptr) {
+        m_p_active->Deactivate();
+    }
 }
 
 void Menu::MenuManager::AddMenu(const std::string& name, std::unique_ptr<IMenu>&& p_menu) {

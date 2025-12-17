@@ -8,6 +8,7 @@
 #include "ecs/ECS.hpp"
 #include "graphics/ShaderCross.hpp"
 #include <SDL3/SDL_gpu.h>
+#include <SDL3/SDL_oldnames.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_video.h>
 #include <SDL3_ttf/SDL_ttf.h>
@@ -99,9 +100,25 @@ void Systems::RenderSystem::SetVsync(bool vsync_enabled) {
     }
 }
 
-void Systems::RenderSystem::SetFullscreen(bool fullscreen) {
+void Systems::RenderSystem::SetWindowMode(bool fullscreen, glm::ivec2 resolution) {
 
-    m_window.SetFullscreen(fullscreen);
+    if (fullscreen) {
+
+        const SDL_DisplayMode* p_currentMode = m_window.GetFullscreenMode();
+        if (p_currentMode != nullptr) {
+            SDL_DisplayMode mode = *m_window.GetFullscreenMode();
+            mode.w = resolution.x;
+            mode.h = resolution.y;
+
+            m_window.SetFullscreenMode(mode);
+        }
+
+        m_window.SetFullscreen(true);
+    }
+    else {
+        m_window.SetFullscreen(false);
+        m_window.SetWindowSize(resolution);
+    }
 }
 
 Systems::RenderSystem::~RenderSystem() {

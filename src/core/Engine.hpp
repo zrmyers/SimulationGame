@@ -54,6 +54,15 @@ namespace Core {
             //! Set the Game Instance.
             void SetGameInstance(std::unique_ptr<IGame>&& game);
 
+            //! Get the game instance
+            template <typename T>
+            T& GetGameInstance() {
+                if (m_game_instance == nullptr) {
+                    throw EngineException("GetGameInstance(): GameInstance not initialized!");
+                }
+                return *dynamic_cast<T*>(m_game_instance.get());
+            }
+
             //! Main Game loop.
             void Run();
 

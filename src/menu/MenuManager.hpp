@@ -25,6 +25,11 @@ namespace Menu {
         public:
 
             MenuManager();
+            MenuManager(const MenuManager&) = delete;
+            MenuManager(MenuManager&& other) noexcept;
+            MenuManager& operator=(const MenuManager&) = delete;
+            MenuManager& operator=(MenuManager&& other) noexcept;
+            ~MenuManager();
 
             void AddMenu(const std::string& name, std::unique_ptr<IMenu>&& p_menu);
 

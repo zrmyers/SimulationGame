@@ -15,6 +15,7 @@
 #include "ui/Switch.hpp"
 #include "ui/VerticalLayout.hpp"
 #include "ui/HorizontalLayout.hpp"
+#include <cstddef>
 #include <glm/ext/vector_int2.hpp>
 #include <sstream>
 #include <string>
@@ -179,15 +180,19 @@ void Menu::SettingsMenu::BuildGraphicsSettingsSubmenu(UI::HorizontalLayout& sele
         Core::GraphicsSettings::ResolutionsToStrings(m_supported_resolutions),
         Core::GraphicsSettings::FindClosestResolution(
             m_supported_resolutions,
-            settings.GetGraphicsSettings().GetDisplayResolution()));
-
+            settings.GetGraphicsSettings().GetDisplayResolution()),
+            [this, &settings, &renderSystem](size_t selected){
+                settings.GetGraphicsSettings().SetDisplayResolution(m_supported_resolutions.at(selected));
+                renderSystem.SetWindowMode(settings.GetGraphicsSettings().GetFullscreen(), m_supported_resolutions.at(selected));
+                settings.Save();
+            });
     AddToggleOption(
         optionsList,
         "Fullscreen",
         settings.GetGraphicsSettings().GetFullscreen(),
         [&settings,&renderSystem](bool state){
             settings.GetGraphicsSettings().SetFullscreen(state);
-            renderSystem.SetFullscreen(state);
+            renderSystem.SetWindowMode(state, settings.GetGraphicsSettings().GetDisplayResolution());
             settings.Save();
     });
     AddToggleOption(
@@ -281,7 +286,7 @@ void Menu::SettingsMenu::AddToggleOption(
 }
 
 void Menu::SettingsMenu::AddDropdownMenu(
-    UI::Element& parent, const std::string& textLabel, std::vector<std::string> choices, uint32_t selected) {
+    UI::Element& parent, const std::string& textLabel, std::vector<std::string> choices, uint32_t selected, UI::DropDownValueChangeCallback_t callback) {
 
     const std::shared_ptr<Graphics::Font>& p_font = m_p_style->GetFont("Default-UI");
 
@@ -299,9 +304,7 @@ void Menu::SettingsMenu::AddDropdownMenu(
     // Add drop down
     UI::DropDown& option = optionLayout.EmplaceChild<UI::DropDown>();
     option.SetStyle(m_p_style->GetDropDownStyle("simple"))
-        .SetValueChangedCallback([](size_t selected){
-            Core::Logger::Info("Selected " + std::to_string(selected));
-        })
+        .SetValueChangedCallback(std::move(callback))
         .SetOptions(std::move(choices))
         .SelectOption(selected)
         .SetLayoutMode(UI::LayoutMode::FIXED)

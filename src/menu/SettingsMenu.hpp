@@ -5,6 +5,7 @@
 #include "ecs/ECS.hpp"
 #include "ui/Button.hpp"
 #include "ui/CheckBox.hpp"
+#include "ui/DropDown.hpp"
 #include "ui/Style.hpp"
 #include "ui/Switch.hpp"
 #include "ui/HorizontalLayout.hpp"
@@ -41,7 +42,7 @@ namespace Menu {
 
             // option that can be toggled
             void AddToggleOption(UI::Element& parent, const std::string& textLabel, bool initialState, UI::CheckBoxStateCallback_t callback);
-            void AddDropdownMenu(UI::Element& parent, const std::string& textLabel, std::vector<std::string> choices, uint32_t selected);
+            void AddDropdownMenu(UI::Element& parent, const std::string& textLabel, std::vector<std::string> choices, uint32_t selected, UI::DropDownValueChangeCallback_t callback);
 
         private:
             struct Submenu {

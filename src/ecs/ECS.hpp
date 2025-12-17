@@ -690,9 +690,9 @@ namespace ECS {
 
         private:
 
+            SystemManager m_system_manager;
             ComponentManager m_component_manager;
             EntityManager m_entity_manager;
-            SystemManager m_system_manager;
             bool m_systemcallbacks_enabled{true};
     };
 

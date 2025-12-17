@@ -222,6 +222,25 @@ void SDL::Window::SetFullscreen(bool fullscreen) {
     }
 }
 
+bool SDL::Window::GetFullscreen() const {
+    SDL_WindowFlags flags = SDL_GetWindowFlags(m_p_window);
+
+    return ((flags & SDL_WINDOW_FULLSCREEN) > 0U);
+}
+
+const SDL_DisplayMode* SDL::Window::GetFullscreenMode() {
+
+    // can be null if in borderless desktop mode.
+    return SDL_GetWindowFullscreenMode(m_p_window);
+}
+
+void SDL::Window::SetFullscreenMode(const SDL_DisplayMode& mode) {
+
+    if(!SDL_SetWindowFullscreenMode(m_p_window, &mode)) {
+        throw Error("SDL_SetWindowFullscreenMode() failed!");
+    }
+}
+
 glm::ivec2 SDL::Window::GetWindowSize() const {
 
     glm::ivec2 windowSize(0.0F);
@@ -229,6 +248,13 @@ glm::ivec2 SDL::Window::GetWindowSize() const {
         throw SDL::Error("Failed to retrieve SDL window size.");
     }
     return windowSize;
+}
+
+void SDL::Window::SetWindowSize(glm::ivec2 size) {
+
+    if(!SDL_SetWindowSize(m_p_window, size.x, size.y)) {
+        throw Error("SDL_SetWindowSize() failed!");
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------

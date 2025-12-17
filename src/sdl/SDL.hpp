@@ -166,9 +166,15 @@ namespace SDL {
 
             //! Set the window in fullscreen mode
             void SetFullscreen(bool fullscreen);
+            bool GetFullscreen() const;
+
+            //! Setter/getter for fullscreen display mode.
+            const SDL_DisplayMode* GetFullscreenMode();
+            void SetFullscreenMode(const SDL_DisplayMode& mode);
 
             //! Get the size of the window.
             glm::ivec2 GetWindowSize() const;
+            void SetWindowSize(glm::ivec2 size);
 
         private:
 

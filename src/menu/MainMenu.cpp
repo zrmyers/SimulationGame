@@ -1,8 +1,10 @@
 #include "MainMenu.hpp"
 #include "MenuManager.hpp"
+#include "MenuUtilities.hpp"
 #include "core/Engine.hpp"
 #include "ecs/ECS.hpp"
 #include "components/Canvas.hpp"
+#include "ui/ButtonStyle.hpp"
 #include "ui/NineSlice.hpp"
 #include "ui/VerticalLayout.hpp"
 #include "ui/Button.hpp"
@@ -38,30 +40,12 @@ void Menu::MainMenu::Activate() {
     UI::VerticalLayout& verticalLayout = nineslice.EmplaceChild<UI::VerticalLayout>();
     verticalLayout.SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
 
-    UI::Button& startButton = verticalLayout.EmplaceChild<UI::Button>();
-    startButton.SetButtonStyle(m_p_style->GetButtonStyle("simple"))
-        .SetText("Start")
-        .SetButtonState(UI::ButtonState::DISABLED)
-        .SetFixedSize({256.0F, 96.0F})
-        .SetLayoutMode(UI::LayoutMode::FIXED);
-    UI::Button& settingsButton = verticalLayout.EmplaceChild<UI::Button>();
-    settingsButton.SetButtonStyle(m_p_style->GetButtonStyle("simple"))
-        .SetText("Settings")
-        .SetButtonState(UI::ButtonState::ENABLED)
-        .SetOnClickCallback([p_menuManager](){
-            p_menuManager->RequestChangeActiveMenu("Settings");
-        })
-        .SetFixedSize({256.0F, 96.0F})
-        .SetLayoutMode(UI::LayoutMode::FIXED);;
-    UI::Button& quitButton = verticalLayout.EmplaceChild<UI::Button>();
-    quitButton.SetButtonStyle(m_p_style->GetButtonStyle("simple"))
-        .SetText("Quit")
-        .SetButtonState(UI::ButtonState::ENABLED)
-        .SetOnClickCallback([p_engine](){
-            p_engine->RequestShutdown();
-        })
-        .SetFixedSize({256.0F, 96.0F})
-        .SetLayoutMode(UI::LayoutMode::FIXED);
+    AddButton(m_p_style, verticalLayout, "Start", UI::ButtonState::ENABLED,
+        [p_menuManager](){p_menuManager->RequestChangeActiveMenu("ChooseCharacter");});
+    AddButton(m_p_style, verticalLayout, "Settings", UI::ButtonState::ENABLED,
+        [p_menuManager](){p_menuManager->RequestChangeActiveMenu("Settings");});
+    AddButton(m_p_style, verticalLayout, "Quit", UI::ButtonState::ENABLED,
+        [p_engine](){p_engine->RequestShutdown();});
 }
 
 void Menu::MainMenu::Deactivate() {

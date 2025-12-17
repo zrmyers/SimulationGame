@@ -9,6 +9,7 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_stdinc.h>
 #include <cstdint>
+#include <glm/ext/vector_int2.hpp>
 #include <vector>
 
 #include "graphics/UploadData.hpp"
@@ -36,7 +37,7 @@ namespace Systems {
             void SetVsync(bool vsync_enabled);
 
             //! Enable or disable fullscreen
-            void SetFullscreen(bool fullscreen);
+            void SetWindowMode(bool fullscreen, glm::ivec2);
 
             SDL::GpuDevice& GetGpuDevice();
 
