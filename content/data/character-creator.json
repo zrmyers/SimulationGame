@@ -1,0 +1,55 @@
+{
+    "description": "This file defines the base models and materials that are used to compose human characters used throughout the game.",
+    "character-skeletal-models": [
+        {
+            "id": "human-male",
+            "source": "Human_Male.glb",
+            "HEAD": "Male_Head",
+            "UPPER_TORSO": "Male_Torso",
+            "HIP": "Male_Hips",
+            "RIGHT_ARM": "Male_RightArm",
+            "LEFT_ARM": "Male_LeftArm",
+            "RIGHT_LEG": "Male_RightLeg",
+            "LEFT_LEG": "Male_LeftLeg",
+            "RIGHT_FOOT": "Male_RightFoot",
+            "LEFT_FOOT": "Male_LeftFoot",
+            "RIGHT_HAND": "Male_RightHand",
+            "LEFT_HAND": "Male_LeftHand",
+            "EYES": "Male_Eyes",
+            "EYELASHES": "Male_Eyelashes",
+            "EYEBROW": "Male_Eyebrow",
+            "HAIR": "Male_Hair01"
+        },
+        {
+            "id": "human-female",
+            "source": "Human_Female.glb",
+            "HEAD": "Female_Head",
+            "UPPER_TORSO": "Female_Torso",
+            "HIP": "Female_Hips",
+            "RIGHT_ARM": "Female_RightArm",
+            "LEFT_ARM": "Female_LeftArm",
+            "RIGHT_LEG": "Female_RightLeg",
+            "LEFT_LEG": "Female_LeftLeg",
+            "RIGHT_FOOT": "Female_RightFoot",
+            "LEFT_FOOT": "Female_LeftFoot",
+            "RIGHT_HAND": "Female_RightHand",
+            "LEFT_HAND": "Female_LeftHand",
+            "EYES": "Female_Eyes",
+            "EYELASHES": "Female_Eyelashes",
+            "EYEBROW": "Female_Eyebrow",
+            "HAIR": "Female_Hair01"
+        }
+    ],
+    "character-skin-material": [
+        {
+            "id": "young-healthy",
+            "source": "procedural/human_skin.png"
+        }
+    ],
+    "character-eye-material": [
+        {
+            "id": "normal",
+            "source": "procedural/eye.png"
+        }
+    ]
+}
