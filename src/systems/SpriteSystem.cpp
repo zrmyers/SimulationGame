@@ -7,6 +7,7 @@
 #include "core/Engine.hpp"
 #include "core/Logger.hpp"
 #include "ecs/ECS.hpp"
+#include "graphics/Mesh.hpp"
 #include "graphics/ShaderCross.hpp"
 #include "graphics/pipelines/UnlitTexturePipeline.hpp"
 #include "sdl/SDL.hpp"
@@ -36,10 +37,11 @@ Systems::SpriteSystem::SpriteSystem(Core::Engine& engine)
 
     m_p_sprite_pipeline = renderSys.CreatePipeline<Graphics::UnlitTexturePipeline>();
 
-    m_vertex_buffer = renderSys.CreateBuffer(SDL_GPU_BUFFERUSAGE_VERTEX, MAX_VERTEX_COUNT * sizeof(Graphics::UnlitTexturedVertex));
-    m_vertex_buffer.SetBufferName("Sprite Vertex Buffer");
-    m_index_buffer = renderSys.CreateBuffer(SDL_GPU_BUFFERUSAGE_INDEX, MAX_INDEX_COUNT * sizeof(uint16_t));
-    m_index_buffer.SetBufferName("Sprite Index Buffer");
+    m_p_sprite_mesh = std::make_unique<Graphics::Mesh>(renderSys.CreateMesh(
+        sizeof(Graphics::UnlitTexturedVertex),
+        MAX_VERTEX_COUNT,
+        SDL_GPU_INDEXELEMENTSIZE_16BIT,
+        MAX_INDEX_COUNT));
 
 }
 
@@ -77,11 +79,7 @@ void Systems::SpriteSystem::Update() {
             m_indices.push_back(numVertices + 2);
             m_indices.push_back(numVertices + 3);
 
-            renderable.m_vertex_buffer_binding.buffer = m_vertex_buffer.Get();
-            renderable.m_vertex_buffer_binding.offset = 0U;
-            renderable.m_index_buffer_binding.buffer = m_index_buffer.Get();
-            renderable.m_index_buffer_binding.offset = 0U;
-            renderable.m_index_size = SDL_GPU_INDEXELEMENTSIZE_16BIT;
+            renderable.m_p_mesh = m_p_sprite_mesh.get();
             renderable.m_p_pipeline = m_p_sprite_pipeline;
             renderable.transform = transform.m_transform;
             renderable.textureSampler = sprite.texture->GetBinding();
@@ -97,34 +95,6 @@ void Systems::SpriteSystem::Update() {
             renderable.m_depth_override = sprite.draw_order;
         }
 
-        UploadData(registry.GetSystem<Systems::RenderSystem>());
+        m_p_sprite_mesh->LoadData(m_vertices, m_indices);
     }
-}
-
-void Systems::SpriteSystem::UploadData(Systems::RenderSystem& rendersystem) {
-
-    // setup transfer buffers
-    std::vector<Components::TransferRequest> requests;
-    requests.reserve(2);
-    Components::TransferRequest request = {};
-
-    request.cycle = false;
-    request.type = Components::RequestType::UPLOAD_TO_BUFFER;
-    SDL_GPUBufferRegion& vertexRegion = request.data.buffer;
-    vertexRegion.buffer = m_vertex_buffer.Get();
-    vertexRegion.offset = 0;
-    vertexRegion.size = sizeof(Graphics::UnlitTexturedVertex) * m_vertices.size();
-    request.p_src = m_vertices.data();
-    requests.push_back(request);
-
-    request.cycle = false;
-    request.type = Components::RequestType::UPLOAD_TO_BUFFER;
-    SDL_GPUBufferRegion& indexRegion = request.data.buffer;
-    indexRegion.buffer = m_index_buffer.Get();
-    indexRegion.offset = 0;
-    indexRegion.size = sizeof(uint16_t) * m_indices.size();
-    request.p_src = m_indices.data();
-    requests.push_back(request);
-
-    rendersystem.UploadDataToBuffer(requests);
 }

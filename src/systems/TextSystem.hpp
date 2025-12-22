@@ -3,6 +3,7 @@
 #include "RenderSystem.hpp"
 #include "core/Engine.hpp"
 #include "ecs/ECS.hpp"
+#include "graphics/Mesh.hpp"
 #include "graphics/pipelines/PipelineCache.hpp"
 #include "graphics/pipelines/UnlitTexturePipeline.hpp"
 #include "graphics/Font.hpp"
@@ -43,9 +44,6 @@ namespace Systems {
             // Update geometry buffer
             void UpdateGeometryBuffer();
 
-            // Upload geometry to GPU
-            std::vector<Components::TransferRequest> SetupTransferBuffer(Systems::RenderSystem& renderSystem);
-
             // Update renderables
             void UpdateRenderable();
 
@@ -56,8 +54,7 @@ namespace Systems {
             Graphics::IPipeline* m_p_textpipeline_sdf;
 
             //! Text buffers
-            SDL::GpuBuffer m_vertex_buffer;
-            SDL::GpuBuffer m_index_buffer;
+            std::unique_ptr<Graphics::Mesh> m_p_text_mesh;
 
             //! Texture sampler.
             SDL::GpuSampler m_sampler;

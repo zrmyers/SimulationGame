@@ -46,7 +46,8 @@ void Menu::ChooseCharacterMenu::Activate() {
         [p_menuManager](){p_menuManager->RequestChangeActiveMenu("MainMenu");});
     AddButton(m_p_style, characterManagement, "Start", UI::ButtonState::DISABLED);
     AddButton(m_p_style, characterManagement, "Remove", UI::ButtonState::DISABLED);
-    AddButton(m_p_style, characterManagement, "New", UI::ButtonState::DISABLED);
+    AddButton(m_p_style, characterManagement, "New", UI::ButtonState::ENABLED,
+        [p_menuManager](){p_menuManager->RequestChangeActiveMenu("CreateCharacter");});
     characterManagement.EmplaceChild<UI::Spacer>();
 }
 

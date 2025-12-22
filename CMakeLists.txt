@@ -48,12 +48,16 @@ CPMAddPackage(
 CPMAddPackage(
     URI "gh:nlohmann/json#v3.12.0"
 )
+CPMAddPackage(
+    URI "gh:spnda/fastgltf#d3d6ee651f878347e29352000a1f0fa1324236b4"
+)
 
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
 add_executable(${PROJECT_NAME}
     ./src/main.cpp
     ./src/SimulationGame.cpp
+    ./src/character/Character.cpp
     ./src/core/AssetLoader.cpp
     ./src/core/Engine.cpp
     ./src/core/Environment.cpp
@@ -61,9 +65,11 @@ add_executable(${PROJECT_NAME}
     ./src/core/Logger.cpp
     ./src/core/Settings.cpp
     ./src/graphics/Font.cpp
+    ./src/graphics/Mesh.cpp
     ./src/graphics/ShaderCross.cpp
     ./src/graphics/Texture2D.cpp
     ./src/menu/ChooseCharacterMenu.cpp
+    ./src/menu/CreateCharacterMenu.cpp
     ./src/menu/MainMenu.cpp
     ./src/menu/MenuManager.cpp
     ./src/menu/MenuUtilities.cpp
@@ -102,4 +108,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     glslang
     glslang-default-resource-limits
     glm
-    nlohmann_json)
+    nlohmann_json
+    fastgltf)

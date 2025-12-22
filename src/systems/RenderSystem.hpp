@@ -5,9 +5,11 @@
 #include "ecs/ECS.hpp"
 #include "graphics/pipelines/PipelineCache.hpp"
 #include "graphics/ShaderCross.hpp"
+#include "graphics/Mesh.hpp"
 #include "sdl/SDL.hpp"
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_stdinc.h>
+#include <cstddef>
 #include <cstdint>
 #include <glm/ext/vector_int2.hpp>
 #include <vector>
@@ -62,6 +64,9 @@ namespace Systems {
 
             //! Create a buffer on the GPU.
             SDL::GpuBuffer CreateBuffer(SDL_GPUBufferUsageFlags usage, uint32_t size);
+
+            //! Create a mesh
+            Graphics::Mesh CreateMesh(size_t vertex_size, size_t num_vertices, SDL_GPUIndexElementSize index_size, size_t num_indices);
 
             //! Create a sampler on the GPU.
             SDL::GpuSampler CreateSampler(SDL_GPUSamplerCreateInfo& sampler_info);

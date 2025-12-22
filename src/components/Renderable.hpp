@@ -1,4 +1,5 @@
 #pragma once
+#include "graphics/Mesh.hpp"
 #include "sdl/SDL.hpp"
 #include <SDL3/SDL_gpu.h>
 #include <cstdint>
@@ -64,9 +65,7 @@ namespace Components {
             Graphics::IPipeline* m_p_pipeline;
 
             //! Which vertex buffer to bind.
-            SDL_GPUBufferBinding m_vertex_buffer_binding;
-            SDL_GPUBufferBinding m_index_buffer_binding;
-            SDL_GPUIndexElementSize m_index_size;
+            Graphics::Mesh* m_p_mesh;
 
             //! Any transfers to execute.
             std::vector<TransferRequest> m_requests;
@@ -88,9 +87,7 @@ namespace Components {
                 m_p_pipeline = nullptr;
 
                 // mesh
-                m_vertex_buffer_binding = {};
-                m_index_buffer_binding = {};
-                m_index_size = SDL_GPU_INDEXELEMENTSIZE_32BIT;
+                m_p_mesh = nullptr;
 
                 // upload
                 m_requests.clear();

@@ -6,6 +6,7 @@
 #include "components/Text.hpp"
 #include "components/Transform.hpp"
 #include "components/Camera.hpp"
+#include "graphics/Mesh.hpp"
 #include "graphics/pipelines/UnlitTexturePipeline.hpp"
 #include "sdl/SDL.hpp"
 #include "sdl/TTF.hpp"
@@ -33,14 +34,11 @@ Systems::TextSystem::TextSystem(Core::Engine& engine)
     m_p_textpipeline = renderSystem.CreatePipeline<Graphics::UnlitTexturePipeline>();
     m_p_textpipeline_sdf = renderSystem.CreatePipeline<Graphics::UnlitTextureSDFPipeline>();
 
-    m_vertex_buffer = renderSystem.CreateBuffer(
-        SDL_GPU_BUFFERUSAGE_VERTEX,
-        sizeof(Graphics::UnlitTexturedVertex) * MAX_VERTEX_COUNT);
-    m_vertex_buffer.SetBufferName("Text Vertex Buffer");
-    m_index_buffer = renderSystem.CreateBuffer(
-        SDL_GPU_BUFFERUSAGE_INDEX,
-        sizeof(int) * MAX_INDEX_COUNT);
-    m_index_buffer.SetBufferName("Text Index Buffer");
+    m_p_text_mesh = std::make_unique<Graphics::Mesh>(renderSystem.CreateMesh(
+        sizeof(Graphics::UnlitTexturedVertex),
+        MAX_VERTEX_COUNT,
+        SDL_GPU_INDEXELEMENTSIZE_32BIT,
+        MAX_INDEX_COUNT));
 
     SDL_GPUSamplerCreateInfo sampler_info = {};
     sampler_info.min_filter = SDL_GPU_FILTER_LINEAR;
@@ -75,7 +73,7 @@ void Systems::TextSystem::Update() {
         UpdateGeometryBuffer();
 
         // upload data to gpu
-        rendersystem.UploadDataToBuffer(SetupTransferBuffer(rendersystem));
+        m_p_text_mesh->LoadData(m_geometry_data.vertices, m_geometry_data.indices);
 
         uint32_t indexCount = 0U;
         // Build renderable object for each entity
@@ -100,17 +98,13 @@ void Systems::TextSystem::Update() {
             renderable.m_depth_override = text.m_draw_order;
             renderable.transform = transform.m_transform;
 
-            renderable.m_vertex_buffer_binding.buffer = m_vertex_buffer.Get();
-            renderable.m_vertex_buffer_binding.offset = 0;
-            renderable.m_index_buffer_binding.buffer = m_index_buffer.Get();
-            renderable.m_index_buffer_binding.offset = 0;
+            renderable.m_p_mesh = m_p_text_mesh.get();
             renderable.textureSampler.sampler = m_sampler.Get();
 
             renderable.m_drawcommand.m_start_index = indexCount;
             renderable.m_drawcommand.m_vertex_offset = 0;
             renderable.m_drawcommand.m_start_instance = 0;
             renderable.m_drawcommand.m_num_instances = 1;
-            renderable.m_index_size = SDL_GPU_INDEXELEMENTSIZE_32BIT;
 
             uint32_t indicesInTextObject = 0U;
             for (TTF_GPUAtlasDrawSequence* p_current = text.m_p_text->GetGpuDrawData(); p_current != nullptr; p_current = p_current->next) {
@@ -202,36 +196,4 @@ void Systems::TextSystem::UpdateGeometryBuffer() {
             p_current = p_current->next;
         }
     }
-}
-
-std::vector<Components::TransferRequest> Systems::TextSystem::SetupTransferBuffer(Systems::RenderSystem& renderSystem) {
-
-    // copy the geometry data to the transfer buffer.
-    std::vector<Components::TransferRequest> requests;
-
-    // vertex data
-    {
-        Components::TransferRequest request = {};
-        request.cycle = true; // don't overwrite vertex data in previous frame.
-        request.type = Components::RequestType::UPLOAD_TO_BUFFER;
-        request.data.buffer.buffer = m_vertex_buffer.Get();
-        request.data.buffer.offset = 0;
-        request.data.buffer.size = sizeof(Graphics::UnlitTexturedVertex) * m_geometry_data.vertices.size();
-        request.p_src = m_geometry_data.vertices.data();
-        requests.push_back(request);
-    }
-
-    // index data
-    {
-        Components::TransferRequest request = {};
-        request.cycle = true; // don't overwrite vertex data in previous frame.
-        request.type = Components::RequestType::UPLOAD_TO_BUFFER;
-        request.data.buffer.buffer = m_index_buffer.Get();
-        request.data.buffer.offset = 0;
-        request.data.buffer.size = sizeof(uint32_t) * m_geometry_data.indices.size();
-        request.p_src = m_geometry_data.indices.data();
-        requests.push_back(request);
-    }
-
-    return requests;
 }

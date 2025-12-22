@@ -9,6 +9,7 @@
 #include "core/Logger.hpp"
 #include "ecs/ECS.hpp"
 #include "menu/ChooseCharacterMenu.hpp"
+#include "menu/CreateCharacterMenu.hpp"
 #include "menu/MainMenu.hpp"
 #include "menu/SettingsMenu.hpp"
 #include "sdl/TTF.hpp"
@@ -94,9 +95,12 @@ void SimulationGame::InitializeGUI() {
         std::make_unique<Menu::SettingsMenu>(GetEngine(), m_menu_manager, uiStyle);
     std::unique_ptr<Menu::ChooseCharacterMenu> p_character
         = std::make_unique<Menu::ChooseCharacterMenu>(GetEngine(), m_menu_manager, uiStyle);
+    std::unique_ptr<Menu::CreateCharacterMenu> p_createCharacter
+        = std::make_unique<Menu::CreateCharacterMenu>(GetEngine(), m_menu_manager, uiStyle);
     m_menu_manager.AddMenu("MainMenu", std::move(p_menu));
     m_menu_manager.AddMenu("Settings", std::move(p_settings));
     m_menu_manager.AddMenu("ChooseCharacter", std::move(p_character));
+    m_menu_manager.AddMenu("CreateCharacter", std::move(p_createCharacter));
 
     m_menu_manager.RequestChangeActiveMenu("MainMenu");
 }

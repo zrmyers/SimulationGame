@@ -6,6 +6,7 @@
 #include "core/Logger.hpp"
 #include "core/Settings.hpp"
 #include "ecs/ECS.hpp"
+#include "graphics/Mesh.hpp"
 #include "graphics/ShaderCross.hpp"
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_oldnames.h>
@@ -21,6 +22,7 @@
 #include <glm/ext/scalar_constants.hpp>
 #include <glm/fwd.hpp>
 #include <glm/trigonometric.hpp>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -150,6 +152,23 @@ SDL::GpuBuffer Systems::RenderSystem::CreateBuffer(SDL_GPUBufferUsageFlags usage
     return SDL::GpuBuffer(m_gpu, createinfo);
 }
 
+Graphics::Mesh Systems::RenderSystem::CreateMesh(size_t vertex_size, size_t num_vertices, SDL_GPUIndexElementSize index_size, size_t num_indices) {
+
+    size_t indexSize = (index_size == SDL_GPU_INDEXELEMENTSIZE_16BIT)? sizeof(uint16_t) : sizeof(uint32_t);
+
+    // naively creates a new index buffer and vertex buffer per mesh. In the future, will want to allocate from a pool of vertex/index buffers.
+    Graphics::Mesh mesh(
+        *this,
+        std::make_shared<SDL::GpuBuffer>(CreateBuffer(SDL_GPU_BUFFERUSAGE_VERTEX, vertex_size*num_vertices)),
+        0, vertex_size,
+        std::make_shared<SDL::GpuBuffer>(CreateBuffer(SDL_GPU_BUFFERUSAGE_INDEX, indexSize*num_indices)),
+        index_size,
+        0U,
+        num_indices);
+
+    return mesh;
+}
+
 SDL::GpuTransferBuffer Systems::RenderSystem::CreateTransferBuffer(SDL_GPUTransferBufferUsage usage, uint32_t size) {
     SDL_GPUTransferBufferCreateInfo createinfo = {usage, size, 0};
     return SDL::GpuTransferBuffer(m_gpu, createinfo);
@@ -239,8 +258,8 @@ void Systems::RenderSystem::Update() {
                 uniform.projView = glm::mat4(1.0F); // orthrographic camera
 
                 SDL_BindGPUGraphicsPipeline(p_renderPass, renderable.m_p_pipeline->Get().Get());
-                SDL_BindGPUVertexBuffers(p_renderPass, 0, &renderable.m_vertex_buffer_binding, 1U);
-                SDL_BindGPUIndexBuffer(p_renderPass, &renderable.m_index_buffer_binding, renderable.m_index_size);
+                SDL_BindGPUVertexBuffers(p_renderPass, 0, &renderable.m_p_mesh->GetVertexBufferBinding(), 1U);
+                SDL_BindGPUIndexBuffer(p_renderPass, &renderable.m_p_mesh->GetIndexBufferBinding(), renderable.m_p_mesh->GetIndexSize());
 
                 SDL_PushGPUVertexUniformData(p_cmdbuf, 0U, &uniform, sizeof(uniform));
 
@@ -264,8 +283,8 @@ void Systems::RenderSystem::Update() {
                 uniform.projView = camera.GetProjection() * camera.GetView();
 
                 SDL_BindGPUGraphicsPipeline(p_renderPass, renderable.m_p_pipeline->Get().Get());
-                SDL_BindGPUVertexBuffers(p_renderPass, 0, &renderable.m_vertex_buffer_binding, 1U);
-                SDL_BindGPUIndexBuffer(p_renderPass, &renderable.m_index_buffer_binding, renderable.m_index_size);
+                SDL_BindGPUVertexBuffers(p_renderPass, 0, &renderable.m_p_mesh->GetVertexBufferBinding(), 1U);
+                SDL_BindGPUIndexBuffer(p_renderPass, &renderable.m_p_mesh->GetIndexBufferBinding(), renderable.m_p_mesh->GetIndexSize());
 
                 SDL_PushGPUVertexUniformData(p_cmdbuf, 0U, &uniform, sizeof(uniform));
 

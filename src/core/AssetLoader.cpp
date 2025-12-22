@@ -20,3 +20,7 @@ std::string Core::AssetLoader::GetImageDir() {
 std::string Core::AssetLoader::GetUiDir() {
     return m_content_dir + "/content/ui";
 }
+
+std::string Core::AssetLoader::GetMeshDir() {
+    return m_content_dir + "/content/meshes";
+}
