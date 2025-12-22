@@ -1,0 +1,283 @@
+{
+    "description": "This file provides recipes for building various creatures used throughout the game. This includes attributes that affect physical attributes and appearance.",
+    "species": [
+        {
+            "id": "human",
+            "description": "Primary intelligent inhabitants of the world.",
+            "materials": [
+                {
+                    "id": "skin",
+                    "color-map": "procedural/human_skin.png",
+                    "inputs": [
+                        {
+                            "name": "skin-color",
+                            "description": "Primary color of skin."
+                        },
+                        {
+                            "name": "blood-color",
+                            "description": "Color of blood."
+                        }
+                    ]
+                },
+                {
+                    "id": "eyes",
+                    "color-map": "procedural/eye.png",
+                    "inputs": [
+                        {
+                            "name": "pupil-color",
+                            "description": "Color of pupil. Usually black"
+                        },
+                        {
+                            "name": "iris-color",
+                            "description": "Color of iris. Can very greatly between members of species."
+                        },
+                        {
+                            "name": "sclera-color",
+                            "description": "Color of sclera. Usually white."
+                        }
+                    ]
+                },
+                {
+                    "id": "hair",
+                    "inputs": [
+                        {
+                            "name": "hair-color-base",
+                            "description": "Primary color used for hair."
+                        },
+                        {
+                            "name": "hair-color-highlight",
+                            "description": "Secondary color used for hair."
+                        }
+                    ]
+                }
+            ],
+            "parts": [
+                {
+                    "id": "HEAD",
+                    "description": "Primary thinking organ. Cannot live without it.",
+                    "provides": ["Vitality", "Consciousness", "Eating", "Hearing", "Seeing", "Social"],
+                    "material-id": "skin"
+                },
+                {
+                    "id": "UPPER_TORSO",
+                    "description": "Primary glue of upper body. Cannot live without it.",
+                    "provides": ["Vitality", "Eating", "Manipulation"],
+                    "material-id": "skin"
+                },
+                {
+                    "id": "HIP",
+                    "description": "Primary glue of lower body. Cannot live without it.",
+                    "provides": ["Vitality", "Eating", "Movement"],
+                    "material-id": "skin"
+                },
+                {
+                    "id": "RIGHT_ARM",
+                    "description": "Used for manipulation of environment.",
+                    "provides": ["Manipulation"],
+                    "material-id": "skin"
+                },
+                {
+                    "id": "RIGHT_HAND",
+                    "description": "Used for manipulation of environment.",
+                    "provides": ["Manipulation"],
+                    "material-id": "skin"
+                },
+                {
+                    "id": "LEFT_ARM",
+                    "description": "Used for manipulation of environment.",
+                    "provides": ["Manipulation"],
+                    "material-id": "skin"
+                },
+                {
+                    "id": "LEFT_HAND",
+                    "description": "Used for manipulation of environment.",
+                    "provides": ["Manipulation"],
+                    "material-id": "skin"
+                },
+                {
+                    "id": "RIGHT_LEG",
+                    "description": "Used for movement in environment.",
+                    "provides": ["Movement"],
+                    "material-id": "skin"
+                },
+                {
+                    "id": "RIGHT_FOOT",
+                    "description": "Used for movement in environment.",
+                    "provides": ["Movement"],
+                    "material-id": "skin"
+                },
+                {
+                    "id": "LEFT_LEG",
+                    "description": "Used for movement in environment.",
+                    "provides": ["Movement"],
+                    "material-id": "skin"
+                },
+                {
+                    "id": "LEFT_FOOT",
+                    "description": "Used for movement in environment.",
+                    "provides": ["Movement"],
+                    "material-id": "skin"
+                },
+                {
+                    "id": "EYELASHES",
+                    "description": "Mostly cosmetic, but also helps protects eyes from debris. ",
+                    "provides": ["Seeing"],
+                    "material-id": "eyelashes"
+                },
+                {
+                    "id": "EYES",
+                    "description": "Primary seeing organ.",
+                    "provides": ["Seeing"],
+                    "material-id": "eyes"
+                },
+                {
+                    "id":"EYEBROW",
+                    "description": "Mostly cosmetic, but also helps protect eyes from moisture. ",
+                    "provides": ["Seeing"],
+                    "material-id": "hair"
+                },
+                {
+                    "id":"HAIR",
+                    "description": "Mostly cosmetic, but helps with heat insulation for head which affects.",
+                    "material-id": "hair"
+                }
+            ],
+            "variants": [
+                {
+                    "id": "Male",
+                    "description": "Male member of species.",
+                    "source": "Human_Male.glb",
+                    "skeleton": "Human_Male.rig",
+                    "parts": [
+                        {
+                            "part-id": "HEAD",
+                            "variants": ["Male_Head"]
+                        },
+                        {
+                            "id": "UPPER_TORSO",
+                            "variants": ["Male_Torso"]
+                        },
+                        {
+                            "id": "HIP",
+                            "variants": ["Male_Hips"]
+                        },
+                        {
+                            "id":"RIGHT_ARM",
+                            "variants":  ["Male_RightArm"]
+                        },
+                        {
+                            "id": "LEFT_ARM",
+                            "variants": ["Male_LeftArm"]
+                        },
+                        {
+                            "id": "RIGHT_LEG",
+                            "variants": [ "Male_RightLeg" ]
+                        },
+                        {
+                            "id": "LEFT_LEG",
+                            "variants": [ "Male_LeftLeg" ]
+                        },
+                        {
+                            "id": "RIGHT_FOOT",
+                            "variants": [ "Male_RightFoot" ]
+                        },
+                        {
+                            "id": "LEFT_FOOT",
+                            "variants": [ "Male_LeftFoot" ]
+                        },
+                        {
+                            "id": "RIGHT_HAND",
+                            "variants": [ "Male_RightHand" ]
+                        },
+                        {
+                            "id": "LEFT_HAND",
+                            "variants": [ "Male_LeftHand" ]
+                        },
+                        {
+                            "id": "EYES",
+                            "variants": [ "Male_Eyes" ]
+                        },
+                        {
+                            "id": "EYELASHES",
+                            "variants": [ "Male_Eyelashes" ]
+                        },
+                        {
+                            "id": "EYEBROW",
+                            "variants": [ "Male_Eyebrow" ]
+                        },
+                        {
+                            "id": "HAIR",
+                            "variants": [ "Male_Hair01" ]
+                        }
+                    ]
+                },
+                {
+                    "id": "human-female",
+                    "source": "Human_Female.glb",
+                    "parts": [
+                        {
+                            "id": "HEAD",
+                            "variants": [ "Female_Head" ]
+                        },
+                        {
+                            "id": "UPPER_TORSO",
+                            "variants": [ "Female_Torso" ]
+                        },
+                        {
+                            "id": "HIP",
+                            "variants": [ "Female_Hips" ]
+                        },
+                        {
+                            "id": "RIGHT_ARM",
+                            "variants": [ "Female_RightArm" ]
+                        },
+                        {
+                            "id": "LEFT_ARM",
+                            "variants": [ "Female_LeftArm" ]
+                        },
+                        {
+                            "id": "RIGHT_LEG",
+                            "variants": [ "Female_RightLeg" ]
+                        },
+                        {
+                            "id": "LEFT_LEG",
+                            "variants": [ "Female_LeftLeg" ]
+                        },
+                        {
+                            "id": "RIGHT_FOOT",
+                            "variants": [ "Female_RightFoot" ]
+                        },
+                        {
+                            "id": "LEFT_FOOT",
+                            "variants": [ "Female_LeftFoot" ]
+                        },
+                        {
+                            "id": "RIGHT_HAND",
+                            "variants": [ "Female_RightHand" ]
+                        },
+                        {
+                            "id": "LEFT_HAND",
+                            "variants": [ "Female_LeftHand" ]
+                        },
+                        {
+                            "id": "EYES",
+                            "variants": [ "Female_Eyes" ]
+                        },
+                        {
+                            "id": "EYELASHES",
+                            "variants": [ "Female_Eyelashes" ]
+                        },
+                        {
+                            "id": "EYEBROW",
+                            "variants": [ "Female_Eyebrow" ]
+                        },
+                        {
+                            "id": "HAIR",
+                            "variants": [ "Female_Hair01" ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
