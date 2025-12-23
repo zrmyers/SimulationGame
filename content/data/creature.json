@@ -1,5 +1,39 @@
 {
     "description": "This file provides recipes for building various creatures used throughout the game. This includes attributes that affect physical attributes and appearance.",
+    "capabilities": [
+        {
+            "name": "Vitality",
+            "description": "Ability to live. Affects resistances and weaknesses of individual. Creatures without Vitality are either dead or undead."
+        },
+        {
+            "name": "Consciousness",
+            "description": "Ability of creature to be aware of its surroundings."
+        },
+        {
+            "name": "Eating",
+            "description": "Ability of creature to eat."
+        },
+        {
+            "name": "Hearing",
+            "description": "Ability of creature to hear sound."
+        },
+        {
+            "name": "Seeing",
+            "description": "Ability of creature to see."
+        },
+        {
+            "name": "Social",
+            "description": "Ability of creature to communicate with other creatures."
+        },
+        {
+            "name": "Manipulation",
+            "description": "Ability of creature to manipulate its environment."
+        },
+        {
+            "name": "Movement",
+            "description": "Ability of creature to move in its environment."
+        }
+    ],
     "species": [
         {
             "id": "human",
@@ -8,45 +42,56 @@
                 {
                     "id": "skin",
                     "color-map": "procedural/human_skin.png",
+                    "shader-type": "skin",
                     "inputs": [
                         {
                             "name": "skin-color",
-                            "description": "Primary color of skin."
+                            "description": "Primary color of skin.",
+                            "slot": 0,
+                            "default": {"r": 0.804, "g": 0.457, "b": 0.486, "a": 1.000}
                         },
                         {
                             "name": "blood-color",
-                            "description": "Color of blood."
+                            "description": "Color of blood.",
+                            "slot": 1,
+                            "default": {"r": 1.000, "g": 0.769, "b": 0.627, "a": 1.000}
                         }
                     ]
                 },
                 {
                     "id": "eyes",
                     "color-map": "procedural/eye.png",
+                    "shader-type": "eyes",
                     "inputs": [
                         {
                             "name": "pupil-color",
-                            "description": "Color of pupil. Usually black"
+                            "description": "Color of pupil. Usually black",
+                            "slot": 0,
+                            "default": {"r": 1.000, "g": 1.000, "b": 1.000, "a": 1.000}
                         },
                         {
                             "name": "iris-color",
-                            "description": "Color of iris. Can very greatly between members of species."
+                            "description": "Color of iris. Can very greatly between members of species.",
+                            "slot": 1,
+                            "default": {"r": 0.905, "g": 0.392, "b": 0.000, "a": 1.000}
                         },
                         {
                             "name": "sclera-color",
-                            "description": "Color of sclera. Usually white."
+                            "description": "Color of sclera. Usually white.",
+                            "slot": 2,
+                            "default": {"r": 0.000, "g": 0.000, "b": 0.000, "a": 1.000}
                         }
                     ]
                 },
                 {
                     "id": "hair",
+                    "shader-type": "hair",
                     "inputs": [
                         {
                             "name": "hair-color-base",
-                            "description": "Primary color used for hair."
-                        },
-                        {
-                            "name": "hair-color-highlight",
-                            "description": "Secondary color used for hair."
+                            "description": "Primary color used for hair.",
+                            "slot": 0,
+                            "default": {"r": 0.118, "g": 0.157, "b": 0.176, "a": 1.000}
                         }
                     ]
                 }
@@ -132,13 +177,14 @@
                 },
                 {
                     "id":"EYEBROW",
-                    "description": "Mostly cosmetic, but also helps protect eyes from moisture. ",
-                    "provides": ["Seeing"],
+                    "description": "Mostly cosmetic, but also helps protect eyes from moisture and affects ability to communicate with facial expressions.",
+                    "provides": ["Seeing", "Social"],
                     "material-id": "hair"
                 },
                 {
                     "id":"HAIR",
-                    "description": "Mostly cosmetic, but helps with heat insulation for head which affects.",
+                    "description": "Mostly cosmetic, but affects social life.",
+                    "provides": ["Social"],
                     "material-id": "hair"
                 }
             ],
@@ -150,7 +196,7 @@
                     "skeleton": "Human_Male.rig",
                     "parts": [
                         {
-                            "part-id": "HEAD",
+                            "id": "HEAD",
                             "variants": ["Male_Head"]
                         },
                         {

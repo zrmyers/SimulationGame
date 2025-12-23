@@ -10,13 +10,12 @@
 
 namespace Character {
 
-static Character::PartId NameToMeshID();
+//----------------------------------------------------------------------------------------------------------------------
+// Creator
 
-std::unique_ptr<Character> Character::CreateDefault(Core::Engine& engine) {
+Creator::Creator(Core::Engine& engine, const std::string& filename) {
 
     Core::AssetLoader& loader = engine.GetAssetLoader();
-    std::unique_ptr<Character> p_character = std::make_unique<Character>();
-
     fastgltf::Parser parser;
     std::filesystem::path assetPath(loader.GetMeshDir() + "/Human_Male.glb");
 
@@ -36,7 +35,18 @@ std::unique_ptr<Character> Character::CreateDefault(Core::Engine& engine) {
         Core::Logger::Info("GLTF Node: " + std::string(node.name));
     }
 
-    p_character->m_sex = Character::Sex::MALE;
+}
+
+std::shared_ptr<CharacterModel> Creator::GetModel(const std::string& model_id) {
+    return nullptr;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// Character
+
+std::unique_ptr<Character> Character::CreateDefault(Core::Engine& engine) {
+
+    std::unique_ptr<Character> p_character = std::make_unique<Character>();
 
     return p_character;
 }

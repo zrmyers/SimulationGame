@@ -58,13 +58,17 @@ namespace Character {
 
         public:
 
-            Creator(const std::string& filename);
+            Creator(Core::Engine& engine, const std::string& filename);
+
+
+            std::shared_ptr<CharacterModel> GetModel(const std::string& model_id);
 
         private:
 
-            std::unordered_map<std::string, CharacterModel> m_model_types;
+            std::unordered_map<std::string, std::shared_ptr<CharacterModel>> m_models;
 
     };
+
     // This class represents a character in the game. Each character is assumed to be human, with the standard set of
     // body parts that a human is composed of. (consider moving definition to other class)
     //
@@ -75,11 +79,6 @@ namespace Character {
 
             static std::unique_ptr<Character> CreateDefault(Core::Engine& engine);
 
-            enum class Sex : uint8_t {
-                MALE = 0,
-                FEMALE
-            };
-
             static constexpr size_t NUM_PARTS = static_cast<size_t>(PartId::PART_COUNT);
 
             Character() = default;
@@ -87,7 +86,6 @@ namespace Character {
         private:
 
             // Customizable traits of character.
-            Sex m_sex {Sex::MALE};
             glm::vec4 m_skin_color_primary {};
             glm::vec4 m_skin_color_secondary {};
             glm::vec4 m_hair_color {};
@@ -97,6 +95,9 @@ namespace Character {
 
             // set of parts that make up character.
             std::vector<BodyPart> m_parts;
+
+            // reference to the character model
+            std::shared_ptr<CharacterModel> m_model;
     };
 
 }
