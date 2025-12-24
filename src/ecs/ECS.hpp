@@ -597,8 +597,8 @@ namespace ECS {
             }
 
             template<typename T>
-            void AddComponent(EntityID_t entity, T component) {
-                m_component_manager.AddComponent<T>(entity, std::move(component));
+            void AddComponent(EntityID_t entity, T&& component) {
+                m_component_manager.AddComponent<T>(entity, std::forward<T>(component));
 
                 Signature_t& signature = m_entity_manager.GetSignature(entity);
                 Signature_t oldSignature = signature;

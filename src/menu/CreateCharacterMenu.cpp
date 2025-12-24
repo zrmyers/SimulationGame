@@ -1,9 +1,10 @@
 #include "CreateCharacterMenu.hpp"
-#include "ChooseCharacterMenu.hpp"
 #include "MenuUtilities.hpp"
-#include "character/Character.hpp"
 #include "components/Canvas.hpp"
+#include "components/Creature.hpp"
+#include "components/Transform.hpp"
 #include "ecs/ECS.hpp"
+#include "systems/CreatureSystem.hpp"
 #include "ui/Button.hpp"
 #include "ui/ButtonStyle.hpp"
 #include "ui/HorizontalLayout.hpp"
@@ -21,14 +22,18 @@ void Menu::CreateCharacterMenu::Activate() {
 
     Core::Engine* p_engine = m_p_engine;
     MenuManager* p_menuManager = m_p_manager;
+    Systems::CreatureSystem& creatureSystem = m_p_engine->GetEcsRegistry().GetSystem<Systems::CreatureSystem>();
     ECS::Registry& registry = m_p_engine->GetEcsRegistry();
 
     m_entity = ECS::Entity(registry);
 
-    // Instantiate the new Character
-    m_p_new_character = Character::Character::CreateDefault(*m_p_engine);
+    // Instantiate the character's creature model.
+    Components::CreatureInstance& creatureInstance = m_entity.EmplaceComponent<Components::CreatureInstance>();
+    creatureInstance = creatureSystem.MakeCreature("human");
 
-    // Draw the character to screen
+
+    // Set the character's location.
+    m_entity.EmplaceComponent<Components::Transform>();
 
     Components::Canvas& canvas = m_entity.EmplaceComponent<Components::Canvas>();
     canvas.SetRenderMode(Components::Canvas::RenderMode::SCREEN);
@@ -59,6 +64,4 @@ void Menu::CreateCharacterMenu::Activate() {
 void Menu::CreateCharacterMenu::Deactivate() {
 
     m_entity = ECS::Entity();
-
-    m_p_new_character = nullptr;
 }

@@ -5,14 +5,15 @@
 
 namespace Components {
 
-    // This class represents a creature in the game. A creature is any kind of object in the game that has mechanical
+    // This class represents a creature in the game. A creature is any kind of object in the game that is able to perform
+    // actions.
     struct CreatureInstance {
 
         // Reference to species.
-        Creature::Species* m_p_species{nullptr};
+        const Creature::Species* m_p_species{nullptr};
 
         // Material instances for creature. Determines how creature is colored during rendering.
-        std::vector<std::shared_ptr<Creature::MaterialInstance>> m_instance;
+        std::vector<std::shared_ptr<Creature::MaterialInstance>> m_material_instance;
 
         // Provides function to creature, and influences following:
         // - Capabilities/Skills

@@ -5,7 +5,6 @@
 #include "ecs/ECS.hpp"
 #include "ui/Style.hpp"
 #include <memory>
-#include "character/Character.hpp"
 
 namespace Menu {
 
@@ -25,8 +24,6 @@ class CreateCharacterMenu : public Menu::IMenu {
         std::shared_ptr<UI::Style> m_p_style;
 
         ECS::Entity m_entity;
-
-        std::unique_ptr<Character::Character> m_p_new_character;
 };
 
 }

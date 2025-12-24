@@ -18,6 +18,8 @@ namespace Systems {
             //! The main update function.
             void Update() override;
 
+            Components::CreatureInstance MakeCreature(const std::string& species_name);
+
         private:
 
             // Pipelines for rendering creatures

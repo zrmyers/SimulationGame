@@ -24,6 +24,7 @@
 #include <string>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <utility>
 #include <vector>
 #include "graphics/pipelines/SkeletalMeshPipeline.hpp"
 
@@ -81,6 +82,8 @@ void Compendium::Load(Core::Engine& engine, const std::string& filename) {
                 species.m_name = speciesData["id"];
                 species.m_description = speciesData["description"];
 
+                Core::Logger::Info("Loading " + species.m_name);
+
                 // Load Materials
                 try {
                     LoadMaterials(engine, species, speciesData);
@@ -104,6 +107,10 @@ void Compendium::Load(Core::Engine& engine, const std::string& filename) {
                     Core::Logger::Error("Failed to load variant for species " + species.m_name);
                     throw;
                 }
+
+                std::string name = species.m_name;
+                m_species.push_back(std::move(species));
+                m_species_map[name] = &m_species.back();
             } catch (nlohmann::json::exception& error) {
 
                 Core::Logger::Error(error.what());
@@ -189,6 +196,8 @@ void Compendium::LoadMaterials(Core::Engine& engine, Species& species, nlohmann:
         else {
             material.m_shader_type = ShaderType::HAIR;
         }
+
+        material.m_colors_count = materialData["inputs"].size();
 
         // process material inputs
         for (auto& materialInputData : materialData["inputs"]) {

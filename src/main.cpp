@@ -64,12 +64,17 @@ int main(int argc, const char** argv) {
         registry.SetSystemSignature<Systems::GuiSystem>(
             registry.GetComponentSignature<Components::Canvas>()
         );
+        registry.SetSystemSignature<Systems::CreatureSystem>(
+            registry.GetComponentSignature<Components::CreatureInstance>()
+            | registry.GetComponentSignature<Components::Transform>()
+        );
 
         // setup dependencies
         registry.SetSystemDependency<Systems::RenderSystem, Systems::TextSystem>();
         registry.SetSystemDependency<Systems::RenderSystem, Systems::SpriteSystem>();
         registry.SetSystemDependency<Systems::TextSystem, Systems::GuiSystem>();
         registry.SetSystemDependency<Systems::SpriteSystem, Systems::GuiSystem>();
+        registry.SetSystemDependency<Systems::RenderSystem, Systems::CreatureSystem>();
 
         // instantiate the game.
         std::unique_ptr<SimulationGame> p_game = std::make_unique<SimulationGame>(engine);
