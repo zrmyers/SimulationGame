@@ -55,6 +55,8 @@ namespace Core {
 
             std::string GetMeshDir();
 
+            std::string GetDataDir();
+
             template<typename T>
             std::shared_ptr<T> Load(const std::string& name) {
 

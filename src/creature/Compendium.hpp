@@ -220,7 +220,7 @@ namespace Creature {
             const Species& GetSpeciesByName(const std::string& name);
 
             const Capability& GetCapabilityByName(const std::string& name) const;
-            const Capability& GetCapabilityByIndex(const std::string& name) const;
+            const Capability& GetCapabilityByIndex(CapabilityIndex_t index) const;
 
         private:
 
@@ -242,6 +242,8 @@ namespace Creature {
 
             //! Load skeletal mesh
             static std::unique_ptr<Graphics::Mesh> LoadSkeletalMesh(Core::Engine& engine, fastgltf::Asset& asset, const std::string& nodeName);
+
+            static fastgltf::Accessor& GetAccessor(fastgltf::Asset& asset, fastgltf::Primitive& primitive, const std::string& attributeName);
 
             //! Set of all capabilities for all creatures. These determine what kind of actions the creature may perform.
             std::vector<Capability> m_capabilities;

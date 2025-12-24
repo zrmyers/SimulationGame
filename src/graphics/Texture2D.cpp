@@ -30,6 +30,7 @@ Graphics::Texture2D::Texture2D(
     if (generate_mipmap) {
 
         createinfo.num_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1U;
+        createinfo.usage |= SDL_GPU_TEXTUREUSAGE_COLOR_TARGET;
     }
 
     m_texture = m_p_render_system->CreateTexture(createinfo);

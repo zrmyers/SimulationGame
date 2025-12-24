@@ -1,6 +1,7 @@
 #include "SimulationGame.hpp"
 #include "components/Camera.hpp"
 #include "components/Canvas.hpp"
+#include "components/Creature.hpp"
 #include "components/Renderable.hpp"
 #include "components/Text.hpp"
 #include "components/Transform.hpp"
@@ -8,6 +9,7 @@
 #include "core/Engine.hpp"
 #include "core/Logger.hpp"
 #include "ecs/ECS.hpp"
+#include "systems/CreatureSystem.hpp"
 #include "systems/GuiSystem.hpp"
 #include "systems/RenderSystem.hpp"
 #include "systems/SpriteSystem.hpp"
@@ -38,12 +40,14 @@ int main(int argc, const char** argv) {
         registry.RegisterComponent<Components::Transform>();
         registry.RegisterComponent<Components::Sprite>();
         registry.RegisterComponent<Components::Canvas>();
+        registry.RegisterComponent<Components::CreatureInstance>();
 
         // register systems
         registry.RegisterSystem(std::make_unique<Systems::RenderSystem>(engine));
         registry.RegisterSystem(std::make_unique<Systems::TextSystem>(engine));
         registry.RegisterSystem(std::make_unique<Systems::SpriteSystem>(engine));
         registry.RegisterSystem(std::make_unique<Systems::GuiSystem>(engine));
+        registry.RegisterSystem(std::make_unique<Systems::CreatureSystem>(engine));
 
         // setup component registration
         registry.SetSystemSignature<Systems::RenderSystem>(

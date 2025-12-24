@@ -45,6 +45,7 @@ set(GLM_BUILD_LIBRARY OFF)
 CPMAddPackage(
     URI "gh:g-truc/glm#1.0.2"
 )
+set(JSON_Diagnostics ON)
 CPMAddPackage(
     URI "gh:nlohmann/json#v3.12.0"
 )
@@ -58,6 +59,7 @@ add_executable(${PROJECT_NAME}
     ./src/main.cpp
     ./src/SimulationGame.cpp
     ./src/character/Character.cpp
+    ./src/creature/Compendium.cpp
     ./src/core/AssetLoader.cpp
     ./src/core/Engine.cpp
     ./src/core/Environment.cpp
@@ -76,6 +78,7 @@ add_executable(${PROJECT_NAME}
     ./src/menu/SettingsMenu.cpp
     ./src/sdl/SDL.cpp
     ./src/sdl/TTF.cpp
+    ./src/systems/CreatureSystem.cpp
     ./src/systems/GuiSystem.cpp
     ./src/systems/RenderSystem.cpp
     ./src/systems/SpriteSystem.cpp

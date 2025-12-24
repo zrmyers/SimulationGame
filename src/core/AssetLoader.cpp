@@ -24,3 +24,7 @@ std::string Core::AssetLoader::GetUiDir() {
 std::string Core::AssetLoader::GetMeshDir() {
     return m_content_dir + "/content/meshes";
 }
+
+std::string Core::AssetLoader::GetDataDir() {
+    return m_content_dir + "/content/data";
+}

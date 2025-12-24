@@ -42,6 +42,7 @@
                 {
                     "id": "skin",
                     "color-map": "procedural/human_skin.png",
+                    "description": "Skin color.",
                     "shader-type": "skin",
                     "inputs": [
                         {
@@ -60,6 +61,7 @@
                 },
                 {
                     "id": "eyes",
+                    "description": "Color of eyes.",
                     "color-map": "procedural/eye.png",
                     "shader-type": "eyes",
                     "inputs": [
@@ -85,6 +87,7 @@
                 },
                 {
                     "id": "hair",
+                    "description": "Color of hair.",
                     "shader-type": "hair",
                     "inputs": [
                         {
@@ -167,7 +170,7 @@
                     "id": "EYELASHES",
                     "description": "Mostly cosmetic, but also helps protects eyes from debris. ",
                     "provides": ["Seeing"],
-                    "material-id": "eyelashes"
+                    "material-id": "hair"
                 },
                 {
                     "id": "EYES",
@@ -259,6 +262,7 @@
                 },
                 {
                     "id": "human-female",
+                    "description": "Female member of species.",
                     "source": "Human_Female.glb",
                     "parts": [
                         {
@@ -271,7 +275,7 @@
                         },
                         {
                             "id": "HIP",
-                            "variants": [ "Female_Hips" ]
+                            "variants": [ "Female_Hip" ]
                         },
                         {
                             "id": "RIGHT_ARM",
@@ -315,7 +319,7 @@
                         },
                         {
                             "id": "EYEBROW",
-                            "variants": [ "Female_Eyebrow" ]
+                            "variants": [ "Female_Eyebrows" ]
                         },
                         {
                             "id": "HAIR",
