@@ -6,6 +6,7 @@
 #include "ButtonStyle.hpp"
 #include "core/Engine.hpp"
 #include "graphics/Texture2D.hpp"
+#include "ui/RadioStyle.hpp"
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -36,6 +37,9 @@ namespace UI {
             void SetDropDownStyle(const std::string& dropdown_id, std::shared_ptr<DropDownStyle>&& style);
             std::shared_ptr<DropDownStyle>& GetDropDownStyle(const std::string& dropdown_id);
 
+            void SetRadioStyle(const std::string& radio_id, std::shared_ptr<RadioStyle>&& style);
+            std::shared_ptr<RadioStyle>& GetRadioStyle(const std::string& radio_id);
+
         private:
 
             static TTF_HorizontalAlignment ParseAlignment(const std::string& asString);
@@ -57,6 +61,9 @@ namespace UI {
 
             //! Set of dropdown button styles
             std::unordered_map<std::string, std::shared_ptr<DropDownStyle>> m_dropdown_style;
+
+            //! Set of radio button styles
+            std::unordered_map<std::string, std::shared_ptr<RadioStyle>> m_radio_styles;
     };
 
 }

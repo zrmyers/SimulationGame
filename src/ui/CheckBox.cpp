@@ -9,7 +9,8 @@
 
 UI::CheckBox::CheckBox()
     : m_p_image_element(nullptr)
-    , m_current_state(CheckBoxState::UNKNOWN) {
+    , m_current_state(CheckBoxState::UNKNOWN)
+    , m_disable_off_toggle(false) {
 
     SetHoverEnterCallback([this](){
         switch (m_current_state) {
@@ -89,9 +90,11 @@ UI::CheckBox::CheckBox()
             switch(this->m_current_state) {
 
                 case UI::CheckBoxState::ON_ACTIVATED:
-                    SetCheckBoxState(CheckBoxState::OFF_FOCUSED);
-                    if (m_state_callback) {
-                        m_state_callback(false);
+                    if (!m_disable_off_toggle) {
+                        SetCheckBoxState(CheckBoxState::OFF_FOCUSED);
+                        if (m_state_callback) {
+                            m_state_callback(false);
+                        }
                     }
                     break;
 
@@ -144,6 +147,12 @@ UI::CheckBox&  UI::CheckBox::SetCheckBoxState(CheckBoxState state) {
         m_current_state = state;
     }
 
+    return *this;
+}
+
+
+UI::CheckBox& UI::CheckBox::SetToggleOffDisabled(bool disabled) {
+    m_disable_off_toggle = disabled;
     return *this;
 }
 

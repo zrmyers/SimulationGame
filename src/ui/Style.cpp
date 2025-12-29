@@ -13,6 +13,7 @@
 #include "sdl/SDL.hpp"
 #include "systems/RenderSystem.hpp"
 #include "systems/TextSystem.hpp"
+#include "ui/RadioStyle.hpp"
 
 //----------------------------------------------------------------------------------------------------------------------
 // Style
@@ -146,6 +147,21 @@ UI::Style UI::Style::Load(Core::Engine& engine, const std::string& filename) {
             style.SetDropDownStyle(dropdown_id, std::move(p_style));
         }
     }
+
+    if (styleData.contains("radio")) {
+        for (auto& radioData : styleData["radio"]) {
+
+            std::string radio_id = radioData["id"];
+
+            std::shared_ptr<RadioStyle> p_radioStyle = std::make_shared<RadioStyle>();
+
+            p_radioStyle->SetFont(style.GetFont(radioData["font-id"]));
+            p_radioStyle->SetCheckboxStyle(style.GetCheckBoxStyle(radioData["checkbox-id"]));
+
+            style.SetRadioStyle(radio_id, std::move(p_radioStyle));
+        }
+    }
+
     return style;
 }
 
@@ -207,6 +223,19 @@ std::shared_ptr<UI::DropDownStyle>& UI::Style::GetDropDownStyle(const std::strin
         throw Core::EngineException("GetDropDownStyle() failed to find style " + dropdown_id);
     }
     return dropdownIter->second;
+}
+
+void UI::Style::SetRadioStyle(const std::string& radio_id, std::shared_ptr<RadioStyle>&& style) {
+    m_radio_styles[radio_id] = std::move(style);
+}
+
+std::shared_ptr<UI::RadioStyle>& UI::Style::GetRadioStyle(const std::string& radio_id) {
+    auto radioIter = m_radio_styles.find(radio_id);
+    if (radioIter == m_radio_styles.end()) {
+        throw Core::EngineException("GetRadioStyle() failed to find style " + radio_id);
+    }
+
+    return radioIter->second;
 }
 
 TTF_HorizontalAlignment UI::Style::ParseAlignment(const std::string& asString) {

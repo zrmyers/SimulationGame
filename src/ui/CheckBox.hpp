@@ -24,6 +24,8 @@ namespace UI {
 
             CheckBox& SetCheckBoxState(CheckBoxState state);
 
+            CheckBox& SetToggleOffDisabled(bool disabled);
+
             //! Update the currently displayed graphics.
             void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) override;
 
@@ -33,5 +35,6 @@ namespace UI {
             CheckBoxStateCallback_t m_state_callback;
             ImageElement* m_p_image_element;
             CheckBoxState m_current_state;
+            bool m_disable_off_toggle; // whether clicking button when on will toggle the state.
     };
 }
