@@ -1,6 +1,7 @@
 #pragma once
 
 #include "creature/Compendium.hpp"
+#include "items/Apparel.hpp"
 #include <vector>
 
 namespace Components {
@@ -12,6 +13,9 @@ namespace Components {
         // Reference to species.
         const Creature::Species* m_p_species{nullptr};
 
+        // Which variant of species
+        Creature::VariantIndex_t m_variant_id;
+
         // Material instances for creature. Determines how creature is colored during rendering.
         std::vector<std::shared_ptr<Creature::MaterialInstance>> m_material_instance;
 
@@ -21,6 +25,9 @@ namespace Components {
         // - Harvestable Resources
         // - Statistics
         std::vector<Creature::PartInstance> m_part_instances;
+
+        // Equipment on character to render.
+        std::vector<Items::ApparelInstance> m_equipment;
 
     };
 }

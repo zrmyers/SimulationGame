@@ -34,6 +34,16 @@ namespace Components {
         bool cycle;
     };
 
+    // Per draw material parameters
+    struct MaterialParameters {
+        void* p_data {nullptr};
+        size_t data_len {0U};
+
+        bool IsValid() const {
+            return (p_data != nullptr) && (data_len > 0U);
+        }
+    };
+
     // @nested part of Renderable
     struct DrawCommand {
 
@@ -65,7 +75,7 @@ namespace Components {
             Graphics::IPipeline* m_p_pipeline;
 
             //! Which vertex buffer to bind.
-            Graphics::Mesh* m_p_mesh;
+            const Graphics::Mesh* m_p_mesh;
 
             //! Any transfers to execute.
             std::vector<TransferRequest> m_requests;
@@ -75,6 +85,9 @@ namespace Components {
 
             // transform
             glm::mat4 transform;
+
+            // Material Data
+            MaterialParameters material;
 
             //! Which samplers to bind.
             DrawCommand m_drawcommand;

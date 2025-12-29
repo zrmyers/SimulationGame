@@ -65,10 +65,13 @@ add_executable(${PROJECT_NAME}
     ./src/core/Filesystem.cpp
     ./src/core/Logger.cpp
     ./src/core/Settings.cpp
+    ./src/gltf/GLTF.cpp
     ./src/graphics/Font.cpp
     ./src/graphics/Mesh.cpp
     ./src/graphics/ShaderCross.cpp
     ./src/graphics/Texture2D.cpp
+    ./src/items/ItemCatalog.cpp
+    ./src/json/Json.cpp
     ./src/menu/ChooseCharacterMenu.cpp
     ./src/menu/CreateCharacterMenu.cpp
     ./src/menu/MainMenu.cpp
@@ -79,6 +82,7 @@ add_executable(${PROJECT_NAME}
     ./src/sdl/TTF.cpp
     ./src/systems/CreatureSystem.cpp
     ./src/systems/GuiSystem.cpp
+    ./src/systems/InventorySystem.cpp
     ./src/systems/RenderSystem.cpp
     ./src/systems/SpriteSystem.cpp
     ./src/systems/TextSystem.cpp

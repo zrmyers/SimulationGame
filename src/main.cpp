@@ -11,6 +11,7 @@
 #include "ecs/ECS.hpp"
 #include "systems/CreatureSystem.hpp"
 #include "systems/GuiSystem.hpp"
+#include "systems/InventorySystem.hpp"
 #include "systems/RenderSystem.hpp"
 #include "systems/SpriteSystem.hpp"
 #include "systems/TextSystem.hpp"
@@ -48,6 +49,7 @@ int main(int argc, const char** argv) {
         registry.RegisterSystem(std::make_unique<Systems::SpriteSystem>(engine));
         registry.RegisterSystem(std::make_unique<Systems::GuiSystem>(engine));
         registry.RegisterSystem(std::make_unique<Systems::CreatureSystem>(engine));
+        registry.RegisterSystem(std::make_unique<Systems::InventorySystem>(engine));
 
         // setup component registration
         registry.SetSystemSignature<Systems::RenderSystem>(

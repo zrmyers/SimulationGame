@@ -51,10 +51,10 @@ namespace Graphics {
             void LoadData(void* p_vertex_data, size_t vertex_data_len,void* p_index_data, size_t index_data_len);
 
             //! Get Vertex Buffer Binding
-            SDL_GPUBufferBinding& GetVertexBufferBinding();
+            const SDL_GPUBufferBinding& GetVertexBufferBinding() const;
 
             //! Get Index Buffer Binding
-            SDL_GPUBufferBinding& GetIndexBufferBinding();
+            const SDL_GPUBufferBinding& GetIndexBufferBinding() const;
 
         private:
 

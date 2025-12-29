@@ -5,6 +5,7 @@
 #include "components/Transform.hpp"
 #include "ecs/ECS.hpp"
 #include "systems/CreatureSystem.hpp"
+#include "systems/InventorySystem.hpp"
 #include "ui/Button.hpp"
 #include "ui/ButtonStyle.hpp"
 #include "ui/HorizontalLayout.hpp"
@@ -23,6 +24,7 @@ void Menu::CreateCharacterMenu::Activate() {
     Core::Engine* p_engine = m_p_engine;
     MenuManager* p_menuManager = m_p_manager;
     Systems::CreatureSystem& creatureSystem = m_p_engine->GetEcsRegistry().GetSystem<Systems::CreatureSystem>();
+    Systems::InventorySystem& inventorySystem = m_p_engine->GetEcsRegistry().GetSystem<Systems::InventorySystem>();
     ECS::Registry& registry = m_p_engine->GetEcsRegistry();
 
     m_entity = ECS::Entity(registry);
@@ -31,9 +33,9 @@ void Menu::CreateCharacterMenu::Activate() {
     Components::CreatureInstance& creatureInstance = m_entity.EmplaceComponent<Components::CreatureInstance>();
     creatureInstance = creatureSystem.MakeCreature("human");
 
-
     // Set the character's location.
-    m_entity.EmplaceComponent<Components::Transform>();
+    Components::Transform& transform = m_entity.EmplaceComponent<Components::Transform>();
+    transform.Translate(glm::vec3(0.0F, -1.0F, -1.0F));
 
     Components::Canvas& canvas = m_entity.EmplaceComponent<Components::Canvas>();
     canvas.SetRenderMode(Components::Canvas::RenderMode::SCREEN);

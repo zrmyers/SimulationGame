@@ -85,6 +85,18 @@ Systems::RenderSystem::RenderSystem(Core::Engine& engine)
 
     m_async_transfer_buffer = CreateTransferBuffer(SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD, TRANSFER_BUFFER_SIZE);
     m_sync_transfer_buffer = CreateTransferBuffer(SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD, TRANSFER_BUFFER_SIZE);
+
+    SDL_GPUTextureCreateInfo depthTextureInfo = {};
+    depthTextureInfo.type = SDL_GPU_TEXTURETYPE_2D;
+    depthTextureInfo.width = resolution.x;
+    depthTextureInfo.height = resolution.y;
+    depthTextureInfo.layer_count_or_depth = 1U;
+    depthTextureInfo.num_levels = 1U;
+    depthTextureInfo.sample_count = SDL_GPU_SAMPLECOUNT_1;
+    depthTextureInfo.format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT;
+    depthTextureInfo.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
+
+    m_depth_texture = CreateTexture(depthTextureInfo);
 }
 
 void Systems::RenderSystem::SetVsync(bool vsync_enabled) {
@@ -240,14 +252,24 @@ void Systems::RenderSystem::Update() {
         }
         SDL_EndGPUCopyPass(p_copyPass);
 
-        SDL_GPUColorTargetInfo colorTargetInfo = {0};
+        SDL_GPUColorTargetInfo colorTargetInfo = {};
         colorTargetInfo.texture = p_swapchainTexture;
         colorTargetInfo.clear_color = SDL_FColor{0.0, 0.0, 0.0, 1.0};
         colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
 
+        SDL_GPUDepthStencilTargetInfo depthTargetInfo = {};
+        depthTargetInfo.texture = m_depth_texture.Get();
+        depthTargetInfo.cycle = true;
+        depthTargetInfo.clear_depth = 1.0F;
+        depthTargetInfo.clear_stencil = 0;
+        depthTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
+        depthTargetInfo.stencil_store_op = SDL_GPU_STOREOP_STORE;
+        depthTargetInfo.stencil_load_op = SDL_GPU_LOADOP_CLEAR;
+        depthTargetInfo.stencil_store_op = SDL_GPU_STOREOP_STORE;
+
         // Draw commands
-        SDL_GPURenderPass* p_renderPass = SDL_BeginGPURenderPass(p_cmdbuf, &colorTargetInfo, 1U, nullptr);
+        SDL_GPURenderPass* p_renderPass = SDL_BeginGPURenderPass(p_cmdbuf, &colorTargetInfo, 1U, &depthTargetInfo);
 
         for (Components::Renderable* p_renderable : renderables) {
 
@@ -288,7 +310,13 @@ void Systems::RenderSystem::Update() {
 
                 SDL_PushGPUVertexUniformData(p_cmdbuf, 0U, &uniform, sizeof(uniform));
 
-                SDL_BindGPUFragmentSamplers(p_renderPass, 0U, &renderable.textureSampler, 1U);
+                if (renderable.material.IsValid()) {
+                    SDL_PushGPUFragmentUniformData(p_cmdbuf, 0, renderable.material.p_data, renderable.material.data_len);
+                }
+
+                if (renderable.textureSampler.texture != nullptr) {
+                    SDL_BindGPUFragmentSamplers(p_renderPass, 0U, &renderable.textureSampler, 1U);
+                }
 
                 Components::DrawCommand& command = renderable.m_drawcommand;
                 SDL_DrawGPUIndexedPrimitives(

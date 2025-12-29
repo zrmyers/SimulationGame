@@ -23,9 +23,7 @@ namespace Systems {
         private:
 
             // Pipelines for rendering creatures
-            Graphics::IPipeline* m_p_skin_pipeline;
-            Graphics::IPipeline* m_p_hair_pipeline;
-            Graphics::IPipeline* m_p_eyes_pipeline;
+            Graphics::IPipeline* m_skeletal_mesh_pipeline;
 
             // Creature Compendium
             Creature::Compendium m_compendium;

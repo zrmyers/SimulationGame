@@ -31,6 +31,9 @@ namespace Creature {
     //! Index for accessing a type of part.
     using PartTypeIndex_t = uint16_t;
 
+    //! Index for accessing a part of a variant.
+    using PartIndex_t = uint16_t;
+
     //! Index for a part option within a variant.
     using PartOptionIndex_t = uint16_t;
 
@@ -60,7 +63,8 @@ namespace Creature {
     enum class ShaderType : uint8_t {
         SKIN = 0,
         EYES,
-        HAIR
+        HAIR,
+        APPAREL
     };
 
     //! Input description
@@ -97,10 +101,18 @@ namespace Creature {
         std::array<glm::vec4, Creature::MAX_COLOR_INPUT_PER_MATERIAL> m_default_colors;
     };
 
+    struct MaterialData {
+        uint32_t m_type;
+        uint32_t m_pad0;
+        uint32_t m_pad1;
+        uint32_t m_pad3;
+        std::array<glm::vec4, Creature::MAX_COLOR_INPUT_PER_MATERIAL> m_color;
+    };
+
     // MaterialInstance
     struct MaterialInstance {
         Creature::MaterialIndex_t m_index;
-        std::array<glm::vec4, Creature::MAX_COLOR_INPUT_PER_MATERIAL> m_color_input;
+        MaterialData m_data;
     };
 
     //! Types of parts that make up a specific creature.
@@ -126,19 +138,22 @@ namespace Creature {
     //! hair.
     struct Part {
 
+        //! Index of the part.
+        PartIndex_t m_id;
+
         //! The part type associated with the options.
         PartType* m_p_part_type;
 
         //! Options for meshes to use for displaying part.
-        std::vector<std::unique_ptr<Graphics::Mesh>> m_p_options;
+        std::vector<std::shared_ptr<Graphics::Mesh>> m_p_options;
 
     };
 
     // Instances of parts used by creature.
     struct PartInstance {
 
-        //! The type of part.
-        Creature::PartTypeIndex_t m_part_type_index;
+        //! The variant part index
+        Creature::PartIndex_t m_part_index;
 
         //! Which variant of part is selected.
         Creature::PartOptionIndex_t m_part_option_index;
@@ -158,6 +173,12 @@ namespace Creature {
         std::string m_name;
     };
 
+    //! Default apparel
+    struct DefaultApparel {
+        std::string apparel_id;
+        std::string material_id;
+    };
+
     //! A variant of a species in the game.
     struct Variant {
 
@@ -175,6 +196,9 @@ namespace Creature {
 
         //! Parts that make up the variant.
         std::vector<Part> m_parts;
+
+        //! Default apparel, when no equipment is loaded.
+        std::vector<DefaultApparel> m_default_apparel;
     };
 
     struct Species {
@@ -230,20 +254,12 @@ namespace Creature {
             //! Get the common texture sampler used for all creatures.
             std::shared_ptr<SDL::GpuSampler> GetTextureSampler(Core::Engine& engine);
 
-            //! parse a color.
-            static glm::vec4 ParseColor(nlohmann::json& colorData);
-
             //! Load creature part type information. This provides various metadata about creature, such as capabilities
             //!
             void LoadParts(Core::Engine& engine, Species& species, nlohmann::json& speciesData) const;
 
             //! Load species variant information.
             void LoadVariants(Core::Engine& engine, Species& species, nlohmann::json& speciesData) const;
-
-            //! Load skeletal mesh
-            static std::unique_ptr<Graphics::Mesh> LoadSkeletalMesh(Core::Engine& engine, fastgltf::Asset& asset, const std::string& nodeName);
-
-            static fastgltf::Accessor& GetAccessor(fastgltf::Asset& asset, fastgltf::Primitive& primitive, const std::string& attributeName);
 
             //! Set of all capabilities for all creatures. These determine what kind of actions the creature may perform.
             std::vector<Capability> m_capabilities;

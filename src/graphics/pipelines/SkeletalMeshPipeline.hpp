@@ -66,8 +66,16 @@ namespace Graphics {
 
                 targetInfo.num_color_targets = 1;
                 targetInfo.color_target_descriptions = & colorTargetDescription;
-                targetInfo.has_depth_stencil_target = false;
-                targetInfo.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_INVALID;
+                targetInfo.has_depth_stencil_target = true;
+                targetInfo.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT;
+
+                //------------------------------------------------------------------------------------------------------------------
+                // Depth Stencil state
+
+                SDL_GPUDepthStencilState& depthStencilState = pipelinecreateinfo.depth_stencil_state;
+                depthStencilState.enable_depth_test = true;
+                depthStencilState.enable_depth_write = true;
+                depthStencilState.compare_op = SDL_GPU_COMPAREOP_LESS;
 
                 //------------------------------------------------------------------------------------------------------------------
                 // Vertex Input State
@@ -97,12 +105,12 @@ namespace Graphics {
                 vertexAttributes[2].location = 2;
                 vertexAttributes[2].offset = offsetof(SkeletalMeshVertex, texcoord);
                 vertexAttributes[3].buffer_slot = 0;
-                vertexAttributes[3].format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE2;
+                vertexAttributes[3].format = SDL_GPU_VERTEXELEMENTFORMAT_UINT;
                 vertexAttributes[3].location = 3;
                 vertexAttributes[3].offset = offsetof(SkeletalMeshVertex, joints);
                 vertexAttributes[4].buffer_slot = 0;
                 vertexAttributes[4].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
-                vertexAttributes[4].location = 3;
+                vertexAttributes[4].location = 4;
                 vertexAttributes[4].offset = offsetof(SkeletalMeshVertex, weights);
 
                 vertexInputState.vertex_attributes = vertexAttributes.data();

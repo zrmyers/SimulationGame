@@ -111,5 +111,8 @@ namespace Systems {
 
             //! Fence for synchronous gpu upload.
             SDL::GpuFence m_sync_transfer_fence;
+
+            //! Texture for Depth pass.
+            SDL::GpuTexture m_depth_texture;
     };
 }

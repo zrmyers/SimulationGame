@@ -1,0 +1,70 @@
+{
+    "materials": [
+        {
+            "id": "cloth",
+            "description": "Woven or felted fabric made from wool, cotton, or similar fibers.",
+            "color": {
+                "r": 1.0, "g": 0.0, "b": 0.0, "a": 1.0
+            }
+        },
+        {
+            "id": "hide",
+            "description": "Raw untanned animal skins.",
+            "color": {
+                "r": 0.0, "g": 1.0, "b": 0.0, "a": 1.0
+            }
+        },
+        {
+            "id": "leather",
+            "description": "strong flexible and durable material obtained from tanning of animal skins or hides.",
+            "color": {
+                "r": 0.0, "g": 0.0, "b": 1.0, "a": 1.0
+            }
+        }
+    ],
+    "apparel": [
+        {
+            "id": "Rags - Lower",
+            "description": "Starter Equipment. Made from scavenged leather or cloth materials to cover privates.",
+            "layers": ["SKIN"],
+            "coverage": "HIP",
+            "craftedFrom": {
+                "oneOf": ["cloth", "hide", "leather"],
+                "amount": 1
+            },
+            "variants": [
+                {
+                    "source": "Human_Male.glb",
+                    "compatible-species": "human",
+                    "compatible-variant": "human-male",
+                    "part": "Rags.Male_Hips"
+                },
+                {
+                    "source": "Human_Female.glb",
+                    "compatible-species": "human",
+                    "compatible-variant": "human-female",
+                    "part": "Rags.Female_Hips"
+                }
+            ]
+        },
+        {
+            "id": "Rags - Upper ",
+            "description": "Covers up privates on chest. Can only be worn by females.",
+            "layers": ["SKIN"],
+            "coverage": "UPPER_TORSO",
+            "craftedFrom": {
+                "oneOf": ["cloth", "hide", "leather"],
+                "amount": 1
+            },
+            "variants": [
+                {
+                    "id": "Female",
+                    "source": "Human_Female.glb",
+                    "compatible-species": "human",
+                    "compatible-variant": "human-female",
+                    "part": "Rags.Female_Torso"
+                }
+            ]
+        }
+    ]
+}

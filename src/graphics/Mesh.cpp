@@ -80,11 +80,11 @@ void Mesh::LoadData(void* p_vertex_data, size_t vertex_data_len, void* p_index_d
     m_p_render_system->UploadDataToBuffer(requestList);
 }
 
-SDL_GPUBufferBinding& Mesh::GetVertexBufferBinding() {
+const SDL_GPUBufferBinding& Mesh::GetVertexBufferBinding() const {
     return m_vertex_binding;
 }
 
-SDL_GPUBufferBinding& Mesh::GetIndexBufferBinding() {
+const SDL_GPUBufferBinding& Mesh::GetIndexBufferBinding() const {
     return m_index_binding;
 }
 

@@ -27,6 +27,8 @@
 #include <utility>
 #include <vector>
 #include "graphics/pipelines/SkeletalMeshPipeline.hpp"
+#include "json/Json.hpp"
+#include "gltf/GLTF.hpp"
 
 namespace Creature {
 
@@ -209,7 +211,7 @@ void Compendium::LoadMaterials(Core::Engine& engine, Species& species, nlohmann:
             uint16_t slot = materialInputData["slot"];
             material.m_colors.at(slot) = input;
 
-            material.m_default_colors.at(slot) = ParseColor(materialInputData["default"]);
+            material.m_default_colors.at(slot) = JSON::ParseColor(materialInputData["default"]);
         }
 
         species.m_materials.push_back(std::move(material));
@@ -234,18 +236,6 @@ std::shared_ptr<SDL::GpuSampler> Compendium::GetTextureSampler(Core::Engine& eng
         m_p_sampler = std::make_shared<SDL::GpuSampler>(renderSystem.CreateSampler(createInfo));
     }
     return m_p_sampler;
-}
-
-glm::vec4 Compendium::ParseColor(nlohmann::json& colorData) {
-
-    glm::vec4 color(1.0F);
-
-    color.r = colorData["r"];
-    color.g = colorData["g"];
-    color.b = colorData["b"];
-    color.a = colorData["a"];
-
-    return color;
 }
 
 void Compendium::LoadParts(Core::Engine& engine, Species& species, nlohmann::json& speciesData) const {
@@ -283,27 +273,19 @@ void Compendium::LoadVariants(Core::Engine& engine, Species& species, nlohmann::
             variant.m_description = variantData["description"];
             variant.m_id = species.m_variants.size();
 
-            fastgltf::Parser parser;
-
-            std::string meshSourceFile = variantData["source"];
-            auto gltfFile =
-                fastgltf::MappedGltfFile::FromPath(
-                    std::filesystem::path(loader.GetMeshDir() + "/" + meshSourceFile));
-            if (gltfFile.error() != fastgltf::Error::None) {
-                std::stringstream msg;
-                msg << "Failed to open " << meshSourceFile << ": " << fastgltf::getErrorMessage(gltfFile.error());
-                throw Core::EngineException(msg.str());
-            }
-
-            auto asset = parser.loadGltfBinary(gltfFile.get(), "");
-            if (asset.error() != fastgltf::Error::None) {
-                std::stringstream msg;
-                msg << "Failed to load gltf " << fastgltf::getErrorMessage(asset.error());
-                throw Core::EngineException(msg.str());
-            }
+            fastgltf::Asset asset = GLTF::LoadAsset(engine, variantData["source"]);
 
             // todo load skeleton
             variant.m_skeleton = {};
+
+            // load default apparel
+            auto& apparelList = variantData["default-apparel"];
+            variant.m_default_apparel.reserve(apparelList.size());
+            for (auto& apparelData : apparelList) {
+                DefaultApparel& apparel = variant.m_default_apparel.emplace_back();
+                apparel.apparel_id = apparelData["apparel-id"];
+                apparel.material_id = apparelData["material-id"];
+            }
 
             auto partsList = variantData["parts"];
             variant.m_parts.reserve(partsList.size());
@@ -311,6 +293,7 @@ void Compendium::LoadVariants(Core::Engine& engine, Species& species, nlohmann::
             for (auto partData : partsList) {
 
                 Part part = {};
+                part.m_id = variant.m_parts.size();
                 part.m_p_part_type = &species.GetPartTypeByName(partData["id"]);
 
                 auto partOptionList = partData["variants"];
@@ -320,8 +303,10 @@ void Compendium::LoadVariants(Core::Engine& engine, Species& species, nlohmann::
                 for (std::string partVariant : partOptionList) {
 
                     part.m_p_options.push_back(
-                        std::move(LoadSkeletalMesh(engine, asset.get(), partVariant)));
+                        std::move(GLTF::LoadSkeletalMesh(engine, asset, partVariant)));
                 }
+
+                variant.m_parts.push_back(std::move(part));
             }
 
             species.m_variants.push_back(std::move(variant));
@@ -330,132 +315,6 @@ void Compendium::LoadVariants(Core::Engine& engine, Species& species, nlohmann::
             throw;
         }
     }
-}
-
-
-std::unique_ptr<Graphics::Mesh> Compendium::LoadSkeletalMesh(Core::Engine& engine, fastgltf::Asset& asset, const std::string& nodeName) {
-
-    // find the node name in the asset.
-    for (fastgltf::Node& node : asset.nodes) {
-
-        if (nodeName.compare(node.name) == 0) { // NOLINT
-
-            if (!node.meshIndex.has_value()) {
-                throw Core::EngineException("No mesh data in " + nodeName);
-            }
-
-            fastgltf::Mesh& mesh = asset.meshes.at(node.meshIndex.value());
-            fastgltf::Primitive& primitive = mesh.primitives.front(); // assuming single primitive per mesh for now.
-
-            if (primitive.type != fastgltf::PrimitiveType::Triangles) {
-                throw Core::EngineException("Error, expect all skeletal meshes to be lists of triangles.");
-            }
-
-            if (!primitive.indicesAccessor.has_value()) {
-                throw Core::EngineException("Error, expect index buffer to be provided from skeletal mesh asset.");
-            }
-
-            // Fine required attributes
-            fastgltf::Accessor& position = GetAccessor(asset, primitive, "POSITION");
-            fastgltf::Accessor& normal = GetAccessor(asset, primitive, "NORMAL");
-            fastgltf::Accessor& texcoord = GetAccessor(asset, primitive, "TEXCOORD_0");
-            fastgltf::Accessor& joints = GetAccessor(asset, primitive, "JOINTS_0");
-            fastgltf::Accessor& weights = GetAccessor(asset, primitive, "WEIGHTS_0");
-            fastgltf::Accessor& indices = asset.accessors.at(primitive.indicesAccessor.value());
-            std::vector<Graphics::SkeletalMeshVertex> vertices;
-
-            vertices.resize(position.count);
-
-            // construct vertex data from skeletal mesh data in asset
-            // POSITION
-            fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec3>(asset, position,
-                [&](fastgltf::math::fvec3 pos, std::size_t index){
-                vertices.at(index).position = glm::vec3(pos.x(), pos.y(), pos.z());
-            });
-            // NORMAL
-            fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec3>(asset, normal,
-                [&](fastgltf::math::fvec3 normal, std::size_t index){
-                vertices.at(index).normal = glm::vec3(normal.x(), normal.y(), normal.z());
-            });
-            // TEXCOORD
-            fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec2>(asset, texcoord,
-                [&](fastgltf::math::fvec2 texcoord, std::size_t index){
-                vertices.at(index).texcoord = glm::vec2(texcoord.x(), texcoord.y());
-            });
-
-            // need to try one of many component type combos
-            if ((joints.componentType == fastgltf::ComponentType::UnsignedByte) && (joints.type == fastgltf::AccessorType::Vec4)) {
-                // JOINTS
-                fastgltf::iterateAccessorWithIndex<fastgltf::math::u8vec4>(asset, joints,
-                    [&](fastgltf::math::u8vec4 joints, std::size_t index){
-                    vertices.at(index).joints = glm::u8vec4(joints.x(), joints.y(), joints.z(), joints.w());
-                });
-            }
-            else if ((joints.componentType == fastgltf::ComponentType::UnsignedShort) && (joints.type == fastgltf::AccessorType::Vec4)) {
-                fastgltf::iterateAccessorWithIndex<fastgltf::math::u16vec4>(asset, joints,
-                    [&](fastgltf::math::u16vec4 joints, std::size_t index){
-                    // support maximum of 255 bones per skeletal mesh. This means we should verify joint IDs are in bounds.
-                    if ((joints.x() > UINT8_MAX) || (joints.y() > UINT8_MAX) || (joints.z() > UINT8_MAX)) {
-                        throw Core::EngineException("Error, " + nodeName + " has skeletal mesh with more than maximum supported number of joints.");
-                    }
-                    vertices.at(index).joints = glm::u8vec4(
-                        static_cast<uint8_t>(joints.x()),
-                        static_cast<uint8_t>(joints.y()),
-                        static_cast<uint8_t>(joints.z()),
-                        static_cast<uint8_t>(joints.w())
-                    );
-                });
-            }
-            else {
-                std::stringstream detailError;
-                detailError << "component type: " << std::hex << static_cast<uint32_t>(joints.componentType) << "\n";
-                detailError << "accessor type: " << std::hex << static_cast<uint32_t>(joints.type) << "\n";
-                throw Core::EngineException("Unsupported component type for skeletal mesh joints.\n" + detailError.str());
-            }
-
-            // WEIGHTS
-            if ((weights.componentType == fastgltf::ComponentType::Float) && (weights.type == fastgltf::AccessorType::Vec4)) {
-                fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec4>(asset, weights,
-                    [&](fastgltf::math::fvec4 weights, std::size_t index){
-                    vertices.at(index).weights = glm::vec4(weights.x(), weights.y(), weights.z(), weights.w());
-                });
-            }
-            else {
-                throw Core::EngineException("Unsupported component type for skeletal mesh weights.");
-            }
-
-            std::vector<uint16_t> indexBuffer;
-            // construct the index data from data in asset
-            if(indices.componentType != fastgltf::ComponentType::UnsignedShort) {
-                throw Core::EngineException("Error, expect indices to have Unsigned Short Type.");
-            }
-
-            indexBuffer.resize(indices.count);
-            fastgltf::copyFromAccessor<uint16_t>(asset, indices, indexBuffer.data());
-
-            // create mesh from vertex/index data
-            Systems::RenderSystem& renderSystem = engine.GetEcsRegistry().GetSystem<Systems::RenderSystem>();
-            std::unique_ptr<Graphics::Mesh> p_mesh = std::make_unique<Graphics::Mesh>(renderSystem.CreateMesh(
-                sizeof(Graphics::SkeletalMeshVertex),
-                vertices.size(),
-                SDL_GPU_INDEXELEMENTSIZE_16BIT,
-                indexBuffer.size()));
-
-            // return mesh.
-            return p_mesh;
-        }
-    }
-
-    throw Core::EngineException("Failed to find " + nodeName);
-}
-
-fastgltf::Accessor& Compendium::GetAccessor(fastgltf::Asset& asset, fastgltf::Primitive& primitive, const std::string& attributeName) {
-    fastgltf::Attribute* p_attribute = primitive.findAttribute(attributeName);
-    if (p_attribute == nullptr) {
-        throw Core::EngineException("Failed to find attribute: " + attributeName);
-    }
-
-    return asset.accessors.at(p_attribute->accessorIndex);
 }
 
 }

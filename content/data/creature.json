@@ -193,10 +193,16 @@
             ],
             "variants": [
                 {
-                    "id": "Male",
+                    "id": "human-male",
                     "description": "Male member of species.",
                     "source": "Human_Male.glb",
                     "skeleton": "Human_Male.rig",
+                    "default-apparel": [
+                        {
+                            "apparel-id": "Rags - Lower",
+                            "material-id": "cloth"
+                        }
+                    ],
                     "parts": [
                         {
                             "id": "HEAD",
@@ -264,6 +270,16 @@
                     "id": "human-female",
                     "description": "Female member of species.",
                     "source": "Human_Female.glb",
+                    "default-apparel": [
+                        {
+                            "apparel-id": "Rags - Lower",
+                            "material-id": "cloth"
+                        },
+                        {
+                            "apparel-id": "Rags - Upper",
+                            "material-id": "cloth"
+                        }
+                    ],
                     "parts": [
                         {
                             "id": "HEAD",

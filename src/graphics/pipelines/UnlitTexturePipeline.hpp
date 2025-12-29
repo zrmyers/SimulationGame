@@ -4,6 +4,7 @@
 #include "sdl/SDL.hpp"
 #include "systems/RenderSystem.hpp"
 #include "PipelineCache.hpp"
+#include <SDL3/SDL_gpu.h>
 
 namespace Graphics {
 
@@ -65,8 +66,16 @@ namespace Graphics {
 
                 targetInfo.num_color_targets = 1;
                 targetInfo.color_target_descriptions = & colorTargetDescription;
-                targetInfo.has_depth_stencil_target = false;
-                targetInfo.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_INVALID;
+                targetInfo.has_depth_stencil_target = true;
+                targetInfo.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT;
+
+                //------------------------------------------------------------------------------------------------------------------
+                // Depth Stencil state
+
+                SDL_GPUDepthStencilState& depthStencilState = pipelinecreateinfo.depth_stencil_state;
+                depthStencilState.enable_depth_test = false;
+                depthStencilState.enable_depth_write = false;
+                depthStencilState.compare_op = SDL_GPU_COMPAREOP_LESS;
 
                 //------------------------------------------------------------------------------------------------------------------
                 // Vertex Input State
