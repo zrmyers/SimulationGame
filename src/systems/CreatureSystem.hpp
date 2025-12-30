@@ -18,7 +18,8 @@ namespace Systems {
             //! The main update function.
             void Update() override;
 
-            Components::CreatureInstance MakeCreature(const std::string& species_name);
+            //! Make a creature of the species with the given sex.
+            Components::CreatureInstance MakeCreature(const std::string& species_name, bool is_male = true);
 
         private:
 

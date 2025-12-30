@@ -3,6 +3,7 @@
 #include "creature/Compendium.hpp"
 #include "items/Apparel.hpp"
 #include <vector>
+#include "core/String.hpp"
 
 namespace Components {
 
@@ -28,6 +29,12 @@ namespace Components {
 
         // Equipment on character to render.
         std::vector<Items::ApparelInstance> m_equipment;
+
+        //! Returns true if male, otherwise false if female.
+        bool GetSex() const {
+
+            return Core::EndsWith(m_p_species->m_variants.at(m_variant_id).m_name, "-male");
+        }
 
     };
 }

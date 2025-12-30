@@ -227,6 +227,12 @@ namespace Creature {
         //! Get part type by name
         PartType& GetPartTypeByName(const std::string& name);
 
+        //! Get the male variant of the species
+        const Variant& GetMaleVariant() const;
+
+        //! Get the female variant of the species
+        const Variant& GetFemaleVariant() const;
+
     };
 
     //! This class is responsible for providing a primary location for looking up information about various creatures in

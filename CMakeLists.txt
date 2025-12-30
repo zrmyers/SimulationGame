@@ -65,6 +65,7 @@ add_executable(${PROJECT_NAME}
     ./src/core/Filesystem.cpp
     ./src/core/Logger.cpp
     ./src/core/Settings.cpp
+    ./src/core/String.cpp
     ./src/gltf/GLTF.cpp
     ./src/graphics/Font.cpp
     ./src/graphics/Mesh.cpp
@@ -97,6 +98,8 @@ add_executable(${PROJECT_NAME}
     ./src/ui/ImageElement.cpp
     ./src/ui/NineSlice.cpp
     ./src/ui/NineSliceStyle.cpp
+    ./src/ui/Radio.cpp
+    ./src/ui/RadioStyle.cpp
     ./src/ui/Spacer.cpp
     ./src/ui/Style.cpp
     ./src/ui/Switch.cpp

@@ -4,7 +4,7 @@
             "id": "cloth",
             "description": "Woven or felted fabric made from wool, cotton, or similar fibers.",
             "color": {
-                "r": 1.0, "g": 0.0, "b": 0.0, "a": 1.0
+                "r": 0.839, "g": 0.584, "b": 0.310, "a": 1.0
             }
         },
         {
@@ -48,7 +48,7 @@
             ]
         },
         {
-            "id": "Rags - Upper ",
+            "id": "Rags - Upper",
             "description": "Covers up privates on chest. Can only be worn by females.",
             "layers": ["SKIN"],
             "coverage": "UPPER_TORSO",

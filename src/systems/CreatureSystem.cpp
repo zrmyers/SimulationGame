@@ -113,7 +113,7 @@ void Systems::CreatureSystem::Update() {
 }
 
 
-Components::CreatureInstance Systems::CreatureSystem::MakeCreature(const std::string& species_name) {
+Components::CreatureInstance Systems::CreatureSystem::MakeCreature(const std::string& species_name, bool is_male) {
 
     const Creature::Species& species = m_compendium.GetSpeciesByName(species_name);
 
@@ -138,7 +138,7 @@ Components::CreatureInstance Systems::CreatureSystem::MakeCreature(const std::st
     }
 
     // select a variant.
-    const Creature::Variant& variant = species.m_variants.front();
+    const Creature::Variant& variant = (is_male)? species.GetMaleVariant() : species.GetFemaleVariant();
     instance.m_variant_id = variant.m_id;
 
     // create parts from variant

@@ -3,6 +3,7 @@
 #include "MenuManager.hpp"
 #include "core/Engine.hpp"
 #include "ecs/ECS.hpp"
+#include "ui/Element.hpp"
 #include "ui/Style.hpp"
 #include <memory>
 
@@ -18,6 +19,13 @@ class CreateCharacterMenu : public Menu::IMenu {
         void Deactivate() override;
 
     private:
+
+        void BuildCustomizationPanel(UI::Element& panelRoot);
+        void BuildFinalizationPanel(UI::Element& panelRoot);
+
+        void SetCharacterSex(bool is_male);
+        // Get the sex of the character. True if male, false if female.
+        bool GetCharacterSex();
 
         Core::Engine* m_p_engine;
         MenuManager* m_p_manager;

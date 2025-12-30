@@ -1,6 +1,25 @@
 #include "MenuUtilities.hpp"
+#include "ui/CheckBox.hpp"
+#include "ui/Element.hpp"
+#include "ui/HorizontalLayout.hpp"
+#include "ui/NineSlice.hpp"
+#include "ui/VerticalLayout.hpp"
+#include "ui/Radio.hpp"
 
-void Menu::AddButton(
+namespace Menu {
+
+UI::Element& AddBackground(
+    const std::shared_ptr<UI::Style>& p_style,
+    UI::Element& parent) {
+
+    UI::NineSlice& background = parent.EmplaceChild<UI::NineSlice>();
+    background.SetStyle(p_style->GetNineSliceStyle("box-style"))
+        .SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
+
+    return background;
+}
+
+void AddButton(
     const std::shared_ptr<UI::Style>& p_style,
     UI::Element& parent,
     const std::string& text_label,
@@ -14,4 +33,35 @@ void Menu::AddButton(
         .SetOnClickCallback(std::move(callback))
         .SetFixedSize({256.0F, 96.0F})
         .SetLayoutMode(UI::LayoutMode::FIXED);
+}
+
+void AddRadioSelection(
+    const std::shared_ptr<UI::Style>& p_style,
+    UI::Element& parent,
+    const std::string& fieldName, // name of field being modified
+    const std::vector<std::string>& options, // possible options to select from
+    size_t selected_index, // currently selected option
+    SelectionChangeCallback_t callback // callback when selection changes.
+) {
+    UI::VerticalLayout& selectionField = parent.EmplaceChild<UI::VerticalLayout>();
+    selectionField.SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
+
+    const std::shared_ptr<Graphics::Font>& p_font = p_style->GetFont("Default-UI");
+
+    UI::TextElement& fieldLabel = selectionField.EmplaceChild<UI::TextElement>();
+    fieldLabel.SetFont(p_font)
+        .SetText(p_font->CreateText(fieldName))
+        .SetFixedSize(fieldLabel.GetTextSize())
+        .SetLayoutMode(UI::LayoutMode::FIXED)
+        .SetOrigin({0.5F, 0.5F})
+        .SetRelativePosition({0.5F, 0.5F});
+
+    UI::Radio& radio = selectionField.EmplaceChild<UI::Radio>();
+    radio.SetStyle(p_style->GetRadioStyle("simple"))
+        .SetOptions(options)
+        .SetValueChangedCallback(std::move(callback))
+        .SelectOption(selected_index)
+        .SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
+}
+
 }

@@ -12,26 +12,23 @@
 #include <fastgltf/math.hpp>
 #include <fastgltf/types.hpp>
 #include <fastgltf/tools.hpp>
-#include <filesystem>
 #include <glm/ext/vector_float2.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <memory>
 #include <nlohmann/json_fwd.hpp>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <utility>
 #include <vector>
-#include "graphics/pipelines/SkeletalMeshPipeline.hpp"
 #include "json/Json.hpp"
 #include "gltf/GLTF.hpp"
+#include "core/String.hpp"
 
 namespace Creature {
-
 
 Material& Species::GetMaterialByName(const std::string& name) {
 
@@ -52,6 +49,30 @@ PartType& Species::GetPartTypeByName(const std::string& name) {
         }
     }
     throw Core::EngineException("Part Type not found: " + name);
+}
+
+const Variant& Species::GetMaleVariant() const {
+
+    // Default to first selection if variant not found
+    const Variant* p_selection = &m_variants.front();
+    for (const Variant& variant : m_variants) {
+        if (Core::EndsWith(variant.m_name, "-male")) {
+            p_selection = &variant;
+        }
+    }
+    return *p_selection;
+}
+
+const Variant& Species::GetFemaleVariant() const {
+
+    // Default to last selection if variant not found
+    const Variant* p_selection = &m_variants.back();
+    for (const Variant& variant : m_variants) {
+        if (Core::EndsWith(variant.m_name, "-female")) {
+            p_selection = &variant;
+        }
+    }
+    return *p_selection;
 }
 
 void Compendium::Load(Core::Engine& engine, const std::string& filename) {

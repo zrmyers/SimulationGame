@@ -200,5 +200,12 @@
             "selection-button-id": "simple",
             "options-button-id": "small-button"
         }
+    ],
+    "radio": [
+        {
+            "id": "simple",
+            "font-id": "Default-UI",
+            "checkbox-id": "simple"
+        }
     ]
 }
