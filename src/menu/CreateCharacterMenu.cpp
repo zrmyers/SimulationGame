@@ -94,24 +94,26 @@ void CreateCharacterMenu::BuildCustomizationPanel(UI::Element& panelRoot) {
 
     // material sliders
     const Creature::Material& skinMaterial = creatureInstance.m_p_species->GetMaterialByName("skin");
-    std::vector<std::string> skinPallete;
-    skinPallete.reserve(skinMaterial.m_pallete.size());
-    for (const Creature::ColorPallete& pallete : skinMaterial.m_pallete) {
-        skinPallete.push_back(pallete.m_name);
-    }
+    AddMaterialCustomizer(widgetList, skinMaterial, "Skin Tone", [this](size_t selection){
+        this->SetSkinColor(selection);
+    });
 
-    AddSliderSelection(m_p_style, widgetList, "Skin Tone",
-        skinPallete, 0, [this](size_t selection){
-            this->SetSkinColor(selection);
+    // eye color selection
+    const Creature::Material& eyeMaterial = creatureInstance.m_p_species->GetMaterialByName("eyes");
+    AddMaterialCustomizer(widgetList, eyeMaterial, "Eye Color", [this](size_t selection){
+        this->SetEyeColor(selection);
+    });
+
+    // hair tone selection
+    const Creature::Material& hairMaterial = creatureInstance.m_p_species->GetMaterialByName("hair");
+    AddMaterialCustomizer(widgetList, hairMaterial, "Hair Color", [this](size_t selection){
+        this->SetHairColor(selection);
     });
 
     // hair selection
 
     // beard selection
 
-    // eye color selection
-
-    // hair tone selection
 }
 
 void CreateCharacterMenu::BuildFinalizationPanel(UI::Element& panelRoot) {
@@ -128,6 +130,18 @@ void CreateCharacterMenu::BuildFinalizationPanel(UI::Element& panelRoot) {
             // return to previous screen
             p_menuManager->RequestChangeActiveMenu("ChooseCharacter");
         });
+}
+
+void CreateCharacterMenu::AddMaterialCustomizer(UI::Element& root, const Creature::Material& material, const std::string& fieldName, SelectionChangeCallback_t callback) {
+
+    std::vector<std::string> palleteOptions;
+    palleteOptions.reserve(material.m_pallete.size());
+    for (const Creature::ColorPallete& pallete : material.m_pallete) {
+        palleteOptions.push_back(pallete.m_name);
+    }
+
+    AddSliderSelection(m_p_style, root, fieldName,
+        palleteOptions, 0, std::move(callback));
 }
 
 void CreateCharacterMenu::SetCharacterSex(bool is_male) {
@@ -157,6 +171,38 @@ void CreateCharacterMenu::SetSkinColor(size_t selected_pallete) {
 
         const Creature::Material& material = creature.m_p_species->m_materials.at(materialInstance.m_index);
         if (material.m_name == "skin") {
+
+            const Creature::ColorPallete& colorPallete = material.m_pallete.at(selected_pallete);
+            colorPallete.Apply(materialInstance.m_data);
+            materialInstance.m_pallete_index = selected_pallete;
+        }
+    }
+}
+
+void CreateCharacterMenu::SetEyeColor(size_t selected_pallete) {
+
+    Components::CreatureInstance& creature = m_entity.GetComponent<Components::CreatureInstance>();
+
+    for (Creature::MaterialInstance& materialInstance : creature.m_material_instance) {
+
+        const Creature::Material& material = creature.m_p_species->m_materials.at(materialInstance.m_index);
+        if (material.m_name == "eyes") {
+
+            const Creature::ColorPallete& colorPallete = material.m_pallete.at(selected_pallete);
+            colorPallete.Apply(materialInstance.m_data);
+            materialInstance.m_pallete_index = selected_pallete;
+        }
+    }
+}
+
+void CreateCharacterMenu::SetHairColor(size_t selected_pallete) {
+
+    Components::CreatureInstance& creature = m_entity.GetComponent<Components::CreatureInstance>();
+
+    for (Creature::MaterialInstance& materialInstance : creature.m_material_instance) {
+
+        const Creature::Material& material = creature.m_p_species->m_materials.at(materialInstance.m_index);
+        if (material.m_name == "hair") {
 
             const Creature::ColorPallete& colorPallete = material.m_pallete.at(selected_pallete);
             colorPallete.Apply(materialInstance.m_data);

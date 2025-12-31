@@ -1,7 +1,9 @@
 #pragma once
 
 #include "MenuManager.hpp"
+#include "MenuUtilities.hpp"
 #include "core/Engine.hpp"
+#include "creature/Compendium.hpp"
 #include "ecs/ECS.hpp"
 #include "ui/Element.hpp"
 #include "ui/Style.hpp"
@@ -23,6 +25,8 @@ class CreateCharacterMenu : public Menu::IMenu {
         void BuildCustomizationPanel(UI::Element& panelRoot);
         void BuildFinalizationPanel(UI::Element& panelRoot);
 
+        void AddMaterialCustomizer(UI::Element& root,const Creature::Material& material, const std::string& fieldName, SelectionChangeCallback_t callback);
+
         // Set the sex of the character.
         void SetCharacterSex(bool is_male);
 
@@ -32,6 +36,11 @@ class CreateCharacterMenu : public Menu::IMenu {
         // Set the skin tone of the character.
         void SetSkinColor(size_t selected_pallete);
 
+        // Set the eye color of the character.
+        void SetEyeColor(size_t selected_pallete);
+
+        // Set the hair color of the character.
+        void SetHairColor(size_t selected_pallete);
 
         Core::Engine* m_p_engine;
         MenuManager* m_p_manager;
