@@ -139,32 +139,47 @@ void UI::Element::OnHover(glm::vec2 prev_position_px, glm::vec2 current_position
     }
 }
 
-void UI::Element::OnMousePress(glm::vec2 press_position, MouseButtonID button_id) {
+bool UI::Element::OnMousePress(glm::vec2 press_position, MouseButtonID button_id) {
 
+    bool handled = false;
     if (CheckCollision(press_position)) {
 
-        if (m_on_press_callback) {
-            m_on_press_callback(button_id);
+        for (auto& p_child : m_children) {
+            if(p_child->OnMousePress(press_position, button_id)) {
+                handled = true;
+                break;
+            }
         }
 
-        for (auto& p_child : m_children) {
-            p_child->OnMousePress(press_position, button_id);
+        if (!handled && m_on_press_callback) {
+            m_on_press_callback(button_id);
+            handled = true;
         }
     }
+
+    return handled;
 }
 
-void UI::Element::OnMouseRelease(glm::vec2 release_position, MouseButtonID button_id) {
+bool UI::Element::OnMouseRelease(glm::vec2 release_position, MouseButtonID button_id) {
+
+    bool handled = false;
 
     if (CheckCollision(release_position)) {
 
-        if (m_on_release_callback) {
-            m_on_release_callback(button_id);
+        for (auto& p_child : m_children) {
+            if(p_child->OnMouseRelease(release_position, button_id)) {
+                handled = true;
+                break;
+            }
         }
 
-        for (auto& p_child : m_children) {
-            p_child->OnMouseRelease(release_position, button_id);
+        if (!handled && m_on_release_callback) {
+            m_on_release_callback(button_id);
+            handled = true;
         }
     }
+
+    return handled;
 }
 
 void UI::Element::ClearGraphics() {

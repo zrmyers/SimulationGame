@@ -50,11 +50,11 @@
                             "description": "Primary color of skin.",
                             "slot": 0,
                             "colors": [
-                                {"r": 0.906, "g": 0.219, "b": 0.429, "a": 1.000},
+                                {"r": 0.906, "g": 0.506, "b": 0.429, "a": 1.000},
                                 {"r": 0.804, "g": 0.457, "b": 0.486, "a": 1.000},
-                                {"r": 0.844, "g": 0.565, "b": 0.342, "a": 1.000},
-                                {"r": 0.392, "g": 0.243, "b": 0.185, "a": 1.000},
-                                {"r": 0.266, "g": 0.139, "b": 0.076, "a": 1.000}
+                                {"r": 0.695, "g": 0.421, "b": 0.257, "a": 1.000},
+                                {"r": 0.297, "g": 0.185, "b": 0.164, "a": 1.000},
+                                {"r": 0.000, "g": 0.000, "b": 0.000, "a": 1.000}
                             ]
                         },
                         {
@@ -64,9 +64,9 @@
                             "colors": [
                                 {"r": 0.962, "g": 0.783, "b": 0.688, "a": 1.000},
                                 {"r": 1.000, "g": 0.769, "b": 0.627, "a": 1.000},
-                                {"r": 0.695, "g": 0.421, "b": 0.257, "a": 1.000},
-                                {"r": 0.297, "g": 0.185, "b": 0.164, "a": 1.000},
-                                {"r": 0.000, "g": 0.000, "b": 0.000, "a": 1.000}
+                                {"r": 0.844, "g": 0.565, "b": 0.342, "a": 1.000},
+                                {"r": 0.392, "g": 0.243, "b": 0.185, "a": 1.000},
+                                {"r": 0.266, "g": 0.139, "b": 0.076, "a": 1.000}
                             ]
                         }
                     ],
@@ -276,9 +276,14 @@
                 },
                 {
                     "id":"HAIR",
-                    "description": "Mostly cosmetic, but affects social life.",
-                    "provides": ["Social"],
-                    "material-id": "hair"
+                    "description": "Cosmetic Attachment. Optional attachment.",
+                    "material-id": "hair",
+                    "attachment-point": "SOCK_HEAD_TOP",
+                    "source-file": "Human_Hairstyles.glb",
+                    "attachments": [
+                            "City Slicker",
+                            "Five Tails"
+                    ]
                 }
             ],
             "variants": [
@@ -349,10 +354,6 @@
                         {
                             "id": "EYEBROW",
                             "variants": [ "Male_Eyebrow" ]
-                        },
-                        {
-                            "id": "HAIR",
-                            "variants": [ "Male_Hair01" ]
                         }
                     ]
                 },
@@ -426,10 +427,6 @@
                         {
                             "id": "EYEBROW",
                             "variants": [ "Female_Eyebrows" ]
-                        },
-                        {
-                            "id": "HAIR",
-                            "variants": [ "Female_Hair01" ]
                         }
                     ]
                 }

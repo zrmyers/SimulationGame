@@ -2,6 +2,7 @@
 #include "components/Camera.hpp"
 #include "components/Canvas.hpp"
 #include "components/Creature.hpp"
+#include "components/InputHandler.hpp"
 #include "components/Renderable.hpp"
 #include "components/Text.hpp"
 #include "components/Transform.hpp"
@@ -42,6 +43,7 @@ int main(int argc, const char** argv) {
         registry.RegisterComponent<Components::Sprite>();
         registry.RegisterComponent<Components::Canvas>();
         registry.RegisterComponent<Components::CreatureInstance>();
+        registry.RegisterComponent<Components::InputHandler>();
 
         // register systems
         registry.RegisterSystem(std::make_unique<Systems::RenderSystem>(engine));

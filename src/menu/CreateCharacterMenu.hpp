@@ -42,11 +42,18 @@ class CreateCharacterMenu : public Menu::IMenu {
         // Set the hair color of the character.
         void SetHairColor(size_t selected_pallete);
 
+        // Process mouse movement
+        void ProcessMouseMovement();
+
         Core::Engine* m_p_engine;
         MenuManager* m_p_manager;
         std::shared_ptr<UI::Style> m_p_style;
 
         ECS::Entity m_entity;
+
+        bool m_track_mouse;
+        glm::vec2 m_prev_position;
+        glm::mat4 m_original_transform;
 };
 
 }

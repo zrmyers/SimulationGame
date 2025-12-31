@@ -3,11 +3,13 @@
 #include "components/Canvas.hpp"
 #include "components/Creature.hpp"
 #include "components/Transform.hpp"
+#include "components/InputHandler.hpp"
 #include "core/Logger.hpp"
 #include "creature/Compendium.hpp"
 #include "ecs/ECS.hpp"
 #include "systems/CreatureSystem.hpp"
 #include "systems/InventorySystem.hpp"
+#include "systems/RenderSystem.hpp"
 #include "ui/Button.hpp"
 #include "ui/ButtonStyle.hpp"
 #include "ui/CheckBox.hpp"
@@ -16,6 +18,9 @@
 #include "ui/HorizontalLayout.hpp"
 #include "ui/Spacer.hpp"
 #include "ui/VerticalLayout.hpp"
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_mouse.h>
+#include <glm/ext/scalar_constants.hpp>
 #include <memory>
 #include <string>
 
@@ -24,7 +29,10 @@ namespace Menu {
 CreateCharacterMenu::CreateCharacterMenu(Core::Engine& engine, MenuManager& manager, std::shared_ptr<UI::Style> p_style)
     : m_p_engine(&engine)
     , m_p_manager(&manager)
-    , m_p_style(std::move(p_style)) {
+    , m_p_style(std::move(p_style))
+    , m_track_mouse(false)
+    , m_prev_position(0.0F)
+    , m_original_transform(1.0F) {
 }
 
 void CreateCharacterMenu::Activate() {
@@ -33,6 +41,7 @@ void CreateCharacterMenu::Activate() {
     MenuManager* p_menuManager = m_p_manager;
     Systems::CreatureSystem& creatureSystem = m_p_engine->GetEcsRegistry().GetSystem<Systems::CreatureSystem>();
     Systems::InventorySystem& inventorySystem = m_p_engine->GetEcsRegistry().GetSystem<Systems::InventorySystem>();
+    Systems::RenderSystem& renderSystem = m_p_engine->GetEcsRegistry().GetSystem<Systems::RenderSystem>();
     ECS::Registry& registry = m_p_engine->GetEcsRegistry();
 
     m_entity = ECS::Entity(registry);
@@ -48,6 +57,29 @@ void CreateCharacterMenu::Activate() {
     // start building the menu.
     Components::Canvas& canvas = m_entity.EmplaceComponent<Components::Canvas>();
     canvas.SetRenderMode(Components::Canvas::RenderMode::SCREEN);
+
+    canvas.SetMouseButtonPressCallback([this](UI::MouseButtonID button){
+        if (button == UI::MouseButtonID::MOUSE_LEFT) {
+            m_track_mouse = true;
+
+            // initialize mouse state for tracking.
+            (void) SDL_GetMouseState(&m_prev_position.x, &m_prev_position.y);
+
+            Components::Transform& transform = m_entity.GetComponent<Components::Transform>();
+            m_original_transform = transform.m_transform;
+        }
+    });
+    canvas.SetMouseButtonReleaseCallback([this](UI::MouseButtonID button){
+        if (button == UI::MouseButtonID::MOUSE_RIGHT) {
+            m_track_mouse = false;
+        }
+    });
+    canvas.SetHoverEnterCallback([this](){
+        if (m_track_mouse) {
+            ProcessMouseMovement();
+        }
+    });
+
 
     // populate canvas with ui elements
     UI::VerticalLayout& mainVertical = canvas.EmplaceChild<UI::VerticalLayout>();
@@ -209,6 +241,46 @@ void CreateCharacterMenu::SetHairColor(size_t selected_pallete) {
             materialInstance.m_pallete_index = selected_pallete;
         }
     }
+}
+
+
+void CreateCharacterMenu::ProcessMouseMovement() {
+
+    float posX = 0.0F;
+    float posY = 0.0F;
+
+    // check if mouse is still being pressed
+    SDL_MouseButtonFlags flags = SDL_GetMouseState(&posX, &posY);
+    if ((flags & SDL_BUTTON_LMASK) == 0) {
+
+        // Done tracking mouse
+        m_track_mouse = false;
+    } else {
+        Systems::RenderSystem& renderSystem = m_p_engine->GetEcsRegistry().GetSystem<Systems::RenderSystem>();
+        Components::Transform& transform = m_entity.GetComponent<Components::Transform>();
+
+        glm::vec2 resolution = renderSystem.GetWindowSize();
+        resolution /= 2.0F; // half-dims
+
+        // determine motion direction
+        float xMovement = posX - m_prev_position.x;
+        float yMovement = posY - m_prev_position.y;
+
+        // reset transform to beginning of tracking.
+        transform.m_transform = m_original_transform;
+
+        // calculate rotation angle, normalized to half a full rotation in either direction if starting from center
+        float rotationAngle = glm::pi<float>() * (xMovement / resolution.x);
+
+        // Rotate Left
+        transform.Rotate(rotationAngle, glm::vec3(0.0F, 1.0F, 0.0F));
+
+        // calculate translation on +/- y axis
+        float translationDistance = yMovement / resolution.y;
+        transform.Translate(glm::vec3(0.0F, -translationDistance, 0.0F));
+
+    }
+
 }
 
 }

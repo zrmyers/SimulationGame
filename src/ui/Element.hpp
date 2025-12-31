@@ -85,10 +85,10 @@ namespace UI {
             void OnHover(glm::vec2 prev_position_px, glm::vec2 current_position_px);
 
             //! Process mouse click
-            void OnMousePress(glm::vec2 press_position, MouseButtonID button_id);
+            bool OnMousePress(glm::vec2 press_position, MouseButtonID button_id);
 
             //! Process mouse release
-            void OnMouseRelease(glm::vec2 release_position, MouseButtonID button_id);
+            bool OnMouseRelease(glm::vec2 release_position, MouseButtonID button_id);
 
             //! Update the element. If element is visible, updates sprite and text primitives.
             virtual void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) = 0;
