@@ -92,11 +92,24 @@ void CreateCharacterMenu::BuildCustomizationPanel(UI::Element& panelRoot) {
         this->SetCharacterSex(selected_index == 0);
     });
 
-    // skin tone selection
+    // material sliders
+    const Creature::Material& skinMaterial = creatureInstance.m_p_species->GetMaterialByName("skin");
+    std::vector<std::string> skinPallete;
+    skinPallete.reserve(skinMaterial.m_pallete.size());
+    for (const Creature::ColorPallete& pallete : skinMaterial.m_pallete) {
+        skinPallete.push_back(pallete.m_name);
+    }
+
+    AddSliderSelection(m_p_style, widgetList, "Skin Tone",
+        skinPallete, 0, [this](size_t selection){
+            this->SetSkinColor(selection);
+    });
 
     // hair selection
 
     // beard selection
+
+    // eye color selection
 
     // hair tone selection
 }
@@ -121,15 +134,35 @@ void CreateCharacterMenu::SetCharacterSex(bool is_male) {
 
     Systems::CreatureSystem& creatureSystem = m_p_engine->GetEcsRegistry().GetSystem<Systems::CreatureSystem>();
     Components::CreatureInstance& creature = m_entity.GetComponent<Components::CreatureInstance>();
+    Components::CreatureInstance oldCreature = std::move(creature);
 
     // replace the creature with a new one
     creature = creatureSystem.MakeCreature(creature.m_p_species->m_name, is_male);
+
+    // transfer materials from previous creature.
+    creature.m_material_instance = std::move(oldCreature.m_material_instance);
 }
 
 bool CreateCharacterMenu::GetCharacterSex() {
 
     Components::CreatureInstance& creature = m_entity.GetComponent<Components::CreatureInstance>();
     return creature.GetSex();
+}
+
+void CreateCharacterMenu::SetSkinColor(size_t selected_pallete) {
+
+    Components::CreatureInstance& creature = m_entity.GetComponent<Components::CreatureInstance>();
+
+    for (Creature::MaterialInstance& materialInstance : creature.m_material_instance) {
+
+        const Creature::Material& material = creature.m_p_species->m_materials.at(materialInstance.m_index);
+        if (material.m_name == "skin") {
+
+            const Creature::ColorPallete& colorPallete = material.m_pallete.at(selected_pallete);
+            colorPallete.Apply(materialInstance.m_data);
+            materialInstance.m_pallete_index = selected_pallete;
+        }
+    }
 }
 
 }

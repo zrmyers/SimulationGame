@@ -41,6 +41,17 @@ Material& Species::GetMaterialByName(const std::string& name) {
     throw Core::EngineException("Material not found: " + name);
 }
 
+const Material& Species::GetMaterialByName(const std::string& name) const {
+
+    for (const Material& material : m_materials) {
+        if (material.m_name == name) {
+            return material;
+        }
+    }
+
+    throw Core::EngineException("Material not found: " + name);
+}
+
 PartType& Species::GetPartTypeByName(const std::string& name) {
 
     for (PartType& partType : m_part_types) {
@@ -229,10 +240,28 @@ void Compendium::LoadMaterials(Core::Engine& engine, Species& species, nlohmann:
             input.m_name = materialInputData["name"];
             input.m_description = materialInputData["description"];
 
+            // parse the color pallete for the material input
+            for (auto& color : materialInputData["colors"]) {
+                input.m_color_options.push_back(JSON::ParseColor(color));
+            }
+
             uint16_t slot = materialInputData["slot"];
             material.m_colors.at(slot) = input;
+        }
 
-            material.m_default_colors.at(slot) = JSON::ParseColor(materialInputData["default"]);
+        // build material pallete
+        for (auto& palleteData : materialData["pallete"]) {
+
+            ColorPallete& pallete = material.m_pallete.emplace_back();
+            pallete.m_name = palleteData["name"];
+            uint32_t slot_id = 0U;
+
+            for (int32_t index : palleteData["colors"]) {
+
+                MaterialInput& colorInput = material.m_colors.at(slot_id);
+                pallete.m_p_colors.push_back(&colorInput.m_color_options.at(index));
+                slot_id++;
+            }
         }
 
         species.m_materials.push_back(std::move(material));

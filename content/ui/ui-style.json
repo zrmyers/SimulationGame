@@ -81,6 +81,11 @@
             "id": "small-button-selected",
             "image": "ui/small-button-selected.png",
             "border-width-px": 4
+        },
+        {
+            "id": "small-button-selected-focused",
+            "image": "ui/small-button-selected-focused.png",
+            "border-width-px": 4
         }
     ],
     "button": [
@@ -206,6 +211,24 @@
             "id": "simple",
             "font-id": "Default-UI",
             "checkbox-id": "simple"
+        }
+    ],
+    "slider": [
+        {
+            "id": "simple",
+            "font-id": "Default-UI",
+            "track-filled": {
+                "enabled-nineslice-id": "small-button-selected",
+                "focused-nineslice-id": "small-button-selected-focused"
+            },
+            "track-unfilled": {
+                "enabled-nineslice-id": "small-button-enabled",
+                "focused-nineslice-id": "small-button-focused"
+            },
+            "knob": {
+                "enabled-image-id": "ui/checkbox-on.png",
+                "focused-image-id": "ui/checkbox-on-focused.png"
+            }
         }
     ]
 }

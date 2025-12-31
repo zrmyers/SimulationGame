@@ -3,6 +3,8 @@
 #include "ui/Element.hpp"
 #include "ui/HorizontalLayout.hpp"
 #include "ui/NineSlice.hpp"
+#include "ui/Slider.hpp"
+#include "ui/SliderStyle.hpp"
 #include "ui/VerticalLayout.hpp"
 #include "ui/Radio.hpp"
 
@@ -51,6 +53,7 @@ void AddRadioSelection(
     UI::TextElement& fieldLabel = selectionField.EmplaceChild<UI::TextElement>();
     fieldLabel.SetFont(p_font)
         .SetText(p_font->CreateText(fieldName))
+        .SetTextColor(glm::vec4(1.0F, 1.0F, 0.0F, 1.0F))
         .SetFixedSize(fieldLabel.GetTextSize())
         .SetLayoutMode(UI::LayoutMode::FIXED)
         .SetOrigin({0.5F, 0.5F})
@@ -62,6 +65,42 @@ void AddRadioSelection(
         .SetValueChangedCallback(std::move(callback))
         .SelectOption(selected_index)
         .SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
+}
+
+
+// Add slider
+void AddSliderSelection(
+    const std::shared_ptr<UI::Style>& p_style,
+    UI::Element& parent,
+    const std::string& fieldName, // name of field being modified
+    const std::vector<std::string>& options, // possible options to select from
+    size_t selected_index, // currently selected option
+    SelectionChangeCallback_t callback // callback when selection changes
+) {
+
+    UI::VerticalLayout& selectionField = parent.EmplaceChild<UI::VerticalLayout>();
+    selectionField.SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
+
+    const std::shared_ptr<Graphics::Font>& p_font = p_style->GetFont("Default-UI");
+
+    UI::TextElement& fieldLabel = selectionField.EmplaceChild<UI::TextElement>();
+    fieldLabel.SetFont(p_font)
+        .SetText(p_font->CreateText(fieldName))
+        .SetTextColor(glm::vec4(1.0F, 1.0F, 0.0F, 1.0F))
+        .SetFixedSize(fieldLabel.GetTextSize())
+        .SetLayoutMode(UI::LayoutMode::FIXED)
+        .SetOrigin({0.5F, 0.5F})
+        .SetRelativePosition({0.5F, 0.5F});
+
+    UI::Slider& slider = selectionField.EmplaceChild<UI::Slider>();
+    slider.SetStyle(p_style->GetSliderStyle("simple"))
+        .SetOptions(options)
+        .SetValueChangedCallback(std::move(callback))
+        .SelectOption(selected_index)
+        .SetSliderState(UI::SliderState::ENABLED)
+        .SetLayoutMode(UI::LayoutMode::FIXED)
+        .SetFixedSize(glm::vec2(256.0F, 32.0F));
+
 }
 
 }

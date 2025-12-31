@@ -71,6 +71,30 @@ namespace Creature {
     struct MaterialInput {
         std::string m_name;
         std::string m_description;
+        std::vector<glm::vec4> m_color_options;
+    };
+
+    struct MaterialData {
+        uint32_t m_type {0U};
+        uint32_t m_pad0 {0U};
+        uint32_t m_pad1 {0U};
+        uint32_t m_pad2 {0U};
+        std::array<glm::vec4, Creature::MAX_COLOR_INPUT_PER_MATERIAL> m_color {glm::vec4(1.0F)};
+    };
+
+    //! Material Pallete option.
+    struct ColorPallete {
+        std::string m_name;
+        std::vector<glm::vec4*> m_p_colors;
+
+        void Apply(MaterialData& data) const {
+
+            uint32_t slot_index = 0U;
+            for (const glm::vec4* p_color : m_p_colors) {
+                data.m_color.at(slot_index) = *p_color;
+                slot_index++;
+            }
+        }
     };
 
     //! Description of a material from which a creature is composed.
@@ -97,22 +121,16 @@ namespace Creature {
         //! number of color slots used.
         uint16_t m_colors_count;
 
-        //! Defaults
-        std::array<glm::vec4, Creature::MAX_COLOR_INPUT_PER_MATERIAL> m_default_colors;
+        //! Pallete of color choices for material.
+        std::vector<ColorPallete> m_pallete;
     };
 
-    struct MaterialData {
-        uint32_t m_type;
-        uint32_t m_pad0;
-        uint32_t m_pad1;
-        uint32_t m_pad3;
-        std::array<glm::vec4, Creature::MAX_COLOR_INPUT_PER_MATERIAL> m_color;
-    };
 
     // MaterialInstance
     struct MaterialInstance {
-        Creature::MaterialIndex_t m_index;
+        Creature::MaterialIndex_t m_index {0U};
         MaterialData m_data;
+        size_t m_pallete_index {0U};
     };
 
     //! Types of parts that make up a specific creature.
@@ -223,6 +241,7 @@ namespace Creature {
 
         //! Get material by name
         Material& GetMaterialByName(const std::string& name);
+        const Material& GetMaterialByName(const std::string& name) const;
 
         //! Get part type by name
         PartType& GetPartTypeByName(const std::string& name);

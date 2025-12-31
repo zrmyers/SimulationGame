@@ -35,4 +35,14 @@ namespace Menu {
         SelectionChangeCallback_t callback // callback when selection changes.
     );
 
+    // Add slider
+    void AddSliderSelection(
+        const std::shared_ptr<UI::Style>& p_style,
+        UI::Element& parent,
+        const std::string& fieldName, // name of field being modified
+        const std::vector<std::string>& options, // possible options to select from
+        size_t selected_index, // currently selected option
+        SelectionChangeCallback_t callback // callback when selection changes
+    );
+
 }

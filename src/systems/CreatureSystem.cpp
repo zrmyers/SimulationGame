@@ -51,7 +51,7 @@ void Systems::CreatureSystem::Update() {
                 const Creature::Part& part = variant.m_parts.at(partInstance.m_part_index);
                 const Creature::Material& material = *part.m_p_part_type->m_p_material;
 
-                Creature::MaterialInstance& materialInstance = *creature.m_material_instance.at(material.m_material_index);
+                Creature::MaterialInstance& materialInstance = creature.m_material_instance.at(material.m_material_index);
 
                 // Get the mesh for a part.
                 const Graphics::Mesh& mesh = *part.m_p_options.at(partInstance.m_part_option_index);
@@ -125,16 +125,17 @@ Components::CreatureInstance Systems::CreatureSystem::MakeCreature(const std::st
 
         Creature::MaterialInstance materialInstance = {};
         materialInstance.m_index = material.m_material_index;
-
+        materialInstance.m_pallete_index = 0U;
         Creature::MaterialData& data = materialInstance.m_data;
         data.m_type = static_cast<uint32_t>(material.m_shader_type);
 
+        const Creature::ColorPallete& pallete = material.m_pallete.front();
         for (uint16_t inputIndex = 0; inputIndex < material.m_colors_count; inputIndex++) {
-            data.m_color.at(inputIndex) = material.m_default_colors.at(inputIndex);
+            data.m_color.at(inputIndex) = *pallete.m_p_colors.at(inputIndex);
         }
 
         // todo will need to have better way of managing materials for creatures at some point.
-        instance.m_material_instance.push_back(std::make_shared<Creature::MaterialInstance>(materialInstance));
+        instance.m_material_instance.push_back(materialInstance);
     }
 
     // select a variant.

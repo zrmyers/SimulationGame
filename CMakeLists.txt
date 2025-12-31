@@ -100,6 +100,8 @@ add_executable(${PROJECT_NAME}
     ./src/ui/NineSliceStyle.cpp
     ./src/ui/Radio.cpp
     ./src/ui/RadioStyle.cpp
+    ./src/ui/Slider.cpp
+    ./src/ui/SliderStyle.cpp
     ./src/ui/Spacer.cpp
     ./src/ui/Style.cpp
     ./src/ui/Switch.cpp

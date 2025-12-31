@@ -3,9 +3,11 @@
 #include <SDL3/SDL_gpu.h>
 #include <fstream>
 #include <memory>
+#include <string>
 #include "CheckBoxStyle.hpp"
 #include "DropDownStyle.hpp"
 #include "NineSliceStyle.hpp"
+#include "SliderStyle.hpp"
 #include "core/AssetLoader.hpp"
 #include "core/Engine.hpp"
 #include "graphics/Texture2D.hpp"
@@ -162,6 +164,34 @@ UI::Style UI::Style::Load(Core::Engine& engine, const std::string& filename) {
         }
     }
 
+    if (styleData.contains("slider")) {
+
+        for (auto& sliderData : styleData["slider"]) {
+
+            std::string slider_id = sliderData["id"];
+            std::shared_ptr<SliderStyle> p_sliderStyle = std::make_shared<SliderStyle>();
+
+            p_sliderStyle->SetFont(style.GetFont(sliderData["font-id"]));
+
+            // track filled style
+            auto& trackFilledData = sliderData["track-filled"];
+            p_sliderStyle->SetTrackFilledStyle(SliderState::ENABLED, style.GetNineSliceStyle(trackFilledData["enabled-nineslice-id"]));
+            p_sliderStyle->SetTrackFilledStyle(SliderState::FOCUSED, style.GetNineSliceStyle(trackFilledData["focused-nineslice-id"]));
+
+            // track unfilled style
+            auto& trackUnfilledData = sliderData["track-unfilled"];
+            p_sliderStyle->SetTrackUnfilledStyle(SliderState::ENABLED, style.GetNineSliceStyle(trackUnfilledData["enabled-nineslice-id"]));
+            p_sliderStyle->SetTrackUnfilledStyle(SliderState::FOCUSED, style.GetNineSliceStyle(trackUnfilledData["focused-nineslice-id"]));
+
+            // knob style
+            auto& knobData = sliderData["knob"];
+            p_sliderStyle->SetKnobImage(SliderState::ENABLED, LoadImage(engine, knobData["enabled-image-id"]));
+            p_sliderStyle->SetKnobImage(SliderState::FOCUSED, LoadImage(engine, knobData["focused-image-id"]));
+
+            style.SetSliderStyle(slider_id, std::move(p_sliderStyle));
+        }
+    }
+
     return style;
 }
 
@@ -236,6 +266,18 @@ std::shared_ptr<UI::RadioStyle>& UI::Style::GetRadioStyle(const std::string& rad
     }
 
     return radioIter->second;
+}
+
+void UI::Style::SetSliderStyle(const std::string& slider_id, std::shared_ptr<SliderStyle>&& style) {
+    m_slider_styles[slider_id] = std::move(style);
+}
+
+std::shared_ptr<UI::SliderStyle>& UI::Style::GetSliderStyle(const std::string& slider_id) {
+    auto styleIter = m_slider_styles.find(slider_id);
+    if (styleIter == m_slider_styles.end()) {
+        throw Core::EngineException("GetSliderStyle() failed to find style " + slider_id);
+    }
+    return styleIter->second;
 }
 
 TTF_HorizontalAlignment UI::Style::ParseAlignment(const std::string& asString) {

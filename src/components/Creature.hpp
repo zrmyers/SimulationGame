@@ -18,7 +18,7 @@ namespace Components {
         Creature::VariantIndex_t m_variant_id;
 
         // Material instances for creature. Determines how creature is colored during rendering.
-        std::vector<std::shared_ptr<Creature::MaterialInstance>> m_material_instance;
+        std::vector<Creature::MaterialInstance> m_material_instance;
 
         // Provides function to creature, and influences following:
         // - Capabilities/Skills
@@ -35,6 +35,8 @@ namespace Components {
 
             return Core::EndsWith(m_p_species->m_variants.at(m_variant_id).m_name, "-male");
         }
+
+
 
     };
 }

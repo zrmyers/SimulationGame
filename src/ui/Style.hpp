@@ -4,6 +4,7 @@
 #include "DropDownStyle.hpp"
 #include "NineSliceStyle.hpp"
 #include "ButtonStyle.hpp"
+#include "SliderStyle.hpp"
 #include "core/Engine.hpp"
 #include "graphics/Texture2D.hpp"
 #include "ui/RadioStyle.hpp"
@@ -40,6 +41,9 @@ namespace UI {
             void SetRadioStyle(const std::string& radio_id, std::shared_ptr<RadioStyle>&& style);
             std::shared_ptr<RadioStyle>& GetRadioStyle(const std::string& radio_id);
 
+            void SetSliderStyle(const std::string& slider_id, std::shared_ptr<SliderStyle>&& style);
+            std::shared_ptr<SliderStyle>& GetSliderStyle(const std::string& slider_id);
+
         private:
 
             static TTF_HorizontalAlignment ParseAlignment(const std::string& asString);
@@ -64,6 +68,9 @@ namespace UI {
 
             //! Set of radio button styles
             std::unordered_map<std::string, std::shared_ptr<RadioStyle>> m_radio_styles;
+
+            //! Set of slider styles
+            std::unordered_map<std::string, std::shared_ptr<SliderStyle>> m_slider_styles;
     };
 
 }
