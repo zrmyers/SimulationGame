@@ -1,3 +1,8 @@
+/**
+ * @file DropDown.hpp
+ * @brief Declaration for a drop-down control that spawns a selection menu.
+ */
+
 #pragma once
 
 #include "DropDownStyle.hpp"
@@ -13,19 +18,51 @@ namespace UI {
 
     using DropDownValueChangeCallback_t = std::function<void(size_t)>;
 
-    //! Represents a button that spawns a drop-down menu when clicked.
+    /**
+     * @class DropDown
+     * @brief Button-like element that opens a list of selectable options on click.
+     */
     class DropDown : public Element {
 
         public:
 
+            /** @brief Default constructor. */
             DropDown();
 
+            /**
+             * @brief Set the style used by this drop-down.
+             * @param p_style Shared pointer to a DropDownStyle.
+             * @return Reference to this DropDown.
+             */
             DropDown& SetStyle(const std::shared_ptr<DropDownStyle>& p_style);
+
+            /**
+             * @brief Select an option by index.
+             * @param select Index to select.
+             * @return Reference to this DropDown.
+             */
             DropDown& SelectOption(size_t select);
+
+            /**
+             * @brief Set the available options for the drop-down.
+             * @param options Vector of option strings.
+             * @return Reference to this DropDown.
+             */
             DropDown& SetOptions(std::vector<std::string> options);
+
+            /**
+             * @brief Set callback invoked when selection changes.
+             * @param callback Function called with new selected index.
+             * @return Reference to this DropDown.
+             */
             DropDown& SetValueChangedCallback(DropDownValueChangeCallback_t callback);
 
-            //! Update the currently displayed graphics.
+            /**
+             * @brief Update the currently displayed graphics for the drop-down.
+             * @param registry ECS registry used for rendering components.
+             * @param screenSize Screen resolution in pixels.
+             * @param depth Draw order depth.
+             */
             void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) override;
 
         private:

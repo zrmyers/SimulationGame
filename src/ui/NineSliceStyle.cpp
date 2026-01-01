@@ -1,3 +1,8 @@
+/**
+ * @file NineSliceStyle.cpp
+ * @brief Implementation for loading and manipulating nine-slice styles.
+ */
+
 #include "NineSliceStyle.hpp"
 
 //----------------------------------------------------------------------------------------------------------------------

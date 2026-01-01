@@ -1,3 +1,8 @@
+#/**
+ * @file ImageElement.cpp
+ * @brief Implementation of `UI::ImageElement` (sprite rendering helpers).
+ */
+
 #include "ImageElement.hpp"
 
 #include "components/Sprite.hpp"

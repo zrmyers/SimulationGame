@@ -1,3 +1,8 @@
+/**
+ * @file Radio.cpp
+ * @brief Implementation for the radio selection UI group.
+ */
+
 #include "Radio.hpp"
 #include "CheckBoxStyle.hpp"
 #include "Element.hpp"

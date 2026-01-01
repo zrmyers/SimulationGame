@@ -1,3 +1,8 @@
+/**
+ * @file RadioStyle.cpp
+ * @brief Implementation for radio group style accessor methods.
+ */
+
 #include "RadioStyle.hpp"
 
 namespace UI {

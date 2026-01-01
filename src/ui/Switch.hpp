@@ -1,3 +1,8 @@
+/**
+ * @file Switch.hpp
+ * @brief `Switch` element shows only one child at a time (like a view switcher).
+ */
+
 #pragma once
 
 #include "Element.hpp"
@@ -5,17 +10,24 @@
 
 namespace UI {
 
-    // Displays only selected child. Size of the element is found by finding the maximal extent of each of the
-    // element's children.
+    /**
+     * @class Switch
+     * @brief Displays only the selected child element; useful for view switching.
+     */
     class Switch : public Element {
 
         public:
             Switch();
 
-            //! determine which child of the element should be displayed.
+            /**
+             * @brief Determine which child of the element should be displayed.
+             * @param index Index of child to select.
+             */
             void SelectChild(size_t index);
 
-            //! Update the currently displayed graphics.
+            /**
+             * @brief Update the currently displayed graphics for the selected child.
+             */
             void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) override;
 
         private:

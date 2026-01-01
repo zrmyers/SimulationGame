@@ -278,20 +278,27 @@
                     "id":"HAIR",
                     "description": "Cosmetic Attachment. Optional attachment.",
                     "material-id": "hair",
-                    "attachment-point": "SOCK_HEAD_TOP",
-                    "source-file": "Human_Hairstyles.glb",
+                    "source-file": "Human.glb",
+                    "attachment-point": "SOCK_HEAD",
                     "attachments": [
+                            "None",
                             "City Slicker",
                             "Five Tails"
                     ]
+                }
+            ],
+            "sockets": [
+                {
+                    "id": "SOCK_HEAD",
+                    "source-file": "Human.glb"
                 }
             ],
             "variants": [
                 {
                     "id": "human-male",
                     "description": "Male member of species.",
-                    "source": "Human_Male.glb",
-                    "skeleton": "Human_Male.rig",
+                    "source": "Human.glb",
+                    "skeleton": "Human.rig",
                     "default-apparel": [
                         {
                             "apparel-id": "Rags - Lower",
@@ -360,7 +367,8 @@
                 {
                     "id": "human-female",
                     "description": "Female member of species.",
-                    "source": "Human_Female.glb",
+                    "source": "Human.glb",
+                    "skeleton": "Human.rig",
                     "default-apparel": [
                         {
                             "apparel-id": "Rags - Lower",

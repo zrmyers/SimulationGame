@@ -1,3 +1,8 @@
+/**
+ * @file Spacer.cpp
+ * @brief Implementation of the `UI::Spacer` layout helper.
+ */
+
 #include "Spacer.hpp"
 
 //----------------------------------------------------------------------------------------------------------------------

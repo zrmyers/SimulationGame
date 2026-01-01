@@ -1,3 +1,8 @@
+/**
+ * @file VerticalLayout.cpp
+ * @brief Implementation of vertical layout calculations and rendering.
+ */
+
 #include "VerticalLayout.hpp"
 
 

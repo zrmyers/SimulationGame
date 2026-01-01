@@ -1,3 +1,8 @@
+/**
+ * @file Element.hpp
+ * @brief Base UI element declarations and layout utilities.
+ */
+
 #pragma once
 
 #include "glm/vec2.hpp"
@@ -29,11 +34,19 @@ namespace UI {
         depth = value;
     }
 
+    /**
+     * @enum MouseButtonID
+     * @brief Identifiers for mouse buttons used by UI.
+     */
     enum class MouseButtonID : uint8_t {
         MOUSE_LEFT = 0,
         MOUSE_RIGHT
     };
 
+    /**
+     * @enum LayoutMode
+     * @brief Mode describing how an element sizes itself relative to parent or children.
+     */
     enum class LayoutMode : uint8_t {
         RELATIVE_TO_PARENT = 0,
         FIT_TO_CHILDREN,
@@ -43,7 +56,10 @@ namespace UI {
     using HoverCallback_t = std::function<void(void)>;
     using MouseButtonCallback_t = std::function<void(MouseButtonID)>;
 
-    //! Element.
+    /**
+     * @class Element
+     * @brief Base element for UI widgets providing layout, input callbacks and child management.
+     */
     class Element {
 
         public:
@@ -54,51 +70,126 @@ namespace UI {
             Element& operator=(Element&& other) = default;
             virtual ~Element() = default;
 
+            /**
+             * @brief Set the origin point of this element (relative to its size).
+             * @param origin Origin expressed in relative coordinates (0..1).
+             * @return Reference to this element.
+             */
             Element& SetOrigin(glm::vec2 origin);
+
+            /**
+             * @brief Set the relative size of this element compared to its parent.
+             * @param relative_size Relative size multiplier.
+             * @return Reference to this element.
+             */
             Element& SetRelativeSize(glm::vec2 relative_size);
+
+            /**
+             * @brief Set the relative position of this element within its parent.
+             * @param relative_position Relative position (0..1 range).
+             * @return Reference to this element.
+             */
             Element& SetRelativePosition(glm::vec2 relative_position);
+
+            /**
+             * @brief Set an absolute pixel offset to add to the computed size.
+             * @param offset_size Pixel offset for size.
+             * @return Reference to this element.
+             */
             Element& SetOffsetSize(glm::vec2 offset_size);
+
+            /**
+             * @brief Set an absolute pixel offset to add to the computed position.
+             * @param offset_position Pixel offset for position.
+             * @return Reference to this element.
+             */
             Element& SetOffsetPosition(glm::vec2 offset_position);
+
+            /**
+             * @brief Override the calculated size with a fixed pixel size.
+             * @param fixed_size Absolute size in pixels.
+             * @return Reference to this element.
+             */
             Element& SetFixedSize(glm::vec2 fixed_size);
+
+            /**
+             * @brief Set layout mode controlling size calculation behavior.
+             * @param mode Layout mode to apply.
+             * @return Reference to this element.
+             */
             Element& SetLayoutMode(LayoutMode mode);
 
+            /** @brief Get the origin of this element. */
             glm::vec2 GetOrigin() const;
+            /** @brief Get the relative size configured for this element. */
             glm::vec2 GetRelativeSize() const;
+            /** @brief Get the relative position configured for this element. */
             glm::vec2 GetRelativePosition() const;
+            /** @brief Get the offset size in pixels. */
             glm::vec2 GetOffsetSize() const;
+            /** @brief Get the offset position in pixels. */
             glm::vec2 GetOffsetPosition() const;
+            /** @brief Get the configured fixed size. */
             glm::vec2 GetFixedSize() const;
+            /** @brief Get the layout mode for this element. */
             LayoutMode GetLayoutMode() const;
 
-            //! Calculate the size of the element.
-            //!
-            //! @param[in] parent_size The absolute size of the parent element.
+            /**
+             * @brief Calculate the size of the element.
+             * @param parent_size The absolute size of the parent element.
+             */
             virtual void CalculateSize(glm::vec2 parent_size);
 
-            //! Calculate the position of the element
-            //!
-            //! @param[in] parent_size The absolute size of the parent element.
-            //! @param[in] parent_position The absolute position of the parent element.
+            /**
+             * @brief Calculate the position of the element.
+             * @param parent_size The absolute size of the parent element.
+             * @param parent_position The absolute position of the parent element.
+             */
             virtual void CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_position);
 
-            //! Process mouse movement
+            /**
+             * @brief Process mouse movement and invoke hover callbacks as needed.
+             * @param prev_position_px Previous mouse position in pixels.
+             * @param current_position_px Current mouse position in pixels.
+             */
             void OnHover(glm::vec2 prev_position_px, glm::vec2 current_position_px);
 
-            //! Process mouse click
+            /**
+             * @brief Process mouse press events and route to children or callbacks.
+             * @param press_position Press position in pixels.
+             * @param button_id Mouse button identifier.
+             * @return True if the event was handled.
+             */
             bool OnMousePress(glm::vec2 press_position, MouseButtonID button_id);
 
-            //! Process mouse release
+            /**
+             * @brief Process mouse release events and route to children or callbacks.
+             * @param release_position Release position in pixels.
+             * @param button_id Mouse button identifier.
+             * @return True if the event was handled.
+             */
             bool OnMouseRelease(glm::vec2 release_position, MouseButtonID button_id);
 
-            //! Update the element. If element is visible, updates sprite and text primitives.
+            /**
+             * @brief Update the element. If element is visible, updates sprite and text primitives.
+             * @param registry ECS registry used for rendering components.
+             * @param screenSize The full screen resolution in pixels.
+             * @param depth Draw order depth.
+             */
             virtual void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) = 0;
 
-            //! Clear Graphics for the given element.
+            /** @brief Clear Graphics for the given element. */
             virtual void ClearGraphics();
 
+            /** @brief Get the computed absolute size of the element. */
             glm::vec2 GetAbsoluteSize() const;
+            /** @brief Get the computed absolute position of the element. */
             glm::vec2 GetAbsolutePosition() const;
 
+            /**
+             * @brief Add a child element to this element.
+             * @param child Unique pointer to the child element to add.
+             */
             void AddChild(std::unique_ptr<Element>&& child);
 
             template<typename T>

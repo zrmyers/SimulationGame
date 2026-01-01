@@ -30,13 +30,15 @@ namespace Components {
         // Equipment on character to render.
         std::vector<Items::ApparelInstance> m_equipment;
 
+        // Various creature attachments. These are similar to parts, except have transformation to particular location on mesh,
+        // as they do not share a comment origin with the creature.
+        std::vector<Creature::AttachmentInstance> m_attachments;
+
         //! Returns true if male, otherwise false if female.
         bool GetSex() const {
 
             return Core::EndsWith(m_p_species->m_variants.at(m_variant_id).m_name, "-male");
         }
-
-
 
     };
 }

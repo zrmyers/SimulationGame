@@ -1,3 +1,8 @@
+/**
+ * @file NineSliceStyle.hpp
+ * @brief Styles and loading helpers for nine-slice UI textures.
+ */
+
 #pragma once
 
 #include "Element.hpp"
@@ -6,6 +11,10 @@
 
 namespace UI {
 
+    /**
+     * @class NineSliceStyle
+     * @brief Container for the nine textures and border width used by a NineSlice element.
+     */
     class NineSliceStyle {
 
         public:
@@ -24,14 +33,38 @@ namespace UI {
             // number of textures that make up a nine-slice.
             static constexpr size_t SLICE_COUNT = 9U;
 
+            /**
+             * @brief Load a nine-slice style from a single image by slicing.
+             * @param engine Engine reference used to load resources.
+             * @param imageName Image file name relative to asset directory.
+             * @param borderWidth Border width in pixels used to slice the image.
+             * @return Shared pointer to a newly created NineSliceStyle.
+             */
             static std::shared_ptr<NineSliceStyle> Load(Core::Engine& engine, const std::string& imageName, int32_t borderWidth);
+            /**
+             * @brief Load a nine-slice style from nine separate images.
+             * @param engine Engine reference used to load resources.
+             * @param images Vector of 9 image filenames.
+             * @return Shared pointer to a newly created NineSliceStyle.
+             */
             static std::shared_ptr<NineSliceStyle> Load(Core::Engine& engine, const std::vector<std::string>& images);
 
             NineSliceStyle();
 
+            /**
+             * @brief Assign a texture to a specific nine-slice region.
+             * @param p_texture Texture to use for the region.
+             * @param region Region enum value to assign.
+             */
             void SetRegion(std::shared_ptr<Graphics::Texture2D> p_texture, Region region);
+            /**
+             * @brief Get the texture assigned to a specific region.
+             * @param region Region to query.
+             * @return Shared pointer to the texture used for the region.
+             */
             const std::shared_ptr<Graphics::Texture2D>& GetRegion(Region region) const;
 
+            /** @brief Get the calculated border width (in pixels) for this style. */
             float GetBorderWidth() const;
         private:
             float CalculateBorderWidth();

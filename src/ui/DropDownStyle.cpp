@@ -1,3 +1,8 @@
+/**
+ * @file DropDownStyle.cpp
+ * @brief Implementation for drop-down style accessor methods.
+ */
+
 #include "DropDownStyle.hpp"
 
 

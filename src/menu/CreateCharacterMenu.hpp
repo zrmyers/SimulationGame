@@ -27,6 +27,8 @@ class CreateCharacterMenu : public Menu::IMenu {
 
         void AddMaterialCustomizer(UI::Element& root,const Creature::Material& material, const std::string& fieldName, SelectionChangeCallback_t callback);
 
+        void AddPartCustomizer(UI::Element& root, const Creature::PartType& partType, const std::string& fieldName, SelectionChangeCallback_t callback);
+
         // Set the sex of the character.
         void SetCharacterSex(bool is_male);
 
@@ -41,6 +43,9 @@ class CreateCharacterMenu : public Menu::IMenu {
 
         // Set the hair color of the character.
         void SetHairColor(size_t selected_pallete);
+
+        // Set the hair style of the character.
+        void SetHairStyle(size_t selected_style);
 
         // Process mouse movement
         void ProcessMouseMovement();

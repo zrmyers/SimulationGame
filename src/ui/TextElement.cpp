@@ -1,3 +1,8 @@
+#/**
+ * @file TextElement.cpp
+ * @brief Implementation for `UI::TextElement` rendering and management.
+ */
+
 #include "TextElement.hpp"
 
 #include "components/Transform.hpp"

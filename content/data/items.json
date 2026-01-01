@@ -34,13 +34,13 @@
             },
             "variants": [
                 {
-                    "source": "Human_Male.glb",
+                    "source": "Human.glb",
                     "compatible-species": "human",
                     "compatible-variant": "human-male",
                     "part": "Rags.Male_Hips"
                 },
                 {
-                    "source": "Human_Female.glb",
+                    "source": "Human.glb",
                     "compatible-species": "human",
                     "compatible-variant": "human-female",
                     "part": "Rags.Female_Hips"
@@ -59,7 +59,7 @@
             "variants": [
                 {
                     "id": "Female",
-                    "source": "Human_Female.glb",
+                    "source": "Human.glb",
                     "compatible-species": "human",
                     "compatible-variant": "human-female",
                     "part": "Rags.Female_Torso"

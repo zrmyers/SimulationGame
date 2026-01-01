@@ -12,6 +12,7 @@
 #include <fastgltf/math.hpp>
 #include <fastgltf/types.hpp>
 #include <fastgltf/tools.hpp>
+#include <glm/ext/matrix_float4x4.hpp>
 #include <glm/ext/vector_float2.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
@@ -27,6 +28,7 @@
 #include "json/Json.hpp"
 #include "gltf/GLTF.hpp"
 #include "core/String.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 namespace Creature {
 
@@ -52,9 +54,31 @@ const Material& Species::GetMaterialByName(const std::string& name) const {
     throw Core::EngineException("Material not found: " + name);
 }
 
+
+const Socket& Species::GetSocketByName(const std::string& name) const {
+
+    for (const Socket& socket : m_sockets) {
+        if (socket.m_name == name) {
+            return socket;
+        }
+    }
+
+    throw Core::EngineException("Socket not found: " + name);
+}
+
 PartType& Species::GetPartTypeByName(const std::string& name) {
 
     for (PartType& partType : m_part_types) {
+        if (partType.m_name == name) {
+            return partType;
+        }
+    }
+    throw Core::EngineException("Part Type not found: " + name);
+}
+
+const PartType& Species::GetPartTypeByName(const std::string& name) const {
+
+    for (const PartType& partType : m_part_types) {
         if (partType.m_name == name) {
             return partType;
         }
@@ -123,6 +147,15 @@ void Compendium::Load(Core::Engine& engine, const std::string& filename) {
                     LoadMaterials(engine, species, speciesData);
                 } catch (nlohmann::json::exception& error) {
                     Core::Logger::Error("Failed to load materials for species: " + species.m_name);
+                    throw;
+                }
+
+                // Load Sockets
+                try {
+                    LoadSockets(engine, species, speciesData);
+
+                } catch (nlohmann::json::exception& error) {
+                    Core::Logger::Error(("Failed to load sockets for species: " + species.m_name));
                     throw;
                 }
 
@@ -288,6 +321,37 @@ std::shared_ptr<SDL::GpuSampler> Compendium::GetTextureSampler(Core::Engine& eng
     return m_p_sampler;
 }
 
+void Compendium::LoadSockets(Core::Engine& engine, Species& species, nlohmann::json& speciesData) {
+
+    species.m_sockets.reserve(speciesData["sockets"].size());
+
+    for (auto& socketData : speciesData["sockets"]) {
+
+        Socket& socket = species.m_sockets.emplace_back();
+        socket.m_name = socketData["id"];
+
+        std::string sourceFile = socketData["source-file"];
+
+        fastgltf::Asset asset = GLTF::LoadAsset(engine, sourceFile);
+
+        bool foundNode = false;
+        for (fastgltf::Node& node : asset.nodes) {
+
+            if (node.name.compare(socket.m_name) == 0) { // NOLINT
+
+                auto trs = fastgltf::getLocalTransformMatrix(node);
+
+                socket.m_transform = glm::make_mat4x4(trs.data());
+                foundNode = true;
+            }
+        }
+
+        if (!foundNode) {
+            throw Core::EngineException("Failed to find socket " + socket.m_name);
+        }
+    }
+}
+
 void Compendium::LoadParts(Core::Engine& engine, Species& species, nlohmann::json& speciesData) const {
 
     auto& partsListData = speciesData["parts"];
@@ -305,11 +369,35 @@ void Compendium::LoadParts(Core::Engine& engine, Species& species, nlohmann::jso
             partType.m_p_provides.push_back(&GetCapabilityByName(capabilityName));
         }
 
+        if (partData.contains("attachment-point")) {
+
+            // load attachments that are common across all variants.
+            partType.m_attachment_point = partData["attachment-point"];
+
+            std::string sourceFile = partData["source-file"];
+
+            fastgltf::Asset asset = GLTF::LoadAsset(engine, sourceFile);
+
+            auto attachmentsList = partData["attachments"];
+            partType.m_attachments.reserve(attachmentsList.size());
+
+            for (std::string attachmentName : attachmentsList) {
+
+                Attachment attachment = {};
+                attachment.m_id = partType.m_attachments.size();
+                attachment.m_name = std::move(attachmentName);
+                if (attachment.m_name != "None") {
+                    attachment.p_attachments = GLTF::LoadSkeletalMesh(engine, asset, attachment.m_name);
+                }
+                partType.m_attachments.push_back(std::move(attachment));
+            }
+        }
+
         species.m_part_types.push_back(std::move(partType));
     }
 }
 
-void Compendium::LoadVariants(Core::Engine& engine, Species& species, nlohmann::json& speciesData) const {
+void Compendium::LoadVariants(Core::Engine& engine, Species& species, nlohmann::json& speciesData) {
 
     Core::AssetLoader& loader = engine.GetAssetLoader();
     auto variantList = speciesData["variants"];

@@ -1,3 +1,8 @@
+/**
+ * @file HorizontalLayout.cpp
+ * @brief Implementation of horizontal layout calculations and rendering.
+ */
+
 #include "HorizontalLayout.hpp"
 
 

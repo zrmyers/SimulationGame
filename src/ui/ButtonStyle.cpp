@@ -1,3 +1,8 @@
+/**
+ * @file ButtonStyle.cpp
+ * @brief Implementation for button styling helpers.
+ */
+
 #include "ButtonStyle.hpp"
 
 //----------------------------------------------------------------------------------------------------------------------

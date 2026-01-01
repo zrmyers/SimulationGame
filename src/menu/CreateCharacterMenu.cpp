@@ -143,6 +143,10 @@ void CreateCharacterMenu::BuildCustomizationPanel(UI::Element& panelRoot) {
     });
 
     // hair selection
+    const Creature::PartType& partType = creatureInstance.m_p_species->GetPartTypeByName("HAIR");
+    AddPartCustomizer(widgetList, partType, "Hair Style", [this](size_t selection){
+        this->SetHairStyle(selection);
+    });
 
     // beard selection
 
@@ -176,6 +180,18 @@ void CreateCharacterMenu::AddMaterialCustomizer(UI::Element& root, const Creatur
         palleteOptions, 0, std::move(callback));
 }
 
+
+void CreateCharacterMenu::AddPartCustomizer(UI::Element& root, const Creature::PartType& partType, const std::string& fieldName, SelectionChangeCallback_t callback) {
+
+    std::vector<std::string> partOptions;
+    partOptions.reserve(partType.m_attachments.size());
+    for (const Creature::Attachment& attachment : partType.m_attachments) {
+        partOptions.push_back(attachment.m_name);
+    }
+
+    AddSliderSelection(m_p_style, root, fieldName, partOptions, 0U, std::move(callback));
+}
+
 void CreateCharacterMenu::SetCharacterSex(bool is_male) {
 
     Systems::CreatureSystem& creatureSystem = m_p_engine->GetEcsRegistry().GetSystem<Systems::CreatureSystem>();
@@ -187,6 +203,7 @@ void CreateCharacterMenu::SetCharacterSex(bool is_male) {
 
     // transfer materials from previous creature.
     creature.m_material_instance = std::move(oldCreature.m_material_instance);
+    creature.m_attachments = std::move(oldCreature.m_attachments);
 }
 
 bool CreateCharacterMenu::GetCharacterSex() {
@@ -241,6 +258,30 @@ void CreateCharacterMenu::SetHairColor(size_t selected_pallete) {
             materialInstance.m_pallete_index = selected_pallete;
         }
     }
+}
+
+
+void CreateCharacterMenu::SetHairStyle(size_t selected_style) {
+
+    Components::CreatureInstance& creature = m_entity.GetComponent<Components::CreatureInstance>();
+    const Creature::PartType& hairPart = creature.m_p_species->GetPartTypeByName("HAIR");
+
+    // Search for an existing instance of attachment
+    Creature::AttachmentInstance* p_attachment = nullptr;
+    for (Creature::AttachmentInstance& attachment : creature.m_attachments) {
+        if (attachment.m_part_type_id == hairPart.m_id) {
+            p_attachment = &attachment;
+            break;
+        }
+    }
+
+    if (p_attachment == nullptr) {
+        Creature::AttachmentInstance& attachment = creature.m_attachments.emplace_back();
+        p_attachment = &attachment;
+    }
+
+    p_attachment->m_attachment_id = selected_style;
+    p_attachment->m_part_type_id = hairPart.m_id;
 }
 
 

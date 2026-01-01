@@ -72,7 +72,56 @@ void Systems::CreatureSystem::Update() {
                 renderable.m_layer = Components::RenderLayer::LAYER_3D_OPAQUE;
                 renderable.transform = transform.m_transform;
                 renderable.m_p_pipeline = m_skeletal_mesh_pipeline;
+            }
 
+            for (Creature::AttachmentInstance& attachmentInstance : creature.m_attachments) {
+
+                // get the part type
+                const Creature::PartType& partType = creature.m_p_species->m_part_types.at(attachmentInstance.m_part_type_id);
+
+                // Determine if None choise is selected
+                const Creature::Attachment& attachment = partType.m_attachments.at(attachmentInstance.m_attachment_id);
+                if (attachment.p_attachments == nullptr) {
+
+                    // clear the currently displayed renderable.
+                    if (attachmentInstance.m_entity.IsValid()) {
+                        attachmentInstance.m_entity = ECS::Entity();
+                    }
+
+                    // Cannot render attachment, so skip.
+                    continue;
+                }
+
+                const Graphics::Mesh& mesh = *attachment.p_attachments;
+
+                // Get the material for a part.
+                const Creature::Material& material = *partType.m_p_material;
+
+                Creature::MaterialInstance& materialInstance = creature.m_material_instance.at(material.m_material_index);
+
+                // Get the socket
+                const Creature::Socket& socket = creature.m_p_species->GetSocketByName(partType.m_attachment_point);
+
+                if (!attachmentInstance.m_entity.IsValid()) {
+                    attachmentInstance.m_entity = ECS::Entity(registry);
+                }
+
+                Components::Renderable& renderable = attachmentInstance.m_entity.FindOrEmplaceComponent<Components::Renderable>();
+                renderable.m_p_mesh = &mesh;
+                renderable.m_drawcommand.m_num_instances = 1;
+                renderable.m_drawcommand.m_start_instance = 0;
+                renderable.m_drawcommand.m_start_index = 0;
+                renderable.m_drawcommand.m_num_indices = mesh.GetNumIndices();
+                renderable.m_drawcommand.m_vertex_offset = mesh.GetVertexOffset();
+                if (material.m_p_color_map != nullptr) {
+                    renderable.textureSampler = material.m_p_color_map->GetBinding();
+                }
+                renderable.material.p_data = static_cast<void*>(&materialInstance.m_data);
+                renderable.material.data_len = sizeof(materialInstance.m_data);
+
+                renderable.m_layer = Components::RenderLayer::LAYER_3D_OPAQUE;
+                renderable.transform = transform.m_transform;
+                renderable.m_p_pipeline = m_skeletal_mesh_pipeline;
             }
 
             for (Items::ApparelInstance& apparelInstance : creature.m_equipment) {

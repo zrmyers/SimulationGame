@@ -280,6 +280,11 @@ std::shared_ptr<UI::SliderStyle>& UI::Style::GetSliderStyle(const std::string& s
     return styleIter->second;
 }
 
+/**
+ * @brief Parse a horizontal text alignment from a string.
+ * @param asString Alignment as a string ("center", "left", "right").
+ * @return Corresponding `TTF_HorizontalAlignment` enum value.
+ */
 TTF_HorizontalAlignment UI::Style::ParseAlignment(const std::string& asString) {
     TTF_HorizontalAlignment alignment = TTF_HORIZONTAL_ALIGN_INVALID;
 
@@ -296,6 +301,11 @@ TTF_HorizontalAlignment UI::Style::ParseAlignment(const std::string& asString) {
     return alignment;
 }
 
+/**
+ * @brief Parse a JSON color object into an RGBA vector.
+ * @param colorData JSON object containing numeric fields `r`, `g`, `b`, and `a`.
+ * @return glm::vec4 where each component is in the order (r, g, b, a).
+ */
 glm::vec4 UI::Style::ParseColor(nlohmann::json& colorData) {
 
     glm::vec4 color;
@@ -306,6 +316,12 @@ glm::vec4 UI::Style::ParseColor(nlohmann::json& colorData) {
     return color;
 }
 
+/**
+ * @brief Load an image file into a `Graphics::Texture2D`.
+ * @param engine Engine used to access asset loader and render system.
+ * @param name Relative filename of the image to load.
+ * @return Shared pointer to the populated `Graphics::Texture2D`.
+ */
 std::shared_ptr<Graphics::Texture2D> UI::Style::LoadImage(Core::Engine& engine, const std::string& name) {
 
     Systems::RenderSystem& renderSystem = engine.GetEcsRegistry().GetSystem<Systems::RenderSystem>();

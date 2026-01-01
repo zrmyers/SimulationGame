@@ -1,3 +1,8 @@
+#/**
+ * @file Button.cpp
+ * @brief Implementation of UI button widget.
+ */
+
 #include "Button.hpp"
 #include "ButtonStyle.hpp"
 

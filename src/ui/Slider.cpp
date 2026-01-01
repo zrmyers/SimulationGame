@@ -1,3 +1,8 @@
+/**
+ * @file Slider.cpp
+ * @brief Implementation of the slider UI control.
+ */
+
 #include "Slider.hpp"
 #include "Element.hpp"
 #include "HorizontalLayout.hpp"

@@ -1,3 +1,8 @@
+/**
+ * @file NineSlice.cpp
+ * @brief Implementation for the nine-slice UI element.
+ */
+
 #include "NineSlice.hpp"
 #include "Element.hpp"
 

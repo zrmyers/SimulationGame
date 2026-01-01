@@ -1,3 +1,8 @@
+/**
+ * @file DropDown.cpp
+ * @brief Implementation of drop-down menu spawning and management.
+ */
+
 #include "DropDown.hpp"
 #include "ButtonStyle.hpp"
 #include "Element.hpp"

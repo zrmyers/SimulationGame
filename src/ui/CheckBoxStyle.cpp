@@ -1,3 +1,8 @@
+/**
+ * @file CheckBoxStyle.cpp
+ * @brief Implementation for checkbox style container.
+ */
+
 #include "CheckBoxStyle.hpp"
 #include <cstddef>
 

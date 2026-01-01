@@ -1,3 +1,8 @@
+/**
+ * @file Switch.cpp
+ * @brief Implementation for the `UI::Switch` element.
+ */
+
 #include "Switch.hpp"
 #include "Element.hpp"
 #include <cstddef>

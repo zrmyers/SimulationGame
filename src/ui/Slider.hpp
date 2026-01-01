@@ -1,3 +1,8 @@
+/**
+ * @file Slider.hpp
+ * @brief Slider widget declaration for selecting a value from a range of options.
+ */
+
 #pragma once
 #include <cstddef>
 #include <functional>
@@ -11,29 +16,58 @@ namespace UI {
 
     using SliderValueChangeCallback = std::function<void(size_t)>;
 
+    /**
+     * @class Slider
+     * @brief UI element representing a slider control with knob and value label.
+     */
     class Slider : public UI::Element {
 
         public:
 
-            //! Constructor.
+            /** @brief Constructor. */
             Slider();
 
-            //! Set the style of the slider.
+            /**
+             * @brief Set the style used for this slider.
+             * @param p_style Shared pointer to a SliderStyle.
+             * @return Reference to this Slider.
+             */
             Slider& SetStyle(const std::shared_ptr<SliderStyle>& p_style);
 
-            //! Set the index of the selected option.
+            /**
+             * @brief Select an option by index.
+             * @param select Index to select (0-based).
+             * @return Reference to this Slider.
+             */
             Slider& SelectOption(size_t select);
 
-            //! List of strings to display for selected option.
+            /**
+             * @brief Set the available option strings displayed by the slider.
+             * @param options Vector of option strings.
+             * @return Reference to this Slider.
+             */
             Slider& SetOptions(std::vector<std::string> options);
 
-            //! User callback when slider value changes
+            /**
+             * @brief Set a callback invoked when the slider value changes.
+             * @param callback Function taking the new selected index.
+             * @return Reference to this Slider.
+             */
             Slider& SetValueChangedCallback(SliderValueChangeCallback callback);
 
-            //! Used to switch between focused and enabled colors
+            /**
+             * @brief Set the visual state of the slider (e.g., focused/enabled).
+             * @param state SliderState to apply.
+             * @return Reference to this Slider.
+             */
             Slider& SetSliderState(SliderState state);
 
-            //! Update the currently displayed graphics.
+            /**
+             * @brief Update the currently displayed graphics for the slider.
+             * @param registry ECS registry used for rendering components.
+             * @param screenSize Screen resolution in pixels.
+             * @param depth Draw order depth.
+             */
             void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) override;
 
         private:

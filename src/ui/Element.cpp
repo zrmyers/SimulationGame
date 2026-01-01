@@ -1,3 +1,8 @@
+#/**
+ * @file Element.cpp
+ * @brief Implementation of base UI element behaviors (layout, input handling).
+ */
+
 #include "Element.hpp"
 #include <glm/common.hpp>
 

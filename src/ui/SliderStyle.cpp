@@ -1,9 +1,19 @@
+/**
+ * @file SliderStyle.cpp
+ * @brief Implementation for slider style accessors.
+ */
+
 #include "SliderStyle.hpp"
 #include "core/Engine.hpp"
 #include <string>
 
 namespace UI {
 
+/**
+ * @brief Convert a `SliderState` value to a human-readable string.
+ * @param state The `SliderState` enum value to convert.
+ * @return A string representing `state` (e.g., "ENABLED", "FOCUSED").
+ */
 std::string ToString(SliderState state) {
 
     switch (state) {

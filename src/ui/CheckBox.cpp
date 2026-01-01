@@ -1,3 +1,8 @@
+/**
+ * @file CheckBox.cpp
+ * @brief Implementation of checkbox widget behavior and rendering glue.
+ */
+
 #include "CheckBox.hpp"
 #include "CheckBoxStyle.hpp"
 #include "Element.hpp"
