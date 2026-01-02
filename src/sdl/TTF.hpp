@@ -42,6 +42,9 @@ namespace SDL::TTF {
             //! Used to configure alignment when rendering horizontal text.
             void SetHorizontalAlignment(TTF_HorizontalAlignment wrap_alignment);
 
+            //! @brief Get Glyph metrics for a given character.
+            void GetGlyphMetrics(uint16_t ascii, glm::vec2& min, glm::vec2& max, float& advance);
+
         private:
 
             TTF_Font* m_p_font;

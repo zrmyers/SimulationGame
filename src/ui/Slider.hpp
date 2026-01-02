@@ -5,6 +5,7 @@
 
 #pragma once
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include "Element.hpp"
 #include "NineSlice.hpp"
@@ -70,6 +71,21 @@ namespace UI {
              */
             void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) override;
 
+            /**
+             * @brief Set the maximum number of characters for the value label.
+             * @param max_chars Maximum character count.
+             * @return Reference to this Slider.
+             */
+            Slider& SetMaxLabelCharacters(uint8_t max_chars);
+
+            /*
+             * @brief Set max fixed width for the slide track.
+             * @param width Maximum slider track width in pixels.
+             * @return Reference to this Slider.
+             */
+            Slider& SetMaxSliderWidth(float width);
+
+
         private:
 
             //! The style to use for spawned buttons.
@@ -93,8 +109,13 @@ namespace UI {
             //! The callback function when drop down value changes.
             SliderValueChangeCallback m_value_change_callback;
 
+            //! Maximum characters for the value label.
+            uint8_t m_max_label_characters;
+
+            //! Maximum width for the slider track.
+            float m_max_slider_width;
+
             //! Whether the slider is currently tracking the mouse.
             bool m_track_mouse;
-
     };
 }

@@ -43,3 +43,9 @@ winget install GnuWin32.File
 winget install python3
 winget install ninja
 ```
+
+After installing tools with winget, add the GNU tools, `C://Program Files(x86)/GnuWin32/bin` to system Path variable.
+
+Once tools are added to Path, install required compilers.
+
+todo: Might be worthwhile to create a build container to streamline development for Linux/Windows.

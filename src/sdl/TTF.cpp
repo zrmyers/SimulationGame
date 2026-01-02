@@ -1,6 +1,7 @@
 #include "TTF.hpp"
 #include "sdl/SDL.hpp"
 #include <SDL3_ttf/SDL_ttf.h>
+#include <cstdint>
 #include <utility>
 
 
@@ -65,6 +66,23 @@ bool SDL::TTF::Font::GetSDF() const {
 
 void SDL::TTF::Font::SetHorizontalAlignment(TTF_HorizontalAlignment wrap_alignment) {
     TTF_SetFontWrapAlignment(m_p_font, wrap_alignment);
+}
+
+void SDL::TTF::Font::GetGlyphMetrics(uint16_t ascii, glm::vec2& min, glm::vec2& max, float& advance) {
+
+    int32_t minx = 0;
+    int32_t maxx = 0;
+    int32_t miny = 0;
+    int32_t maxy = 0;
+    int32_t adv = 0;
+
+    if (!TTF_GetGlyphMetrics(m_p_font, ascii, &minx, &maxx, &miny, &maxy, &adv)) {
+        throw SDL::Error("TTF_GetGlyphMetrics() failed!");
+    }
+
+    min = glm::vec2(static_cast<float>(minx), static_cast<float>(miny));
+    max = glm::vec2(static_cast<float>(maxx), static_cast<float>(maxy));
+    advance = static_cast<float>(adv);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

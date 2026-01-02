@@ -98,8 +98,7 @@ void AddSliderSelection(
         .SetValueChangedCallback(std::move(callback))
         .SelectOption(selected_index)
         .SetSliderState(UI::SliderState::ENABLED)
-        .SetLayoutMode(UI::LayoutMode::FIXED)
-        .SetFixedSize(glm::vec2(256.0F, 32.0F));
+        .SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
 
 }
 

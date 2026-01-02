@@ -27,9 +27,18 @@ namespace Graphics {
 
             bool GetSDF() const;
 
+            //! @brief Get the maximum glyph size in pixels.
+            glm::vec2 GetMaxGlyphSizePx() const;
+
         private:
+
+            //! @brief Calculate glyph sizes and determine maximum possible glyph
+            //! size for this font.
+            void MeasureGlyphs();
 
             Systems::TextSystem* m_p_text_system {nullptr};
             SDL::TTF::Font m_font;
+
+            glm::vec2 m_max_glyph_size_px;
     };
 }

@@ -8,9 +8,7 @@
 #include "HorizontalLayout.hpp"
 #include "NineSlice.hpp"
 #include "SliderStyle.hpp"
-#include "Spacer.hpp"
 #include "TextElement.hpp"
-#include "core/Logger.hpp"
 #include "graphics/Font.hpp"
 #include "ui/ImageElement.hpp"
 #include <SDL3/SDL_mouse.h>
@@ -27,7 +25,9 @@ Slider::Slider()
     , m_p_filled(nullptr)
     , m_p_unfilled(nullptr)
     , m_p_knob(nullptr)
-    , m_p_value_label(nullptr) {
+    , m_p_value_label(nullptr)
+    , m_max_label_characters(16U)
+    , m_max_slider_width(300.0F) {
 
     SetHoverEnterCallback([this](){
         switch (m_state) {
@@ -77,7 +77,6 @@ Slider& Slider::SelectOption(size_t select) {
         m_p_filled->SetRelativeSize(glm::vec2(relativeFillSize, 1.0F));
 
         m_p_value_label->SetTextString(m_options.at(select));
-        m_p_value_label->SetFixedSize(m_p_value_label->GetTextSize());
 
     }
 
@@ -100,6 +99,16 @@ Slider& Slider::SetValueChangedCallback(SliderValueChangeCallback callback) {
     return *this;
 }
 
+Slider& Slider::SetMaxLabelCharacters(uint8_t max_chars) {
+    m_max_label_characters = max_chars;
+    return *this;
+}
+
+Slider& Slider::SetMaxSliderWidth(float width) {
+    m_max_slider_width = width;
+    return *this;
+}
+
 Slider& Slider::SetSliderState(SliderState state) {
 
     if ((m_state != state) && (m_p_style != nullptr)) {
@@ -111,7 +120,8 @@ Slider& Slider::SetSliderState(SliderState state) {
 
             // construct slider
             UI::NineSlice& unfilled = horizontal.EmplaceChild<UI::NineSlice>();
-            unfilled.SetLayoutMode(LayoutMode::RELATIVE_TO_PARENT);
+            unfilled.SetLayoutMode(LayoutMode::FIXED)
+                .SetFixedSize(glm::vec2(m_max_slider_width, 32.0F));
             m_p_unfilled = &unfilled;
 
             UI::NineSlice& filled = unfilled.EmplaceChild<UI::NineSlice>();
@@ -127,10 +137,14 @@ Slider& Slider::SetSliderState(SliderState state) {
             m_p_knob = &knob;
 
             const std::shared_ptr<Graphics::Font>& p_font = m_p_style->GetFont();
+            
+            glm::vec2 maxTextSize = p_font->GetMaxGlyphSizePx();
+            maxTextSize.x *= static_cast<float>(m_max_label_characters);
+
             UI::TextElement& text = horizontal.EmplaceChild<UI::TextElement>();
             text.SetFont(p_font);
-            text.SetText(p_font->CreateText("abcdef"));
-            text.SetFixedSize(text.GetTextSize());
+            text.SetText(p_font->CreateText("NONE"));
+            text.SetFixedSize(maxTextSize);
             text.SetOrigin({0.5F, 0.5F});
             text.SetLayoutMode(LayoutMode::FIXED);
             text.SetRelativePosition({0.5F, 0.5F});
@@ -196,5 +210,6 @@ void Slider::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth
         p_child->UpdateGraphics(registry, screenSize, depth);
     }
 }
+
 
 }
