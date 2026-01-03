@@ -129,6 +129,14 @@ namespace UI {
              */
             std::shared_ptr<SliderStyle>& GetSliderStyle(const std::string& slider_id);
 
+            /**
+             * @brief Set a text input box style by ID.
+             * @param box_id Identifier for the text input box style.
+             */
+             void SetTextInputBoxStyle(const std::string& box_id, std::shared_ptr<NineSliceStyle> p_style);
+
+             
+
         private:
 
             static TTF_HorizontalAlignment ParseAlignment(const std::string& asString);

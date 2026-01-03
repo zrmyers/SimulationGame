@@ -106,6 +106,7 @@ add_executable(${PROJECT_NAME}
     ./src/ui/Style.cpp
     ./src/ui/Switch.cpp
     ./src/ui/TextElement.cpp
+    ./src/ui/TextInputBoxStyle.cpp
     ./src/ui/VerticalLayout.cpp
 )
 
