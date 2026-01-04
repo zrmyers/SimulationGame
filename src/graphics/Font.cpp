@@ -36,6 +36,10 @@ glm::vec2 Graphics::Font::GetMaxGlyphSizePx() const {
     return m_max_glyph_size_px;
 }
 
+void Graphics::Font::GetGlyphMetrics(uint16_t ascii, glm::vec2& min, glm::vec2& max, float& advance) {
+    m_font.GetGlyphMetrics(ascii, min, max, advance);
+}
+
 void Graphics::Font::MeasureGlyphs() {
 
     // Preload ASCII glyphs 32-126

@@ -176,6 +176,15 @@ namespace SDL {
             glm::ivec2 GetWindowSize() const;
             void SetWindowSize(glm::ivec2 size);
 
+            //! Enable text input mode for the window.
+            void StartTextInput();
+
+            //! Disable text input mode for the window.
+            void StopTextInput();
+
+            //! Check if text input mode is enabled for the window.
+            bool IsTextInputActive() const;
+
         private:
 
             SDL_Window* m_p_window;

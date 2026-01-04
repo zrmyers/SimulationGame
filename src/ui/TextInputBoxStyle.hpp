@@ -30,11 +30,15 @@ namespace UI {
             void SetNormalTextColor(const glm::vec4& color);
             glm::vec4 GetNormalTextColor() const;
 
+            void SetCaretStyle(std::shared_ptr<UI::NineSliceStyle> style);
+            std::shared_ptr<UI::NineSliceStyle> GetCaretStyle() const;
+
         private:
 
             std::unordered_map<TextInputState, std::shared_ptr<UI::NineSliceStyle>> m_p_box_style;
             std::shared_ptr<Graphics::Font> m_p_text_font;
             glm::vec4 m_default_text_color;
             glm::vec4 m_normal_text_color;
+            std::shared_ptr<NineSliceStyle> m_p_caret_style;
     };
 }

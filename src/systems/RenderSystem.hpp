@@ -42,6 +42,7 @@ namespace Systems {
             void SetWindowMode(bool fullscreen, glm::ivec2);
 
             SDL::GpuDevice& GetGpuDevice();
+            SDL::Window& GetWindow();
 
             glm::ivec2 GetWindowSize() const;
 

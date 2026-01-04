@@ -187,6 +187,42 @@ bool UI::Element::OnMouseRelease(glm::vec2 release_position, MouseButtonID butto
     return handled;
 }
 
+bool UI::Element::OnTextInput(const std::string& text) {
+    bool isHandled = false;
+
+    for (auto& p_child : m_children) {
+        if (p_child->OnTextInput(text)) {
+            isHandled = true;
+            break;
+        }
+    }
+
+    if (m_text_input_callback && !isHandled) {
+        m_text_input_callback(text);
+        isHandled = true;
+    }
+
+    return isHandled;
+}
+
+bool UI::Element::OnKeyboardInput(const SDL_KeyboardEvent& event) {
+    bool isHandled = false;
+
+    for (auto& p_child : m_children) {
+        if (p_child->OnKeyboardInput(event)) {
+            isHandled = true;
+            break;
+        }
+    }
+
+    if (m_keyboard_input_callback && !isHandled) {
+        m_keyboard_input_callback(event);
+        isHandled = true;
+    }
+
+    return isHandled;
+}
+
 void UI::Element::ClearGraphics() {
 
     for (auto& p_child : m_children) {
@@ -251,6 +287,16 @@ UI::Element& UI::Element::SetMouseButtonPressCallback(MouseButtonCallback_t call
 
 UI::Element& UI::Element::SetMouseButtonReleaseCallback(MouseButtonCallback_t callback) {
     m_on_release_callback = std::move(callback);
+    return *this;
+}
+
+UI::Element& UI::Element::SetTextInputCallback(TextInputCallback_t callback) {
+    m_text_input_callback = std::move(callback);
+    return *this;
+}
+
+UI::Element& UI::Element::SetKeyboardInputCallback(KeyboardInputCallback_t callback) {
+    m_keyboard_input_callback = std::move(callback);
     return *this;
 }
 

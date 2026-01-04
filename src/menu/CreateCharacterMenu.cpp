@@ -105,6 +105,8 @@ void CreateCharacterMenu::Activate() {
 void CreateCharacterMenu::Deactivate() {
 
     m_entity = ECS::Entity();
+
+    m_p_done_button = nullptr;
 }
 
 
@@ -156,16 +158,25 @@ void CreateCharacterMenu::BuildFinalizationPanel(UI::Element& panelRoot) {
 
     MenuManager* p_menuManager = m_p_manager;
     UI::Element& background = Menu::AddBackground(m_p_style, panelRoot);
-    UI::HorizontalLayout& characterManagement = background.EmplaceChild<UI::HorizontalLayout>();
+    UI::VerticalLayout& layout = background.EmplaceChild<UI::VerticalLayout>();
+    UI::HorizontalLayout& nameInputLayout = layout.EmplaceChild<UI::HorizontalLayout>();
+    Menu::AddTextInputBox(
+        m_p_style,
+        nameInputLayout,
+        "Name",
+        "Enter Name",
+        16,
+        [this](const std::string& name){this->SetName(name);});
+    UI::HorizontalLayout& characterManagement = layout.EmplaceChild<UI::HorizontalLayout>();
 
     AddButton(m_p_style, characterManagement, "Cancel", UI::ButtonState::ENABLED,
         [p_menuManager](){p_menuManager->RequestChangeActiveMenu("ChooseCharacter");});
-    AddButton(m_p_style, characterManagement, "Done", UI::ButtonState::DISABLED,
+    m_p_done_button = &AddButton(m_p_style, characterManagement, "Done", UI::ButtonState::DISABLED,
         [p_menuManager](){
             // save character to file
             // return to previous screen
             p_menuManager->RequestChangeActiveMenu("ChooseCharacter");
-        });
+    });
 }
 
 void CreateCharacterMenu::AddMaterialCustomizer(UI::Element& root, const Creature::Material& material, const std::string& fieldName, SelectionChangeCallback_t callback) {
@@ -204,6 +215,7 @@ void CreateCharacterMenu::SetCharacterSex(bool is_male) {
     // transfer materials from previous creature.
     creature.m_material_instance = std::move(oldCreature.m_material_instance);
     creature.m_attachments = std::move(oldCreature.m_attachments);
+    creature.m_name = std::move(oldCreature.m_name);
 }
 
 bool CreateCharacterMenu::GetCharacterSex() {
@@ -284,6 +296,16 @@ void CreateCharacterMenu::SetHairStyle(size_t selected_style) {
     p_attachment->m_part_type_id = hairPart.m_id;
 }
 
+void CreateCharacterMenu::SetName(const std::string& name) {
+    Components::CreatureInstance& creature = m_entity.GetComponent<Components::CreatureInstance>();
+    creature.m_name = name;
+
+    if (!name.empty()) {
+        m_p_done_button->SetButtonState(UI::ButtonState::ENABLED);
+    } else {
+        m_p_done_button->SetButtonState(UI::ButtonState::DISABLED);
+    }
+}
 
 void CreateCharacterMenu::ProcessMouseMovement() {
 

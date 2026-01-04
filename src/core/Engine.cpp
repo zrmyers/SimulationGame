@@ -12,12 +12,26 @@
 #include "Settings.hpp"
 #include "sdl/SDL.hpp"
 
+std::unique_ptr<Core::Engine> Core::Engine::s_instance = nullptr; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
 Core::EngineException::EngineException(const std::string& msg)
     : m_msg(msg) {
 }
 
 const char* Core::EngineException::what() const {
     return m_msg.c_str();
+}
+
+
+void Core::Engine::SetInstance(std::unique_ptr<Engine>&& engine) {
+    s_instance = std::move(engine);
+}
+
+Core::Engine& Core::Engine::GetInstance() {
+    if (s_instance == nullptr) {
+        throw Core::EngineException("Core::Engine::GetInstance(): Engine instance is not set.");
+    }
+    return *s_instance;
 }
 
 Core::Engine::Engine(const std::list<const char*>& args)
@@ -32,9 +46,6 @@ Core::Engine::Engine(const std::list<const char*>& args)
     std::string preferences = m_sdl.GetPrefPath("Siberian Husky Interactive Games", "Simulation Game");
 
     m_settings = Settings::Load(preferences + "/settings.json");
-}
-
-Core::Engine::~Engine() {
 }
 
 Core::AssetLoader& Core::Engine::GetAssetLoader() {
@@ -89,6 +100,10 @@ void Core::Engine::Run() {
 
 float Core::Engine::GetDeltaTimeSec() const {
     return m_delta_time_sec;
+}
+
+float Core::Engine::GetElapsedTimeSec() const {
+    return m_last_time_sec;
 }
 
 const std::vector<SDL_Event>& Core::Engine::GetEvents() {

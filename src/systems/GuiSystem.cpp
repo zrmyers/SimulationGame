@@ -80,8 +80,9 @@ void Systems::GuiSystem::Update() {
 
             if (canvas.GetDirty()) {
                 canvas.CalculateLayout(m_window_size_px);
-                canvas.UpdateGraphics(registry, m_window_size_px, 1U);
             }
+
+            canvas.UpdateGraphics(registry, m_window_size_px, 1U);
         }
     }
 }
@@ -131,6 +132,8 @@ void Systems::GuiSystem::UpdateCursor() {
 
 void Systems::GuiSystem::ProcessCanvas(Components::Canvas& canvas, const std::vector<SDL_Event>& events) {
 
+    SDL::Window& window = GetEngine().GetEcsRegistry().GetSystem<Systems::RenderSystem>().GetWindow();
+
     // process events
     for (const SDL_Event& event : events) {
 
@@ -157,6 +160,23 @@ void Systems::GuiSystem::ProcessCanvas(Components::Canvas& canvas, const std::ve
                 canvas.OnMousePress(glm::vec2(event.button.x, event.button.y),
                     (event.button.button == SDL_BUTTON_LEFT)?
                     UI::MouseButtonID::MOUSE_LEFT : UI::MouseButtonID::MOUSE_RIGHT);
+                canvas.SetDirty();
+                break;
+
+            case SDL_EVENT_TEXT_INPUT:
+
+                if(!canvas.OnTextInput(std::string(event.text.text))) {
+                    // Should disable text input if not handled.
+                    window.StopTextInput();
+                }
+                else {
+                    canvas.SetDirty();
+                }
+                break;
+
+            case SDL_EVENT_KEY_UP:
+            case SDL_EVENT_KEY_DOWN:
+                canvas.OnKeyboardInput(event.key);
                 canvas.SetDirty();
                 break;
 

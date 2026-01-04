@@ -31,16 +31,22 @@ namespace Core {
 
         public:
 
+            //! Set the engine instance.
+            static void SetInstance(std::unique_ptr<Engine>&& engine);
+
+            //! Get the engine instance.
+            static Engine& GetInstance();
+
             //! Command line arguments that are passed in to the engine. These are parsed into globally accessible
             //! environment variables that are accessible through the application.
             //!
             //! @param[in] args pass-through from command line.
             Engine(const std::list<const char*>& args);
             Engine(const Engine& other) = delete;
-            Engine(Engine&& other) = delete;
+            Engine(Engine&& other) noexcept = default;
             Engine& operator=(const Engine& other) = delete;
-            Engine& operator=(Engine&& other) = delete;
-            ~Engine();
+            Engine& operator=(Engine&& other) noexcept = default;
+            ~Engine() = default;
 
             //! Get the Asset loader instance
             AssetLoader& GetAssetLoader();
@@ -69,6 +75,9 @@ namespace Core {
             //! Get the latest delta time.
             float GetDeltaTimeSec() const;
 
+            //! Get the time since the game started, in seconds.
+            float GetElapsedTimeSec() const;
+
             //! Get latest input events
             const std::vector<SDL_Event>& GetEvents();
 
@@ -78,6 +87,9 @@ namespace Core {
 
             //! update the delta time.
             void UpdateDeltaTimeSec();
+
+            //! The engine instance.
+            static std::unique_ptr<Engine> s_instance;
 
             //! Environment variables.
             Environment m_env;

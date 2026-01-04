@@ -50,6 +50,19 @@ namespace UI {
 
             /** @brief Clear rendering entities for the nine-slice and its children. */
             void ClearGraphics() override;
+
+            /**
+             * @brief Set the visibility of the nine-slice element.
+             * @param isVisible True to make visible, false to hide.
+             */
+            void SetVisible(bool isVisible);
+
+            /**
+             * @brief Get the visibility of the nine-slice element.
+             * @return True if visible, false otherwise.
+             */
+            bool GetVisible() const;
+
         private:
 
             void CalculateSliceSize(glm::vec2 centerSize, float borderWidth);
@@ -58,5 +71,7 @@ namespace UI {
 
             // elements used for rendering the nineslice.
             std::vector<std::unique_ptr<UI::ImageElement>> m_borders;
+
+            bool m_is_visible {true};
     };
 }

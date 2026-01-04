@@ -53,6 +53,9 @@ namespace UI {
             /** @brief Get the pixel size of the current text layout. */
             glm::vec2 GetTextSize() const;
 
+            /** @brief Measure the size of the given string */
+            glm::vec2 MeasureStringSize(const std::string& string) const;
+
             /**
                 * @brief Update rendering entities for the text element.
                 * @param registry ECS registry used for rendering components.

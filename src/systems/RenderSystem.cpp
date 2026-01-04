@@ -143,6 +143,10 @@ SDL::GpuDevice& Systems::RenderSystem::GetGpuDevice() {
     return m_gpu;
 }
 
+SDL::Window& Systems::RenderSystem::GetWindow() {
+    return m_window;
+}
+
 glm::ivec2 Systems::RenderSystem::GetWindowSize() const {
     return m_window.GetWindowSize();
 }

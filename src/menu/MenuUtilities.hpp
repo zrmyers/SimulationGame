@@ -18,7 +18,7 @@ namespace Menu {
     );
 
     // Add common UI button.
-    void AddButton(
+    UI::Button& AddButton(
         const std::shared_ptr<UI::Style>& p_style,
         UI::Element& parent,
         const std::string& text_label,
@@ -43,6 +43,16 @@ namespace Menu {
         const std::vector<std::string>& options, // possible options to select from
         size_t selected_index, // currently selected option
         SelectionChangeCallback_t callback // callback when selection changes
+    );
+
+    // Add Text Input Box
+    void AddTextInputBox(
+        const std::shared_ptr<UI::Style>& p_style,
+        UI::Element& parent,
+        const std::string& fieldName, // name of field being modified
+        const std::string& default_text, // default text to show when no text is entered
+        uint16_t max_characters, // maximum number of characters allowed in the text box
+        std::function<void(const std::string&)> callback // callback when text is changed
     );
 
 }

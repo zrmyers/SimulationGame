@@ -4,8 +4,10 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_iostream.h>
+#include <SDL3/SDL_keyboard.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_mouse.h>
+#include <SDL3/SDL_oldnames.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_timer.h>
@@ -255,6 +257,22 @@ void SDL::Window::SetWindowSize(glm::ivec2 size) {
     if(!SDL_SetWindowSize(m_p_window, size.x, size.y)) {
         throw Error("SDL_SetWindowSize() failed!");
     }
+}
+
+void SDL::Window::StartTextInput() {
+    if (!SDL_StartTextInput(m_p_window)) {
+        throw Error("SDL_StartTextInput() failed!");
+    }
+}
+
+void SDL::Window::StopTextInput() {
+    if (!SDL_StopTextInput(m_p_window)) {
+        throw Error("SDL_StopTextInput() failed!");
+    }
+}
+
+bool SDL::Window::IsTextInputActive() const {
+    return SDL_TextInputActive(m_p_window);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

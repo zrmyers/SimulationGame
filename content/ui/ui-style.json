@@ -86,6 +86,11 @@
             "id": "small-button-selected-focused",
             "image": "ui/small-button-selected-focused.png",
             "border-width-px": 4
+        },
+        {
+            "id": "caret",
+            "image": "ui/caret.png",
+            "border-width-px": 3
         }
     ],
     "button": [
@@ -229,6 +234,27 @@
                 "enabled-image-id": "ui/checkbox-on.png",
                 "focused-image-id": "ui/checkbox-on-focused.png"
             }
+        }
+    ],
+    "text-input-box": [
+        {
+            "id": "simple",
+            "font-id": "Default-UI",
+            "enabled-nineslice-id": "button-enabled-style",
+            "focused-nineslice-id": "button-active-style",
+            "text-color": {
+                "r": 1.0,
+                "g": 1.0,
+                "b": 1.0,
+                "a": 1.0
+            },
+            "default-text-color": {
+                "r": 0.8,
+                "g": 0.8,
+                "b": 0.8,
+                "a": 1.0
+            },
+            "caret-nineslice-id": "caret"
         }
     ]
 }

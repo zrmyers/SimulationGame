@@ -17,6 +17,9 @@ namespace Components {
         // Which variant of species
         Creature::VariantIndex_t m_variant_id;
 
+        // Name of the creature instance.
+        std::string m_name;
+
         // Material instances for creature. Determines how creature is colored during rendering.
         std::vector<Creature::MaterialInstance> m_material_instance;
 

@@ -30,6 +30,9 @@ namespace Graphics {
             //! @brief Get the maximum glyph size in pixels.
             glm::vec2 GetMaxGlyphSizePx() const;
 
+            //! @brief Get Glyph metrics for a given character.
+            void GetGlyphMetrics(uint16_t ascii, glm::vec2& min, glm::vec2& max, float& advance);
+
         private:
 
             //! @brief Calculate glyph sizes and determine maximum possible glyph

@@ -47,4 +47,12 @@ glm::vec4 TextInputBoxStyle::GetNormalTextColor() const {
     return m_normal_text_color;
 }
 
+void TextInputBoxStyle::SetCaretStyle(std::shared_ptr<UI::NineSliceStyle> style) {
+    m_p_caret_style = std::move(style);
+}
+
+std::shared_ptr<UI::NineSliceStyle> TextInputBoxStyle::GetCaretStyle() const {
+    return m_p_caret_style;
+}
+
 }

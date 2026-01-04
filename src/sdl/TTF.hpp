@@ -83,6 +83,9 @@ namespace SDL::TTF {
             //! Set the string that is displayed for the text object.
             void SetString(const std::string& str);
 
+            //! Get the string that is displayed for the text object.
+            std::string GetString() const;
+
             //! Get the size of the text.
             void GetSize(int& width, int& height);
 

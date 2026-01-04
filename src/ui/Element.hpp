@@ -7,9 +7,13 @@
 
 #include "glm/vec2.hpp"
 
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_keycode.h>
+#include <SDL3/SDL_scancode.h>
 #include <functional>
 #include <memory>
 #include <cstdint>
+#include <string>
 
 namespace ECS {
     class Registry;
@@ -55,6 +59,8 @@ namespace UI {
 
     using HoverCallback_t = std::function<void(void)>;
     using MouseButtonCallback_t = std::function<void(MouseButtonID)>;
+    using TextInputCallback_t = std::function<void(const std::string&)>;
+    using KeyboardInputCallback_t = std::function<void(const SDL_KeyboardEvent&)>;
 
     /**
      * @class Element
@@ -121,16 +127,22 @@ namespace UI {
 
             /** @brief Get the origin of this element. */
             glm::vec2 GetOrigin() const;
+
             /** @brief Get the relative size configured for this element. */
             glm::vec2 GetRelativeSize() const;
+
             /** @brief Get the relative position configured for this element. */
             glm::vec2 GetRelativePosition() const;
+
             /** @brief Get the offset size in pixels. */
             glm::vec2 GetOffsetSize() const;
+
             /** @brief Get the offset position in pixels. */
             glm::vec2 GetOffsetPosition() const;
+
             /** @brief Get the configured fixed size. */
             glm::vec2 GetFixedSize() const;
+
             /** @brief Get the layout mode for this element. */
             LayoutMode GetLayoutMode() const;
 
@@ -171,6 +183,18 @@ namespace UI {
             bool OnMouseRelease(glm::vec2 release_position, MouseButtonID button_id);
 
             /**
+             * @brief Process text input events and route to children or callbacks.
+             * @param text Input text string.
+             */
+            bool OnTextInput(const std::string& text);
+
+            /**
+             * @brief Process keyboard input events and route to children or callbacks.
+             * @param event The keyboard event.
+             */
+            bool OnKeyboardInput(const SDL_KeyboardEvent& event);
+
+            /**
              * @brief Update the element. If element is visible, updates sprite and text primitives.
              * @param registry ECS registry used for rendering components.
              * @param screenSize The full screen resolution in pixels.
@@ -183,6 +207,7 @@ namespace UI {
 
             /** @brief Get the computed absolute size of the element. */
             glm::vec2 GetAbsoluteSize() const;
+
             /** @brief Get the computed absolute position of the element. */
             glm::vec2 GetAbsolutePosition() const;
 
@@ -209,6 +234,8 @@ namespace UI {
             Element& SetHoverExitCallback(HoverCallback_t callback);
             Element& SetMouseButtonPressCallback(MouseButtonCallback_t callback);
             Element& SetMouseButtonReleaseCallback(MouseButtonCallback_t callback);
+            Element& SetTextInputCallback(TextInputCallback_t callback);
+            Element& SetKeyboardInputCallback(KeyboardInputCallback_t callback);
 
             // Used by child elements to make it clear that graphics need to be updated.
             void SetDirty();
@@ -283,6 +310,12 @@ namespace UI {
             //
             MouseButtonCallback_t m_on_press_callback;
             MouseButtonCallback_t m_on_release_callback;
+
+            // Text input callback
+            TextInputCallback_t m_text_input_callback;
+
+            // Keyboard input callback
+            KeyboardInputCallback_t m_keyboard_input_callback;
 
             // Whether the element is changed since last graphics update.
             bool m_is_dirty {true};

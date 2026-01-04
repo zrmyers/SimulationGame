@@ -5,6 +5,7 @@
 #include "ui/NineSlice.hpp"
 #include "ui/Slider.hpp"
 #include "ui/SliderStyle.hpp"
+#include "ui/TextInputBox.hpp"
 #include "ui/VerticalLayout.hpp"
 #include "ui/Radio.hpp"
 
@@ -21,7 +22,7 @@ UI::Element& AddBackground(
     return background;
 }
 
-void AddButton(
+UI::Button& AddButton(
     const std::shared_ptr<UI::Style>& p_style,
     UI::Element& parent,
     const std::string& text_label,
@@ -35,6 +36,7 @@ void AddButton(
         .SetOnClickCallback(std::move(callback))
         .SetFixedSize({256.0F, 96.0F})
         .SetLayoutMode(UI::LayoutMode::FIXED);
+    return button;
 }
 
 void AddRadioSelection(
@@ -100,6 +102,29 @@ void AddSliderSelection(
         .SetSliderState(UI::SliderState::ENABLED)
         .SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
 
+}
+
+void AddTextInputBox(const std::shared_ptr<UI::Style> &p_style, UI::Element &parent, const std::string &fieldName, const std::string &default_text, uint16_t max_characters, std::function<void (const std::string &)> callback) {
+
+    UI::HorizontalLayout& inputField = parent.EmplaceChild<UI::HorizontalLayout>();
+    inputField.SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
+    const std::shared_ptr<Graphics::Font>& p_font = p_style->GetFont("Default-UI");
+    UI::TextElement& fieldLabel = inputField.EmplaceChild<UI::TextElement>();
+    fieldLabel.SetFont(p_font)
+        .SetText(p_font->CreateText(fieldName))
+        .SetTextColor(glm::vec4(1.0F, 1.0F, 0.0F, 1.0F))
+        .SetFixedSize(fieldLabel.GetTextSize())
+        .SetLayoutMode(UI::LayoutMode::FIXED)
+        .SetOrigin({0.5F, 0.5F})
+        .SetRelativePosition({0.5F, 0.5F});
+
+    UI::TextInputBox& textInputBox = inputField.EmplaceChild<UI::TextInputBox>();
+    textInputBox.SetStyle(p_style->GetTextInputBoxStyle("simple"))
+        .SetDefaultText(default_text)
+        .SetMaxCharacters(max_characters)
+        .SetTextInputState(UI::TextInputState::ENABLED)
+        .SetTextValueChangedCallback(std::move(callback))
+        .SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
 }
 
 }

@@ -32,7 +32,11 @@ int main(int argc, const char** argv) {
 
     try {
 
-        Core::Engine engine(args);
+        std::unique_ptr<Core::Engine> p_engine = std::make_unique<Core::Engine>(args);
+        Core::Engine::SetInstance(std::move(p_engine));
+
+        Core::Engine& engine = Core::Engine::GetInstance();
+
         ECS::Registry& registry = engine.GetEcsRegistry();
 
         // register components
@@ -52,7 +56,6 @@ int main(int argc, const char** argv) {
         registry.RegisterSystem(std::make_unique<Systems::GuiSystem>(engine));
         registry.RegisterSystem(std::make_unique<Systems::CreatureSystem>(engine));
         registry.RegisterSystem(std::make_unique<Systems::InventorySystem>(engine));
-
         // setup component registration
         registry.SetSystemSignature<Systems::RenderSystem>(
             registry.GetComponentSignature<Components::Renderable>()
@@ -87,6 +90,8 @@ int main(int argc, const char** argv) {
         engine.Run();
 
         Core::Logger::Info("Done Running. Shutdown.");
+
+        Core::Engine::SetInstance(nullptr);
 
     } catch (Core::EngineException& error) {
 

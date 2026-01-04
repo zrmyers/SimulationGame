@@ -16,6 +16,7 @@
 #include "systems/RenderSystem.hpp"
 #include "systems/TextSystem.hpp"
 #include "ui/RadioStyle.hpp"
+#include "ui/TextInputBoxStyle.hpp"
 
 //----------------------------------------------------------------------------------------------------------------------
 // Style
@@ -192,6 +193,24 @@ UI::Style UI::Style::Load(Core::Engine& engine, const std::string& filename) {
         }
     }
 
+    if (styleData.contains("text-input-box")) {
+
+        for (auto& boxData : styleData["text-input-box"]) {
+
+            std::string box_id = boxData["id"];
+            std::shared_ptr<TextInputBoxStyle> p_style = std::make_shared<TextInputBoxStyle>();
+
+            p_style->SetTextFont(style.GetFont(boxData["font-id"]));
+            p_style->SetBoxStyle(TextInputState::ENABLED, style.GetNineSliceStyle(boxData["enabled-nineslice-id"]));
+            p_style->SetBoxStyle(TextInputState::FOCUSED, style.GetNineSliceStyle(boxData["focused-nineslice-id"]));
+            p_style->SetDefaultTextColor(ParseColor(boxData["default-text-color"]));
+            p_style->SetNormalTextColor(ParseColor(boxData["text-color"]));
+            p_style->SetCaretStyle(style.GetNineSliceStyle(boxData["caret-nineslice-id"]));
+
+            style.SetTextInputBoxStyle(box_id, std::move(p_style));
+        }
+    }
+
     return style;
 }
 
@@ -278,6 +297,18 @@ std::shared_ptr<UI::SliderStyle>& UI::Style::GetSliderStyle(const std::string& s
         throw Core::EngineException("GetSliderStyle() failed to find style " + slider_id);
     }
     return styleIter->second;
+}
+
+void UI::Style::SetTextInputBoxStyle(const std::string& box_id, std::shared_ptr<TextInputBoxStyle> p_style) {
+    m_text_input_box_styles[box_id] = std::move(p_style);
+}
+
+std::shared_ptr<UI::TextInputBoxStyle>& UI::Style::GetTextInputBoxStyle(const std::string& box_id) {
+    auto iter = m_text_input_box_styles.find(box_id);
+    if (iter == m_text_input_box_styles.end()) {
+        throw Core::EngineException("GetTextInputBoxStyle() failed to find style " + box_id);
+    }
+    return iter->second;
 }
 
 /**

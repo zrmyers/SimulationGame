@@ -1,3 +1,5 @@
+#include <cmath>
+#include <cstdint>
 #/**
  * @file TextElement.cpp
  * @brief Implementation for `UI::TextElement` rendering and management.
@@ -52,6 +54,27 @@ glm::vec2 UI::TextElement::GetTextSize() const {
     return glm::vec2(width, height);
 }
 
+
+glm::vec2 UI::TextElement::MeasureStringSize(const std::string& string) const {
+    if (m_p_font == nullptr) {
+        throw Core::EngineException(
+            "UI::TextElement::GetCharacterOffset(): Attempt to get character offset when m_p_text is not initialized.");
+    }
+
+    glm::vec2 size(0.0F);
+    for (char ascii : string) {
+        uint16_t ascii_u16 = static_cast<uint16_t>(ascii);
+        glm::vec2 min = {};
+        glm::vec2 max = {};
+        float advance = 0.0F;
+        m_p_font->GetGlyphMetrics(ascii_u16, min, max, advance);
+        size.x += advance;
+        size.y = std::max(size.y, max.y - min.y);
+    }
+
+    return size;
+}
+
 void UI::TextElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) {
 
     if (!m_entity.IsValid()) {
@@ -73,7 +96,7 @@ void UI::TextElement::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSi
     translate *= 2.0F;
     translate.x *= -1.0F;
 
-    // quads produced for the font are already in units of pixels, so just need to be scaled to screen.
+    // quads produced for the font are already in units of pixels, so just need to be scaled to screen coordinate.
     glm::vec2 scale = 1.0F / screenSize;
 
     Components::Transform& transform = m_entity.FindOrEmplaceComponent<Components::Transform>();

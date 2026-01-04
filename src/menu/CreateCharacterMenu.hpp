@@ -47,6 +47,9 @@ class CreateCharacterMenu : public Menu::IMenu {
         // Set the hair style of the character.
         void SetHairStyle(size_t selected_style);
 
+        // Set the name of the character.
+        void SetName(const std::string& name);
+
         // Process mouse movement
         void ProcessMouseMovement();
 
@@ -59,6 +62,8 @@ class CreateCharacterMenu : public Menu::IMenu {
         bool m_track_mouse;
         glm::vec2 m_prev_position;
         glm::mat4 m_original_transform;
+
+        UI::Button* m_p_done_button;
 };
 
 }

@@ -94,6 +94,9 @@ void Menu::SettingsMenu::Activate() {
 void Menu::SettingsMenu::Deactivate() {
 
     m_entity = ECS::Entity();
+    m_p_current_button = nullptr;
+    m_p_submenu_switch = nullptr;
+    m_switch_index.clear();
 }
 
 void Menu::SettingsMenu::SelectButton(SubmenuID submenuID) {

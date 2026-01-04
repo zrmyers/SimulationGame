@@ -5,6 +5,7 @@
 
 #include "NineSlice.hpp"
 #include "Element.hpp"
+#include "ui/NineSliceStyle.hpp"
 
 //----------------------------------------------------------------------------------------------------------------------
 // Nine Slice Element
@@ -172,15 +173,30 @@ void UI::NineSlice::CalculatePosition(glm::vec2 parent_size, glm::vec2 parent_po
 void UI::NineSlice::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) {
 
     depth++;
-    for (auto& slice : m_borders) {
-        slice->UpdateGraphics(registry, screenSize, depth);
-    }
+    if (m_is_visible) {
+        for (auto& slice : m_borders) {
+            slice->UpdateGraphics(registry, screenSize, depth);
+        }
 
-    for (auto& child : GetChildren()) {
-        child->UpdateGraphics(registry, screenSize, depth);
+        for (auto& child : GetChildren()) {
+            child->UpdateGraphics(registry, screenSize, depth);
+        }
     }
 }
 
+void UI::NineSlice::SetVisible(bool isVisible) {
+
+    if (m_is_visible && (isVisible != m_is_visible)) {
+        // clearing graphics when hiding
+        ClearGraphics();
+    }
+
+    m_is_visible = isVisible;
+}
+
+bool UI::NineSlice::GetVisible() const {
+    return m_is_visible;
+}
 
 void UI::NineSlice::ClearGraphics() {
 

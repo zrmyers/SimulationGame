@@ -10,6 +10,7 @@
 #include "NineSliceStyle.hpp"
 #include "ButtonStyle.hpp"
 #include "SliderStyle.hpp"
+#include "TextInputBoxStyle.hpp"
 #include "core/Engine.hpp"
 #include "graphics/Texture2D.hpp"
 #include "ui/RadioStyle.hpp"
@@ -44,6 +45,7 @@ namespace UI {
              * @param p_font Shared pointer to the font resource.
              */
             void SetFont(const std::string& font_id, std::shared_ptr<Graphics::Font> p_font);
+
             /**
              * @brief Retrieve a previously registered font by id.
              * @param font_id Identifier of the font to retrieve.
@@ -57,6 +59,7 @@ namespace UI {
              * @param style Unique pointer to the style being stored.
              */
             void SetNineSliceStyle(const std::string& style_id, std::shared_ptr<NineSliceStyle>&& style);
+
             /**
              * @brief Retrieve a nine-slice style by id.
              * @param nineslice_id Identifier of the style to retrieve.
@@ -70,6 +73,7 @@ namespace UI {
              * @param style Unique pointer to the ButtonStyle.
              */
             void SetButtonStyle(const std::string& button_id, std::shared_ptr<ButtonStyle>&& style);
+
             /**
              * @brief Retrieve a button style by id.
              * @param button_id Identifier of the button style.
@@ -83,6 +87,7 @@ namespace UI {
              * @param style Unique pointer to the CheckBoxStyle.
              */
             void SetCheckBoxStyle(const std::string& checkbox_id, std::shared_ptr<CheckBoxStyle>&& style);
+
             /**
              * @brief Retrieve a checkbox style by id.
              * @param checkbox_id Identifier of the checkbox style.
@@ -96,6 +101,7 @@ namespace UI {
              * @param style Unique pointer to the DropDownStyle.
              */
             void SetDropDownStyle(const std::string& dropdown_id, std::shared_ptr<DropDownStyle>&& style);
+
             /**
              * @brief Retrieve a drop-down style by id.
              * @param dropdown_id Identifier of the drop-down style.
@@ -122,6 +128,7 @@ namespace UI {
              * @param style Unique pointer to the SliderStyle.
              */
             void SetSliderStyle(const std::string& slider_id, std::shared_ptr<SliderStyle>&& style);
+
             /**
              * @brief Retrieve a slider style by id.
              * @param slider_id Identifier of the slider style.
@@ -133,9 +140,14 @@ namespace UI {
              * @brief Set a text input box style by ID.
              * @param box_id Identifier for the text input box style.
              */
-             void SetTextInputBoxStyle(const std::string& box_id, std::shared_ptr<NineSliceStyle> p_style);
+             void SetTextInputBoxStyle(const std::string& box_id, std::shared_ptr<TextInputBoxStyle> p_style);
 
-             
+            /**
+             * @brief Retrieve a text input box style by ID.
+             * @param box_id Identifier of the text input box style.
+             * @return Shared pointer to the TextInputBoxStyle.
+             */
+             std::shared_ptr<TextInputBoxStyle>& GetTextInputBoxStyle(const std::string& box_id);
 
         private:
 
@@ -164,6 +176,9 @@ namespace UI {
 
             //! Set of slider styles
             std::unordered_map<std::string, std::shared_ptr<SliderStyle>> m_slider_styles;
+
+            //! Set of text input box styles
+            std::unordered_map<std::string, std::shared_ptr<TextInputBoxStyle>> m_text_input_box_styles;
     };
 
 }
