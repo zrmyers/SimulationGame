@@ -77,9 +77,16 @@ void UI::HorizontalLayout::CalculatePosition(glm::vec2 parent_size, glm::vec2 pa
     Element::CalculatePosition(parent_size, parent_position);
     glm::vec2 currentPos = GetAbsolutePosition();
 
+    // get max height of children to align them vertically.
+    float maxChildHeight = 0.0F;
+    for (auto& p_child : GetChildren()) {
+        maxChildHeight = std::max(maxChildHeight, p_child->GetAbsoluteSize().y);
+    }
+
     for (auto& p_child : GetChildren()) {
 
         glm::vec2 childAbsSize = p_child->GetAbsoluteSize();
+        childAbsSize.y = maxChildHeight;
         p_child->CalculatePosition(childAbsSize, currentPos);
 
         currentPos.x += childAbsSize.x;

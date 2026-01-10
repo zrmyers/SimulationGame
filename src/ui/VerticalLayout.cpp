@@ -75,9 +75,15 @@ void UI::VerticalLayout::CalculatePosition(glm::vec2 parent_size, glm::vec2 pare
     Element::CalculatePosition(parent_size, parent_position);
     glm::vec2 currentPos = GetAbsolutePosition();
 
+    float maxChildWidth = 0.0F;
+    for (auto& p_child : GetChildren()) {
+        maxChildWidth = std::max(maxChildWidth, p_child->GetAbsoluteSize().x);
+    }
+
     for (auto& p_child : GetChildren()) {
 
         glm::vec2 childAbsSize = p_child->GetAbsoluteSize();
+        childAbsSize.x = maxChildWidth;
         p_child->CalculatePosition(childAbsSize, currentPos);
 
         currentPos.y += childAbsSize.y;

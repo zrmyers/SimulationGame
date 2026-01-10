@@ -197,7 +197,7 @@ const Species& Compendium::GetSpeciesByIndex(SpeciesIndex_t index) {
     return m_species.at(index);
 }
 
-const Species& Compendium::GetSpeciesByName(const std::string& name) {
+const Species& Compendium::GetSpeciesByName(const std::string& name) const {
 
     auto speciesIter = m_species_map.find(name);
     if (speciesIter != m_species_map.end()) {

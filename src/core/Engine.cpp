@@ -43,9 +43,9 @@ Core::Engine::Engine(const std::list<const char*>& args)
     , m_keep_running(true) {
     m_sdl.HideCursor();
 
-    std::string preferences = m_sdl.GetPrefPath("Siberian Husky Interactive Games", "Simulation Game");
+    m_user_save_dir = m_sdl.GetPrefPath("Siberian Husky Interactive Games", "Simulation Game");
 
-    m_settings = Settings::Load(preferences + "/settings.json");
+    m_settings = Settings::Load(m_user_save_dir + "/settings.json");
 }
 
 Core::AssetLoader& Core::Engine::GetAssetLoader() {
@@ -54,6 +54,10 @@ Core::AssetLoader& Core::Engine::GetAssetLoader() {
 
 ECS::Registry& Core::Engine::GetEcsRegistry() {
     return m_registry;
+}
+
+const std::string& Core::Engine::GetUserSaveDir() const {
+    return m_user_save_dir;
 }
 
 Core::Settings& Core::Engine::GetSettings() {

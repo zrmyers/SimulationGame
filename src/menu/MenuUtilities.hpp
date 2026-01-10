@@ -3,6 +3,7 @@
 #include "ui/Button.hpp"
 #include "ui/Element.hpp"
 #include "ui/Style.hpp"
+#include "ui/TextElement.hpp"
 #include <functional>
 #include <list>
 #include <memory>
@@ -24,6 +25,14 @@ namespace Menu {
         const std::string& text_label,
         UI::ButtonState state,
         UI::OnClickCallback callback = {});
+
+    // Add text
+    UI::TextElement& AddTextElement(
+        const std::shared_ptr<UI::Style>& p_style,
+        UI::Element& parent,
+        const std::string& text,
+        const glm::vec4& color,
+        size_t max_characters);
 
     // Add Radio selection.
     void AddRadioSelection(
@@ -54,5 +63,7 @@ namespace Menu {
         uint16_t max_characters, // maximum number of characters allowed in the text box
         std::function<void(const std::string&)> callback // callback when text is changed
     );
+
+
 
 }

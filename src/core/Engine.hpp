@@ -54,6 +54,9 @@ namespace Core {
             //! Get the ECS registry
             ECS::Registry& GetEcsRegistry();
 
+            //! Get the user save directory
+            const std::string& GetUserSaveDir() const;
+
             //! Get the settings
             Settings& GetSettings();
 
@@ -102,6 +105,9 @@ namespace Core {
 
             //! ECS registry.
             ECS::Registry m_registry;
+
+            //! User Save Directory
+            std::string m_user_save_dir;
 
             //! Game Settings
             Settings m_settings;

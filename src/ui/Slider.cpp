@@ -132,12 +132,11 @@ Slider& Slider::SetSliderState(SliderState state) {
             knob.SetFixedSize(glm::vec2(32.0F, 32.0F))
                 .SetLayoutMode(LayoutMode::FIXED)
                 .SetOrigin({0.5F, 0.5F})
-                .SetOffsetPosition({0.0F, 3.0F})
-                .SetRelativePosition(glm::vec2(1.0F, 0.0F)); // knob is always on right size of filled zone.
+                .SetRelativePosition(glm::vec2(1.0F, 0.5F)); // knob is always on right size of filled zone.
             m_p_knob = &knob;
 
             const std::shared_ptr<Graphics::Font>& p_font = m_p_style->GetFont();
-            
+
             glm::vec2 maxTextSize = p_font->GetMaxGlyphSizePx();
             maxTextSize.x *= static_cast<float>(m_max_label_characters);
 

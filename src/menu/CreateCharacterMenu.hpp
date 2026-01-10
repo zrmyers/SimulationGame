@@ -50,6 +50,9 @@ class CreateCharacterMenu : public Menu::IMenu {
         // Set the name of the character.
         void SetName(const std::string& name);
 
+        // Save character to file.
+        void SaveCharacter();
+
         // Process mouse movement
         void ProcessMouseMovement();
 

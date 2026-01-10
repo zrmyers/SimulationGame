@@ -5,6 +5,7 @@
 #include "ui/NineSlice.hpp"
 #include "ui/Slider.hpp"
 #include "ui/SliderStyle.hpp"
+#include "ui/Spacer.hpp"
 #include "ui/TextInputBox.hpp"
 #include "ui/VerticalLayout.hpp"
 #include "ui/Radio.hpp"
@@ -39,6 +40,35 @@ UI::Button& AddButton(
     return button;
 }
 
+
+UI::TextElement& AddTextElement(
+    const std::shared_ptr<UI::Style>& p_style,
+    UI::Element& parent,
+    const std::string& text,
+    const glm::vec4& color,
+    size_t max_characters) {
+
+    const std::shared_ptr<Graphics::Font>& p_font = p_style->GetFont("Default-UI");
+    glm::vec2 maxTextSize = p_font->GetMaxGlyphSizePx();
+    maxTextSize.x *= static_cast<float>(max_characters);
+    UI::Spacer& reservedSpace = parent.EmplaceChild<UI::Spacer>();
+    reservedSpace.SetFixedSize(maxTextSize)
+        .SetLayoutMode(UI::LayoutMode::FIXED)
+        .SetRelativePosition({0.5F, 0.5F})
+        .SetOrigin({0.5F, 0.5F});
+
+    UI::TextElement& textElement = reservedSpace.EmplaceChild<UI::TextElement>();
+    textElement.SetFont(p_font)
+        .SetText(p_font->CreateText(text))
+        .SetTextColor(color)
+        .SetFixedSize(textElement.GetTextSize())
+        .SetLayoutMode(UI::LayoutMode::FIXED)
+        .SetOrigin({0.5F, 0.5F})
+        .SetRelativePosition({0.5F, 0.5F});
+
+    return textElement;
+}
+
 void AddRadioSelection(
     const std::shared_ptr<UI::Style>& p_style,
     UI::Element& parent,
@@ -66,7 +96,9 @@ void AddRadioSelection(
         .SetOptions(options)
         .SetValueChangedCallback(std::move(callback))
         .SelectOption(selected_index)
-        .SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
+        .SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN)
+        .SetOrigin({0.5F, 0.5F})
+        .SetRelativePosition({0.5F, 0.5F});
 }
 
 

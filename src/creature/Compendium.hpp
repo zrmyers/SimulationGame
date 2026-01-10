@@ -318,7 +318,7 @@ namespace Creature {
             void Load(Core::Engine& engine, const std::string& filename);
 
             const Species& GetSpeciesByIndex(SpeciesIndex_t index);
-            const Species& GetSpeciesByName(const std::string& name);
+            const Species& GetSpeciesByName(const std::string& name) const;
 
             const Capability& GetCapabilityByName(const std::string& name) const;
             const Capability& GetCapabilityByIndex(CapabilityIndex_t index) const;

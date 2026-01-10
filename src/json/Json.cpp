@@ -13,4 +13,10 @@ glm::vec4 ParseColor(nlohmann::json& colorData) {
     return color;
 }
 
+void WriteColor(nlohmann::json& colorData, const glm::vec4& color) {
+    colorData["r"] = color.r;
+    colorData["g"] = color.g;
+    colorData["b"] = color.b;
+    colorData["a"] = color.a;
+}
 }

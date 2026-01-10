@@ -1,10 +1,9 @@
 #include "CreateCharacterMenu.hpp"
 #include "MenuUtilities.hpp"
+#include "characters/PlayerCharacter.hpp"
 #include "components/Canvas.hpp"
 #include "components/Creature.hpp"
 #include "components/Transform.hpp"
-#include "components/InputHandler.hpp"
-#include "core/Logger.hpp"
 #include "creature/Compendium.hpp"
 #include "ecs/ECS.hpp"
 #include "systems/CreatureSystem.hpp"
@@ -12,8 +11,6 @@
 #include "systems/RenderSystem.hpp"
 #include "ui/Button.hpp"
 #include "ui/ButtonStyle.hpp"
-#include "ui/CheckBox.hpp"
-#include "ui/CheckBoxStyle.hpp"
 #include "ui/Element.hpp"
 #include "ui/HorizontalLayout.hpp"
 #include "ui/Spacer.hpp"
@@ -172,8 +169,9 @@ void CreateCharacterMenu::BuildFinalizationPanel(UI::Element& panelRoot) {
     AddButton(m_p_style, characterManagement, "Cancel", UI::ButtonState::ENABLED,
         [p_menuManager](){p_menuManager->RequestChangeActiveMenu("ChooseCharacter");});
     m_p_done_button = &AddButton(m_p_style, characterManagement, "Done", UI::ButtonState::DISABLED,
-        [p_menuManager](){
+        [p_menuManager, this](){
             // save character to file
+            this->SaveCharacter();
             // return to previous screen
             p_menuManager->RequestChangeActiveMenu("ChooseCharacter");
     });
@@ -305,6 +303,13 @@ void CreateCharacterMenu::SetName(const std::string& name) {
     } else {
         m_p_done_button->SetButtonState(UI::ButtonState::DISABLED);
     }
+}
+
+void CreateCharacterMenu::SaveCharacter() {
+
+    Components::CreatureInstance& creature = m_entity.GetComponent<Components::CreatureInstance>();
+
+    Character::SaveCharacterToFile(creature.m_name + ".player.json", m_entity);
 }
 
 void CreateCharacterMenu::ProcessMouseMovement() {

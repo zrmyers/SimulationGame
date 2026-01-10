@@ -58,6 +58,7 @@ set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 add_executable(${PROJECT_NAME}
     ./src/main.cpp
     ./src/SimulationGame.cpp
+    ./src/characters/PlayerCharacter.cpp
     ./src/creature/Compendium.cpp
     ./src/core/AssetLoader.cpp
     ./src/core/Engine.cpp
