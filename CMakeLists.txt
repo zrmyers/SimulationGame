@@ -74,8 +74,12 @@ add_executable(${PROJECT_NAME}
     ./src/graphics/Texture2D.cpp
     ./src/items/ItemCatalog.cpp
     ./src/json/Json.cpp
+    ./src/math/Hash.cpp
+    ./src/math/Voronoi.cpp
     ./src/menu/ChooseCharacterMenu.cpp
+    ./src/menu/ChooseWorldMenu.cpp
     ./src/menu/CreateCharacterMenu.cpp
+    ./src/menu/CreateWorldMenu.cpp
     ./src/menu/MainMenu.cpp
     ./src/menu/MenuManager.cpp
     ./src/menu/MenuUtilities.cpp
