@@ -6,6 +6,7 @@
 #include "ui/Slider.hpp"
 #include "ui/SliderStyle.hpp"
 #include "ui/Spacer.hpp"
+#include "ui/TextElement.hpp"
 #include "ui/TextInputBox.hpp"
 #include "ui/VerticalLayout.hpp"
 #include "ui/Radio.hpp"
@@ -88,8 +89,8 @@ void AddRadioSelection(
         .SetTextColor(glm::vec4(1.0F, 1.0F, 0.0F, 1.0F))
         .SetFixedSize(fieldLabel.GetTextSize())
         .SetLayoutMode(UI::LayoutMode::FIXED)
-        .SetOrigin({0.5F, 0.5F})
-        .SetRelativePosition({0.5F, 0.5F});
+        .SetOrigin({0.0F, 0.5F})
+        .SetRelativePosition({0.0F, 0.5F});
 
     UI::Radio& radio = selectionField.EmplaceChild<UI::Radio>();
     radio.SetStyle(p_style->GetRadioStyle("simple"))
@@ -97,8 +98,8 @@ void AddRadioSelection(
         .SetValueChangedCallback(std::move(callback))
         .SelectOption(selected_index)
         .SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN)
-        .SetOrigin({0.5F, 0.5F})
-        .SetRelativePosition({0.5F, 0.5F});
+        .SetOrigin({0.0F, 0.5F})
+        .SetRelativePosition({0.0F, 0.5F});
 }
 
 
@@ -123,8 +124,8 @@ void AddSliderSelection(
         .SetTextColor(glm::vec4(1.0F, 1.0F, 0.0F, 1.0F))
         .SetFixedSize(fieldLabel.GetTextSize())
         .SetLayoutMode(UI::LayoutMode::FIXED)
-        .SetOrigin({0.5F, 0.5F})
-        .SetRelativePosition({0.5F, 0.5F});
+        .SetOrigin({0.0F, 0.5F})
+        .SetRelativePosition({0.0F, 0.5F});
 
     UI::Slider& slider = selectionField.EmplaceChild<UI::Slider>();
     slider.SetStyle(p_style->GetSliderStyle("simple"))
@@ -136,7 +137,7 @@ void AddSliderSelection(
 
 }
 
-void AddTextInputBox(const std::shared_ptr<UI::Style> &p_style, UI::Element &parent, const std::string &fieldName, const std::string &default_text, uint16_t max_characters, std::function<void (const std::string &)> callback) {
+UI::TextInputBox& AddTextInputBox(const std::shared_ptr<UI::Style> &p_style, UI::Element &parent, const std::string &fieldName, const std::string &default_text, uint16_t max_characters, std::function<void (const std::string &)> callback) {
 
     UI::HorizontalLayout& inputField = parent.EmplaceChild<UI::HorizontalLayout>();
     inputField.SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
@@ -157,6 +158,8 @@ void AddTextInputBox(const std::shared_ptr<UI::Style> &p_style, UI::Element &par
         .SetTextInputState(UI::TextInputState::ENABLED)
         .SetTextValueChangedCallback(std::move(callback))
         .SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
+
+    return textInputBox;
 }
 
 }

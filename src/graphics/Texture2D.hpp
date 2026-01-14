@@ -32,6 +32,12 @@ namespace Graphics {
                 glm::uvec2 src_extent,
                 glm::ivec2 dst_offset = {0, 0});
 
+            void LoadImageData(
+                std::vector<uint8_t>& data,
+                uint32_t width,
+                uint32_t height,
+                glm::ivec2 dst_offset = {0, 0});
+
             uint32_t GetWidth() const;
             uint32_t GetHeight() const;
             bool HasMipMaps() const;

@@ -3,6 +3,7 @@
 #include "systems/RenderSystem.hpp"
 #include <SDL3/SDL_gpu.h>
 #include <cstdint>
+#include <glm/ext/vector_int2.hpp>
 
 
 Graphics::Texture2D::Texture2D(
@@ -99,6 +100,28 @@ void Graphics::Texture2D::LoadImageData(
     region.x = dst_offset.x;
     region.y = dst_offset.y;
     request.p_src = static_cast<void*>(pixelRegion.data());
+
+    m_p_render_system->UploadDataToBuffer({request});
+
+    if (m_mipmaps) {
+        m_p_render_system->GenerateMipMaps(m_texture);
+    }
+}
+
+void Graphics::Texture2D::LoadImageData(
+    std::vector<uint8_t>& data, uint32_t width, uint32_t height, glm::ivec2 dst_offset) {
+    // texture transfer
+    Components::TransferRequest request = {};
+    request.cycle = false;
+    request.type = Components::RequestType::UPLOAD_TO_TEXTURE;
+    SDL_GPUTextureRegion& region = request.data.texture;
+    region.texture = m_texture.Get();
+    region.w = width;
+    region.h = height;
+    region.d = 1;
+    region.x = dst_offset.x;
+    region.y = dst_offset.y;
+    request.p_src = static_cast<void*>(data.data());
 
     m_p_render_system->UploadDataToBuffer({request});
 

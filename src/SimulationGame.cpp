@@ -10,6 +10,8 @@
 #include "ecs/ECS.hpp"
 #include "menu/ChooseCharacterMenu.hpp"
 #include "menu/CreateCharacterMenu.hpp"
+#include "menu/ChooseWorldMenu.hpp"
+#include "menu/CreateWorldMenu.hpp"
 #include "menu/MainMenu.hpp"
 #include "menu/SettingsMenu.hpp"
 #include "sdl/TTF.hpp"
@@ -57,32 +59,6 @@ SimulationGame::SimulationGame(Core::Engine& engine)
 }
 
 void SimulationGame::Update() {
-
-    float deltaTimeSec = GetEngine().GetDeltaTimeSec();
-    ECS::Registry& registry = GetEngine().GetEcsRegistry();
-    std::stringstream msgStream;
-    msgStream << std::fixed << std::setprecision(2);
-    msgStream << "FPS: " << 1.0F / deltaTimeSec;
-
-    Components::Text& text = m_text_entity.GetComponent<Components::Text>();
-    text.m_p_text->SetString(msgStream.str());
-
-    if (text.m_p_text != nullptr) {
-        int textWidth = 0;
-        int textHeight = 0;
-        text.m_p_text->GetSize(textWidth, textHeight);
-
-        m_rotateAngle += glm::pi<float>()/2.0F * deltaTimeSec;
-        Components::Transform& transform = m_text_entity.GetComponent<Components::Transform>();
-
-        // text pipeline
-        transform
-            .Set(glm::mat4(1.0F))
-            .Translate(glm::vec3(0.0F, -0.0F, -80.0F))
-            .Scale(glm::vec3(0.3F, 0.3F, 0.3F))
-            .Rotate(m_rotateAngle, glm::vec3(0.0F, 1.0F, 0.0F));
-    }
-
     m_menu_manager.Update();
 }
 
@@ -97,9 +73,15 @@ void SimulationGame::InitializeGUI() {
         = std::make_unique<Menu::ChooseCharacterMenu>(GetEngine(), m_menu_manager, uiStyle);
     std::unique_ptr<Menu::CreateCharacterMenu> p_createCharacter
         = std::make_unique<Menu::CreateCharacterMenu>(GetEngine(), m_menu_manager, uiStyle);
+    std::unique_ptr<Menu::ChooseWorldMenu> p_chooseWorld
+        = std::make_unique<Menu::ChooseWorldMenu>(GetEngine(), m_menu_manager, uiStyle);
+    std::unique_ptr<Menu::CreateWorldMenu> p_createWorld
+        = std::make_unique<Menu::CreateWorldMenu>(GetEngine(), m_menu_manager, uiStyle);
     m_menu_manager.AddMenu("MainMenu", std::move(p_menu));
     m_menu_manager.AddMenu("Settings", std::move(p_settings));
     m_menu_manager.AddMenu("ChooseCharacter", std::move(p_character));
+    m_menu_manager.AddMenu("ChooseWorld", std::move(p_chooseWorld));
+    m_menu_manager.AddMenu("CreateWorld", std::move(p_createWorld));
     m_menu_manager.AddMenu("CreateCharacter", std::move(p_createCharacter));
 
     m_menu_manager.RequestChangeActiveMenu("MainMenu");

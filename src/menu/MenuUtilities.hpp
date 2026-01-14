@@ -4,6 +4,7 @@
 #include "ui/Element.hpp"
 #include "ui/Style.hpp"
 #include "ui/TextElement.hpp"
+#include "ui/TextInputBox.hpp"
 #include <functional>
 #include <list>
 #include <memory>
@@ -55,7 +56,7 @@ namespace Menu {
     );
 
     // Add Text Input Box
-    void AddTextInputBox(
+    UI::TextInputBox& AddTextInputBox(
         const std::shared_ptr<UI::Style>& p_style,
         UI::Element& parent,
         const std::string& fieldName, // name of field being modified
