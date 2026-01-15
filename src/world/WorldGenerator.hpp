@@ -1,15 +1,12 @@
 #pragma once
 
-#include "math/Voronoi.hpp"
+#include "World.hpp"
 #include <glm/vec2.hpp>
 #include <string>
 
 namespace World {
 
     // Use a layer based approach for world generation.
-    // 0. Generate Regions
-    // 3. Assign Rivers
-    // 4. Assign Temperature and Moisture
     class WorldGenerator {
 
         public:
@@ -34,21 +31,9 @@ namespace World {
             };
 
 
-            WorldGenerator();
+            WorldGenerator() = default;
 
-            /**
-             * @brief Generate a Voronoi subdivision and adjacency graph of regions.
-             * @param regionCount Number of seed regions to generate.
-             * @param canvasSize The size (width,height) of the generation area in arbitrary units.
-             * @param sampleResolution Resolution used for rasterized nearest-seed sampling (higher => more accurate boundaries).
-             * @param rngSeed Optional RNG seed for deterministic output (0 = non-deterministic).
-             * @return VoronoiGraph containing regions and adjacency information.
-             */
-            Math::VoronoiGraph GenerateVoronoiRegions(
-                int regionCount,
-                const glm::ivec2& canvasSize,
-                int sampleResolution,
-                uint32_t rngSeed = 0U);
+            World Generate(WorldGenerator::Params& params);
 
         private:
 

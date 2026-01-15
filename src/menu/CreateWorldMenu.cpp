@@ -157,8 +157,10 @@ void CreateWorldMenu::GenerateWorld() {
         static_cast<int>(m_world_parameters.m_dimmension),
         Math::HashFNV1A(m_world_parameters.m_seed));
 
+    uint32_t width = static_cast<uint32_t>(m_world_parameters.m_dimmension);
+    uint32_t height = width;
     // now generate image
-    std::vector<uint8_t> pixels = graph.ToPixels({1024, 1024});
+    std::vector<uint8_t> pixels = graph.ToPixels({width, height});
 
     Systems::RenderSystem& renderSystem = m_p_engine->GetEcsRegistry().GetSystem<Systems::RenderSystem>();
     SDL_GPUSamplerCreateInfo samplerInfo = {};
@@ -178,11 +180,11 @@ void CreateWorldMenu::GenerateWorld() {
     std::shared_ptr<Graphics::Texture2D> texture = std::make_shared<Graphics::Texture2D>(
         *m_p_engine,
         std::move(p_sampler),
-        1024,
-        1024,
-        false);
+        width,
+        height,
+        true);
 
-    texture->LoadImageData(pixels, 1024, 1024);
+    texture->LoadImageData(pixels, width, height);
 
     // Create the sprite entity.
     m_sprite = ECS::Entity(m_p_engine->GetEcsRegistry());
@@ -190,6 +192,7 @@ void CreateWorldMenu::GenerateWorld() {
     Components::Sprite& sprite = m_sprite.EmplaceComponent<Components::Sprite>();
     sprite.texture = texture;
     sprite.layer = Components::RenderLayer::LAYER_3D_OPAQUE;
+
 
     m_sprite.EmplaceComponent<Components::Transform>()
         .Translate({0.0F, 0.0F, -1.0F});
