@@ -17,10 +17,15 @@ namespace World {
             void SetRegionId(RegionId_t region_id);
             RegionId_t GetRegionId() const;
 
+            TileId_t GetTileId() const;
+
+            glm::vec2 GetCenter() const;
+
         private:
 
             World* m_p_world {nullptr};
             TileId_t m_tile_id {INVALID_TILE_ID};
             RegionId_t m_region_id {INVALID_REGION_ID};
+            glm::vec2 m_center {0.0F, 0.0F};
     };
 }

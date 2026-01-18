@@ -9,11 +9,8 @@
 #include "components/Renderable.hpp"
 #include "components/Sprite.hpp"
 #include "components/Transform.hpp"
-#include "core/Logger.hpp"
 #include "ecs/ECS.hpp"
 #include "graphics/Texture2D.hpp"
-#include "math/Hash.hpp"
-#include "math/Voronoi.hpp"
 #include "sdl/SDL.hpp"
 #include "systems/RenderSystem.hpp"
 #include "ui/Button.hpp"
@@ -22,12 +19,15 @@
 #include "ui/Spacer.hpp"
 #include "ui/TextInputBox.hpp"
 #include "ui/VerticalLayout.hpp"
+#include "world/World.hpp"
+#include "world/WorldGenerator.hpp"
 #include <SDL3/SDL_gpu.h>
 #include <cstddef>
 #include <glm/ext/vector_int2.hpp>
 #include <memory>
 #include <string>
 #include <vector>
+#include "world/MapOverlay.hpp"
 
 namespace Menu {
 
@@ -73,9 +73,9 @@ void CreateWorldMenu::BuildCustomizationPanel(UI::Element& panelRoot) {
     // Main world generation
     UI::TextInputBox& seedInput = AddTextInputBox(m_p_style, widgetList, "World Seed", "Enter Seed", 32,
         [this](const std::string& textStr){
-        this->m_world_parameters.m_seed = textStr;
+        this->m_world_parameters.SetSeedAscii(textStr);
     });
-    seedInput.OnTextInput("Random");
+    seedInput.OnTextInput("Coffee");
 
     // Configure World Size (Tiles)
     AddSliderSelection(
@@ -84,7 +84,7 @@ void CreateWorldMenu::BuildCustomizationPanel(UI::Element& panelRoot) {
         "World Size",
         {"Small (64x64)", "Medium (128x128)", "Large (256x256)", "Huge (512x512)"},
         2, [this](size_t selection){
-        this->m_world_parameters.m_dimmension = 64 << selection;
+        this->m_world_parameters.SetDimension(64 << selection);
     });
 
     // Configure number of continents. Determines the number of continental plates to generate.
@@ -93,7 +93,7 @@ void CreateWorldMenu::BuildCustomizationPanel(UI::Element& panelRoot) {
         widgetList,
         "Number of Continents",
         {"2", "4", "8", "16"}, 2, [this](size_t selection){
-        this->m_world_parameters.m_num_continents = 2 << selection;
+        this->m_world_parameters.SetNumContinents(2 << selection);
     });
 
     // Configure percent of world that is land. Determines the number of oceanic plates to generate
@@ -104,7 +104,7 @@ void CreateWorldMenu::BuildCustomizationPanel(UI::Element& panelRoot) {
         {"30%", "40%", "50%", "60%", "70%"},
         0U,
         [this](size_t selection){
-        this->m_world_parameters.m_percent_land = 30.0F + 10.0F * static_cast<float>(selection);
+        this->m_world_parameters.SetPercentLand(30.0F + 10.0F * static_cast<float>(selection));
     });
 
     // Configure average size of each region, this is used to calculate the number of regions to create on map
@@ -116,7 +116,7 @@ void CreateWorldMenu::BuildCustomizationPanel(UI::Element& panelRoot) {
         {"4", "8", "16", "32", "64", "128"},
         3,
         [this](size_t selection) {
-            this->m_world_parameters.m_region_size = 4 << selection;
+            this->m_world_parameters.SetRegionSize(4 << selection);
         }
     );
     // Configure Temperature
@@ -148,19 +148,12 @@ void CreateWorldMenu::BuildNavigationPanel(UI::Element& panelRoot) {
 
 void CreateWorldMenu::GenerateWorld() {
 
-    size_t numTiles = m_world_parameters.m_dimmension * m_world_parameters.m_dimmension;
-    int regionCount = static_cast<int>(numTiles / m_world_parameters.m_region_size);
-    glm::ivec2 canvasSize = glm::ivec2(static_cast<int>(m_world_parameters.m_dimmension)) * 10; // NOLINT
-    Math::VoronoiGraph graph = Math::VoronoiGenerator::Generate(
-        regionCount,
-        canvasSize,
-        static_cast<int>(m_world_parameters.m_dimmension),
-        Math::HashFNV1A(m_world_parameters.m_seed));
+    World::World world = World::WorldGenerator::Generate(m_world_parameters);
 
-    uint32_t width = static_cast<uint32_t>(m_world_parameters.m_dimmension);
+    uint32_t width = m_world_parameters.GetDimension();
     uint32_t height = width;
     // now generate image
-    std::vector<uint8_t> pixels = graph.ToPixels({width, height});
+    std::vector<uint8_t> pixels = World::MapOverlay::GetOverlay(world, World::OverlayType::PLATE_TECTONICS);
 
     Systems::RenderSystem& renderSystem = m_p_engine->GetEcsRegistry().GetSystem<Systems::RenderSystem>();
     SDL_GPUSamplerCreateInfo samplerInfo = {};

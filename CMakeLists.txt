@@ -114,6 +114,13 @@ add_executable(${PROJECT_NAME}
     ./src/ui/TextInputBox.cpp
     ./src/ui/TextInputBoxStyle.cpp
     ./src/ui/VerticalLayout.cpp
+    ./src/world/MapOverlay.cpp
+    ./src/world/Region.cpp
+    ./src/world/TectonicPlate.cpp
+    ./src/world/Tile.cpp
+    ./src/world/World.cpp
+    ./src/world/WorldGenerator.cpp
+    ./src/world/WorldParams.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ./src)

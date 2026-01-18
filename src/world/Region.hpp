@@ -1,14 +1,15 @@
 #pragma once
 
 #include "TectonicPlate.hpp"
+#include <cstdint>
 
 namespace World {
 
     class World;
 
-    using RegionId_t = uint32_t;
+    using RegionId_t = int32_t;
 
-    static constexpr RegionId_t INVALID_REGION_ID = UINT32_MAX;
+    static constexpr RegionId_t INVALID_REGION_ID = -1;
 
     // A group of tiles that form a fundamental unit of land in the game. Determines biome and ownership for a range of
     // tiles.
@@ -19,6 +20,11 @@ namespace World {
 
             void SetPlateId(PlateId_t plate_id);
             PlateId_t GetPlateId() const;
+
+            glm::vec2 GetCentroid() const;
+
+            //! Get the neighbors of this region
+            const std::vector<RegionId_t>& GetNeighbors() const;
 
         private:
 

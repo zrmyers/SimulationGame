@@ -32,7 +32,7 @@ class CreateWorldMenu : public Menu::IMenu {
 
         ECS::Entity m_entity;
 
-        World::WorldGenerator::Params m_world_parameters;
+        World::WorldParams m_world_parameters;
 
         ECS::Entity m_sprite;
 
