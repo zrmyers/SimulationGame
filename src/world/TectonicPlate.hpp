@@ -12,17 +12,20 @@ namespace World {
 
     static constexpr PlateId_t INVALID_PLATE_ID = -1;
 
-    //! type of boundary
+    //! type of boundary. Listed in order from lowest to highest priority for defining region topology.
     enum class PlateBoundaryType : uint8_t {
 
+        //! No boundary.
+        NONE = 0,
+
+        //! plates are sliding against each other.
+        TRANSFORM,
+
         //! plates are away from each other.
-        DIVERGENT = 0,
+        DIVERGENT,
 
         //! plates are moving toward each other.
         CONVERGENT,
-
-        //! plates are sliding against each other.
-        TRANSFORM
     };
 
     // Represents

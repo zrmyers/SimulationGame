@@ -1,5 +1,6 @@
 #include "World.hpp"
 #include "Region.hpp"
+#include "Tile.hpp"
 #include "WorldParams.hpp"
 #include <cstdint>
 #include <glm/geometric.hpp>
@@ -51,7 +52,7 @@ namespace World {
             glm::vec2 tile_pos = CoordinateToPosition(tile_coord);
 
             // Find the closest region to this tile
-            RegionId_t closest_region = 0;
+            RegionId_t closest_region = INVALID_REGION_ID;
             float closest_distance = std::numeric_limits<float>::max();
 
             for (size_t region_idx = 0; region_idx < m_regions.size(); ++region_idx) {
@@ -66,6 +67,34 @@ namespace World {
 
             // Assign the tile to the closest region
             m_tiles[tile_idx].SetRegionId(closest_region);
+        }
+
+        // Determine if the tile is on a region boundary.
+        for (size_t tile_idx = 0; tile_idx < m_tiles.size(); tile_idx++) {
+
+            Tile& tileA = m_tiles.at(tile_idx);
+            Coordinate_t coordinate = TileIdToCoordinate(tile_idx);
+
+            // check eastern and southern neighbors
+            if (coordinate.x + 1 < m_size.x) {
+                TileId_t tileB_idx = CoordinateToTileId({coordinate.x + 1, coordinate.y});
+                Tile& tileB = m_tiles.at(tileB_idx);
+
+                if (tileA.GetRegionId() != tileB.GetRegionId()) {
+                    tileA.SetIsEdgeTile(true);
+                    tileB.SetIsEdgeTile(true);
+                }
+            }
+
+            if (coordinate.y + 1 < m_size.y) {
+                TileId_t tileB_idx = CoordinateToTileId({coordinate.x, coordinate.y + 1});
+                Tile& tileB = m_tiles.at(tileB_idx);
+
+                if (tileA.GetRegionId() != tileB.GetRegionId()) {
+                    tileA.SetIsEdgeTile(true);
+                    tileB.SetIsEdgeTile(true);
+                }
+            }
         }
     }
 

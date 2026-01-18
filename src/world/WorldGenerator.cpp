@@ -12,6 +12,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <glm/ext/quaternion_geometric.hpp>
+#include <glm/ext/scalar_constants.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/polar_coordinates.hpp>
 #include <random>
 
 namespace World {
@@ -54,9 +57,7 @@ void WorldGenerator::TectonicsPass(World& world, const WorldParams& params) {
     rng.seed(params.GetSeed());
 
     // plate movement distribution
-    std::uniform_real_distribution<float> uniform_dist_x(0.0F, 1.0F);
-    std::uniform_real_distribution<float> uniform_dist_y(0.0F, 1.0F);
-
+    std::uniform_real_distribution<float> uniform_dist_angle(0.0F, 2.0F * glm::pi<float>());
     std::vector<PlateId_t> chooseFrom;
     chooseFrom.reserve(plates.size());
 
@@ -65,7 +66,9 @@ void WorldGenerator::TectonicsPass(World& world, const WorldParams& params) {
 
         TectonicPlate plate(world, platesGraph.m_centroids.at(plateId));
 
-        glm::vec2 velocity = {uniform_dist_x(rng), uniform_dist_y(rng)};
+        float angle = uniform_dist_angle(rng);
+        glm::vec2 velocity = glm::euclidean(glm::vec2(1.0F, angle));
+
         velocity = glm::normalize(velocity);
         plate.SetVelocity(velocity);
 
@@ -84,6 +87,7 @@ void WorldGenerator::TectonicsPass(World& world, const WorldParams& params) {
         chooseFrom.erase(chooseFrom.begin() + chooseFromIndex);
 
         plates.at(plateId).SetIsContinental(true);
+        numContinents++;
     }
 
     // Determine boundary types
@@ -106,6 +110,7 @@ void WorldGenerator::TectonicsPass(World& world, const WorldParams& params) {
         }
     }
 
+    // Create regions
     for (int32_t regionId = 0; regionId < numRegions; regionId++) {
 
         std::vector<RegionId_t> neighbors = regionsGraph.m_adjacency.at(regionId);
@@ -114,6 +119,25 @@ void WorldGenerator::TectonicsPass(World& world, const WorldParams& params) {
         // determine plate membership of region
         int32_t plateId = static_cast<int32_t>(platesGraph.GetRegion(region.GetCentroid()));
         region.SetPlateId(plateId);
+
+        regions.push_back(std::move(region));
+    }
+
+    // Determine if region is on boundaries.
+    for (Region& regionA : regions) {
+
+        PlateId_t plateA = regionA.GetPlateId();
+
+        for (RegionId_t regionBIdx : regionA.GetNeighbors()) {
+
+            Region& regionB = regions.at(regionBIdx);
+
+            if (plateA != regionB.GetPlateId()) {
+
+                regionA.SetIsBoundary(true);
+                regionB.SetIsBoundary(true);
+            }
+        }
     }
 
     world.SetPlates(std::move(plates));

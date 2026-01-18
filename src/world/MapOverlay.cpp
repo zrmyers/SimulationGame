@@ -3,6 +3,9 @@
 #include "Region.hpp"
 #include "Tile.hpp"
 #include "TectonicPlate.hpp"
+#include <cstdint>
+#include <glm/fwd.hpp>
+#include <glm/vec4.hpp>
 
 namespace World {
 
@@ -33,109 +36,52 @@ namespace World {
             TileId_t tile_id = tile.GetTileId();
             RegionId_t region_id = tile.GetRegionId();
 
-            // Skip invalid regions
-            if (region_id == INVALID_REGION_ID) {
-                continue;
-            }
-
             const Region& region = world.GetRegion(region_id);
             PlateId_t plate_id = region.GetPlateId();
-
-            // Skip invalid plates
-            if (plate_id == INVALID_PLATE_ID) {
-                continue;
-            }
+            const TectonicPlate& plate = plates.at(plate_id);
 
             // Calculate pixel position
             Coordinate_t coord = world.TileIdToCoordinate(tile_id);
             size_t pixel_idx = (static_cast<size_t>(coord.y) * static_cast<size_t>(size.x) + static_cast<size_t>(coord.x)) * 4;
 
-            if (pixel_idx + 3 >= buffer.size()) {
-                continue;
-            }
-
-            // Determine if this tile is on a boundary
-            bool is_boundary_tile = false;
-            PlateBoundaryType boundary_type = PlateBoundaryType::TRANSFORM;
-
-            // Check if any neighbor is in a different region (indicates a region edge)
-            bool is_region_edge = false;
-
-            // For simplicity, we can check neighboring tiles
-            // Check 4 neighbors (up, down, left, right)
-            Coordinate_t neighbors[4] = {
-                {coord.x, coord.y + 1},
-                {coord.x, coord.y - 1},
-                {coord.x + 1, coord.y},
-                {coord.x - 1, coord.y}
-            };
-
-            for (const auto& neighbor_coord : neighbors) {
-                // Check bounds
-                if (neighbor_coord.x >= size.x || neighbor_coord.y >= size.y) {
-                    continue;
-                }
-
-                TileId_t neighbor_tile_id = world.CoordinateToTileId(neighbor_coord);
-                const Tile& neighbor_tile = world.GetTile(neighbor_tile_id);
-                RegionId_t neighbor_region_id = neighbor_tile.GetRegionId();
-
-                // If neighboring tile is in a different region, this is an edge
-                if (neighbor_region_id != region_id && neighbor_region_id != INVALID_REGION_ID) {
-                    is_region_edge = true;
-
-                    // Get the neighbor region and its plate
-                    const Region& neighbor_region = world.GetRegion(neighbor_region_id);
-                    PlateId_t neighbor_plate_id = neighbor_region.GetPlateId();
-
-                    // If on a different plate, determine boundary type
-                    if (neighbor_plate_id != plate_id && neighbor_plate_id != INVALID_PLATE_ID) {
-                        is_boundary_tile = true;
-                        const TectonicPlate& current_plate = world.GetPlate(plate_id);
-                        const TectonicPlate& neighbor_plate = world.GetPlate(neighbor_plate_id);
-                        boundary_type = DeterminePlateBoundaryType(current_plate, neighbor_plate);
-                        break;
-                    }
-                }
-            }
+            // Determine if tile is in a plate boundary region
+            bool is_in_plate_boundary = region.GetIsBoundary();
+            bool is_region_boundary = tile.GetIsEdgeTile();
+            bool is_continental = plate.GetIsContinental();
+            PlateBoundaryType boundaryType = region.GetPlateBoundaryType();
 
             // Set pixel color based on classification
-            uint8_t r = 255, g = 255, b = 255, a = 255;  // Default: white
+            glm::u8vec4 color = is_continental?
+                glm::u8vec4(0xc4U, 0xa4U, 0x84U,0xffU) : // NOLINT light brown
+                glm::u8vec4(0xadU, 0xd8U, 0xe6U, 0xFF); // NOLINT aqua
 
-            if (is_region_edge && !is_boundary_tile) {
-                // Black for region edges that are not plate boundaries
-                r = 0;
-                g = 0;
-                b = 0;
-            } else if (is_boundary_tile) {
-                // Color based on plate boundary type
-                switch (boundary_type) {
-                    case PlateBoundaryType::TRANSFORM:
-                        // Red for transform boundaries
-                        r = 255;
-                        g = 0;
-                        b = 0;
-                        break;
-                    case PlateBoundaryType::CONVERGENT:
-                        // Green for convergent boundaries
-                        r = 0;
-                        g = 255;
-                        b = 0;
-                        break;
-                    case PlateBoundaryType::DIVERGENT:
-                        // Blue for divergent boundaries
-                        r = 0;
-                        g = 0;
-                        b = 255;
-                        break;
-                }
+            if (is_region_boundary && is_in_plate_boundary) {
+                color = glm::u8vec4(0U);
             }
+            else if (is_in_plate_boundary) {
 
+                switch (boundaryType) {
+                    case PlateBoundaryType::TRANSFORM:
+                        color = glm::u8vec4(UINT8_MAX, 0U, 0U, UINT8_MAX);
+                        break;
+
+                    case PlateBoundaryType::DIVERGENT:
+                        color = glm::u8vec4(0U, UINT8_MAX, 0U, UINT8_MAX);
+                        break;
+
+                    case PlateBoundaryType::CONVERGENT:
+                        color = glm::u8vec4(0U, 0U, UINT8_MAX, UINT8_MAX);
+                        break;
+
+                    case PlateBoundaryType::NONE:
+                        break;
+                    }
+            }
             // Write RGBA values
-            buffer[pixel_idx + 0] = r;      // Red
-            buffer[pixel_idx + 1] = g;      // Green
-            buffer[pixel_idx + 2] = b;      // Blue
-            buffer[pixel_idx + 3] = a;      // Alpha (opaque)
+            buffer[pixel_idx + 0] = color.r;      // Red
+            buffer[pixel_idx + 1] = color.g;      // Green
+            buffer[pixel_idx + 2] = color.b;      // Blue
+            buffer[pixel_idx + 3] = color.a;      // Alpha (opaque)
         }
 
         return buffer;

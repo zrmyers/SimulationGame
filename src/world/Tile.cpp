@@ -27,4 +27,11 @@ namespace World {
         return m_center;
     }
 
+    void Tile::SetIsEdgeTile(bool is_edge) {
+        m_is_edge = is_edge;
+    }
+
+    bool Tile::GetIsEdgeTile() const {
+        return m_is_edge;
+    }
 }
