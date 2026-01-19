@@ -34,4 +34,12 @@ namespace World {
     bool Tile::GetIsEdgeTile() const {
         return m_is_edge;
     }
+
+    void Tile::SetAbsoluteHeight(float height) {
+        m_height = height;
+    }
+
+    float Tile::GetAbsoluteHeight() const {
+        return m_height;
+    }
 }

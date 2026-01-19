@@ -5,6 +5,7 @@
 #include <glm/vec2.hpp>
 #include <vector>
 
+#include "Region.hpp"
 #include "TectonicPlate.hpp"
 #include "Tile.hpp"
 
@@ -60,12 +61,15 @@ namespace World {
 
             //! Get all tiles
             const std::vector<Tile>& GetTiles() const;
+            std::vector<Tile>& GetTiles();
 
             //! Get all regions
             const std::vector<Region>& GetRegions() const;
+            std::vector<Region>& GetRegions();
 
             //! Get all plates
             const std::vector<TectonicPlate>& GetPlates() const;
+            std::vector<TectonicPlate>& GetPlates();
 
         private:
 

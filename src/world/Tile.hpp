@@ -25,12 +25,17 @@ namespace World {
             void SetIsEdgeTile(bool is_edge);
             bool GetIsEdgeTile() const;
 
+            // Set the absolute height of the tile
+            void SetAbsoluteHeight(float height);
+            float GetAbsoluteHeight() const;
+
         private:
 
             World* m_p_world {nullptr};
             TileId_t m_tile_id {INVALID_TILE_ID};
             RegionId_t m_region_id {INVALID_REGION_ID};
             glm::vec2 m_center {0.0F, 0.0F};
+            float m_height {0.0F};
             bool m_is_edge { false };
     };
 }

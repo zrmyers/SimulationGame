@@ -9,6 +9,7 @@ namespace World {
     //! The type of overlay
     enum class OverlayType : uint8_t {
         PLATE_TECTONICS = 0,
+        HEIGHT_MAP = 1
     };
 
     class MapOverlay {
@@ -29,5 +30,9 @@ namespace World {
             //!
             //! Alpha channel is set to opaque.
             static std::vector<uint8_t> GetPlateTectonicsOverlay(World& world);
+
+            //! Returns a greyscale buffer of pixels, where rgb channels are used to indicate height. Height is normalized
+            //! between black and white, where black is lowest elevation, and white is highest elevation.
+            static std::vector<uint8_t> GetHeightMapOverlay(World& world);
     };
 };

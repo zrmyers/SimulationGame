@@ -32,8 +32,9 @@ namespace World {
         return m_is_boundary;
     }
 
-    PlateBoundaryType Region::GetPlateBoundaryType() const {
+    std::pair<PlateBoundaryType,PlateId_t> Region::GetPlateBoundaryType() const {
         PlateBoundaryType boundaryType = PlateBoundaryType::NONE;
+        PlateId_t foundId = INVALID_PLATE_ID;
 
         if (m_is_boundary) {
             TectonicPlate& plate = m_p_world->GetPlate(m_plate_id);
@@ -50,11 +51,28 @@ namespace World {
 
                     if (static_cast<uint8_t>(neighborBoundaryType) > static_cast<uint8_t>(boundaryType)) {
                         boundaryType = neighborBoundaryType;
+                        foundId = neighborPlateId;
                     }
                 }
             }
         }
 
-        return boundaryType;
+        return {boundaryType, foundId};
+    }
+
+    void Region::SetHasSubduction(bool has_subduction) {
+        m_has_subduction = has_subduction;
+    }
+
+    bool Region::GetHasSubduction() const {
+        return m_has_subduction;
+    }
+
+    void Region::SetAbsoluteHeight(float abs_height) {
+        m_height = abs_height;
+    }
+
+    float Region::GetAbsoluteHeight() const {
+        return m_height;
     }
 }

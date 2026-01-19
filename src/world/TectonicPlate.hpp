@@ -48,6 +48,10 @@ namespace World {
             //! Get the centroid of this plate
             glm::vec2 GetCentroid() const;
 
+            //! Set the height of the plate. This is height relative to surface of mantle.
+            void SetAbsoluteHeight(float height);
+            float GetAbsoluteHeight() const;
+
         private:
 
             //! Reference to world that region belongs to.
@@ -58,6 +62,9 @@ namespace World {
 
             //! The velocity of the plate. Used for determining plate boundary types.
             glm::vec2 m_velocity {0.0F, 0.0F};
+
+            //! The height of the plate.
+            float m_height;
 
             //! Whether the plate is continental or oceanic. If true the plate is continental, if false the plate is
             //! oceanic.

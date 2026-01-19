@@ -2,10 +2,12 @@
 
 #include "TectonicPlate.hpp"
 #include <cstdint>
+#include <functional>
 
 namespace World {
 
     class World;
+    class Region;
 
     using RegionId_t = int32_t;
 
@@ -29,7 +31,15 @@ namespace World {
             void SetIsBoundary(bool is_boundary);
             bool GetIsBoundary() const;
 
-            PlateBoundaryType GetPlateBoundaryType() const;
+            std::pair<PlateBoundaryType, PlateId_t> GetPlateBoundaryType() const;
+
+            // check for subduction
+            void SetHasSubduction(bool has_subduction);
+            bool GetHasSubduction() const;
+
+            // Set the absolute height, relative to magma level.
+            void SetAbsoluteHeight(float height);
+            float GetAbsoluteHeight() const;
 
         private:
 
@@ -45,7 +55,13 @@ namespace World {
             //! The ID of the plate associated with region.
             PlateId_t m_plate_id {INVALID_PLATE_ID};
 
+            //! The absolute height of the region
+            float m_height {0.0F};
+
             //! Whether the region is at plate boundary.
             bool m_is_boundary {false};
+
+            //! Whether the region is part of subduction zone.
+            bool m_has_subduction {false};
     };
 }

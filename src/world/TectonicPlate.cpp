@@ -46,6 +46,14 @@ namespace World {
         return m_centroid;
     }
 
+    void TectonicPlate::SetAbsoluteHeight(float height) {
+        m_height = height;
+    }
+
+    float TectonicPlate::GetAbsoluteHeight() const {
+        return m_height;
+    }
+
     PlateBoundaryType DeterminePlateBoundaryType(const TectonicPlate& plate1, const TectonicPlate& plate2,
                                                   float divergence_threshold) {
         // Get the positions and velocities

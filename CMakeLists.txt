@@ -75,6 +75,7 @@ add_executable(${PROJECT_NAME}
     ./src/items/ItemCatalog.cpp
     ./src/json/Json.cpp
     ./src/math/Hash.cpp
+    ./src/math/PerlinNoise.cpp
     ./src/math/Voronoi.cpp
     ./src/menu/ChooseCharacterMenu.cpp
     ./src/menu/ChooseWorldMenu.cpp
@@ -121,6 +122,8 @@ add_executable(${PROJECT_NAME}
     ./src/world/World.cpp
     ./src/world/WorldGenerator.cpp
     ./src/world/WorldParams.cpp
+    ./src/world/passes/ElevationPass.cpp
+    ./src/world/passes/TectonicsPass.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ./src)

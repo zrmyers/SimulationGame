@@ -130,11 +130,23 @@ namespace World {
         return m_tiles;
     }
 
+    std::vector<Tile>& World::GetTiles() {
+        return m_tiles;
+    }
+
     const std::vector<Region>& World::GetRegions() const {
         return m_regions;
     }
 
+    std::vector<Region>& World::GetRegions() {
+        return m_regions;
+    }
+
     const std::vector<TectonicPlate>& World::GetPlates() const {
+        return m_plates;
+    }
+
+    std::vector<TectonicPlate>& World::GetPlates() {
         return m_plates;
     }
 

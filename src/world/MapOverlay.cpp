@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <glm/fwd.hpp>
 #include <glm/vec4.hpp>
+#include <glm/common.hpp>
+#include <limits>
 
 namespace World {
 
@@ -13,6 +15,8 @@ namespace World {
         switch (overlayType) {
             case OverlayType::PLATE_TECTONICS:
                 return GetPlateTectonicsOverlay(world);
+            case OverlayType::HEIGHT_MAP:
+                return GetHeightMapOverlay(world);
             default:
                 // Return black overlay for unknown types
                 Extent_t size = world.GetSize();
@@ -48,7 +52,7 @@ namespace World {
             bool is_in_plate_boundary = region.GetIsBoundary();
             bool is_region_boundary = tile.GetIsEdgeTile();
             bool is_continental = plate.GetIsContinental();
-            PlateBoundaryType boundaryType = region.GetPlateBoundaryType();
+            auto boundaryType = region.GetPlateBoundaryType();
 
             // Set pixel color based on classification
             glm::u8vec4 color = is_continental?
@@ -60,7 +64,7 @@ namespace World {
             }
             else if (is_in_plate_boundary) {
 
-                switch (boundaryType) {
+                switch (boundaryType.first) {
                     case PlateBoundaryType::TRANSFORM:
                         color = glm::u8vec4(UINT8_MAX, 0U, 0U, UINT8_MAX);
                         break;
@@ -82,6 +86,58 @@ namespace World {
             buffer[pixel_idx + 1] = color.g;      // Green
             buffer[pixel_idx + 2] = color.b;      // Blue
             buffer[pixel_idx + 3] = color.a;      // Alpha (opaque)
+        }
+
+        return buffer;
+    }
+
+    std::vector<uint8_t> MapOverlay::GetHeightMapOverlay(World& world) {
+        Extent_t size = world.GetSize();
+        size_t num_pixels = static_cast<size_t>(size.x) * static_cast<size_t>(size.y);
+
+        // RGBA buffer - 4 bytes per pixel
+        std::vector<uint8_t> buffer(num_pixels * 4);
+
+        const std::vector<Tile>& tiles = world.GetTiles();
+
+        // Find min and max heights for normalization
+        float min_height = std::numeric_limits<float>::max();
+        float max_height = std::numeric_limits<float>::lowest();
+
+        for (const auto& tile : tiles) {
+            float height = tile.GetAbsoluteHeight();
+            min_height = glm::min(min_height, height);
+            max_height = glm::max(max_height, height);
+        }
+
+        // Handle case where all heights are the same
+        float height_range = max_height - min_height;
+        if (height_range < 0.001F) {
+            height_range = 1.0F;
+        }
+
+        // Process each tile
+        for (const auto& tile : tiles) {
+            TileId_t tile_id = tile.GetTileId();
+
+            float height = tile.GetAbsoluteHeight();
+
+            // Normalize height to [0.0, 1.0]
+            float normalized_height = (height - min_height) / height_range;
+            normalized_height = glm::clamp(normalized_height, 0.0F, 1.0F);
+
+            // Convert to 0-255 range
+            uint8_t pixel_value = static_cast<uint8_t>(normalized_height * 255.0F);
+
+            // Calculate pixel position
+            Coordinate_t coord = world.TileIdToCoordinate(tile_id);
+            size_t pixel_idx = (static_cast<size_t>(coord.y) * static_cast<size_t>(size.x) + static_cast<size_t>(coord.x)) * 4;
+
+            // Set grayscale RGBA values (all channels get the same value)
+            buffer[pixel_idx + 0] = pixel_value;      // Red
+            buffer[pixel_idx + 1] = pixel_value;      // Green
+            buffer[pixel_idx + 2] = pixel_value;      // Blue
+            buffer[pixel_idx + 3] = 255;              // Alpha (opaque)
         }
 
         return buffer;

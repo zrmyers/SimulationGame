@@ -5,8 +5,11 @@
 #include "ecs/ECS.hpp"
 #include "ui/Element.hpp"
 #include "ui/Style.hpp"
+#include <memory>
 #include <string>
 #include <vector>
+#include "world/MapOverlay.hpp"
+#include "world/World.hpp"
 #include "world/WorldGenerator.hpp"
 
 namespace Menu {
@@ -25,6 +28,7 @@ class CreateWorldMenu : public Menu::IMenu {
     private:
 
         void GenerateWorld();
+        void SetOverlay(World::OverlayType selection);
 
         Core::Engine* m_p_engine;
         MenuManager* m_p_manager;
@@ -35,6 +39,9 @@ class CreateWorldMenu : public Menu::IMenu {
         World::WorldParams m_world_parameters;
 
         ECS::Entity m_sprite;
+
+        std::unique_ptr<World::World> m_p_world;
+        World::OverlayType m_selected_overlay {World::OverlayType::PLATE_TECTONICS};
 
 };
 
