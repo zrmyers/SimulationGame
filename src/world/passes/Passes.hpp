@@ -25,4 +25,14 @@ namespace World::Passes {
     //       or edge of region. Tiles closer to edge should blend with height of closest neighboring region.
     void RunElevationPass(World& world, const WorldParams& params);
 
+    // 3. Generate hydrology (oceans, rivers, and lakes)
+    //    a. Determine ocean level based on world parameters and elevation distribution
+    //    b. Mark all tiles below ocean level as water
+    //    c. For each tile above ocean level, calculate flow direction to the lowest adjacent neighbor
+    //    d. Trace flow paths and accumulate water volume at each tile
+    //    e. Identify and mark lakes at local minima (terrain depressions that collect water)
+    //    f. Identify and mark rivers as tiles with sufficient accumulated water flow
+    //    g. Set water level for each water tile (ocean level or lake level)
+    void RunHydrologyPass(World& world, const WorldParams& params);
+
 }

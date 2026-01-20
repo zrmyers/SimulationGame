@@ -75,4 +75,21 @@ namespace World {
     float Region::GetAbsoluteHeight() const {
         return m_height;
     }
+
+    void Region::SetIsOcean(bool is_ocean) {
+        m_is_ocean = is_ocean;
+    }
+
+    bool Region::GetIsOcean() const {
+        return m_is_ocean;
+    }
+
+    void Region::SetHasRiver(bool has_river) {
+        m_has_river = has_river;
+    }
+
+    bool Region::GetHasRiver() const {
+        return m_has_river;
+    }
+
 }

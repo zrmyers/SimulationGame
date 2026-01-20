@@ -42,4 +42,53 @@ namespace World {
     float Tile::GetAbsoluteHeight() const {
         return m_height;
     }
+
+    void Tile::SetIsWater(bool is_water) {
+        m_is_water = is_water;
+    }
+
+    bool Tile::GetIsWater() const {
+        return m_is_water;
+    }
+
+    void Tile::SetIsRiver(bool is_river) {
+        m_is_river = is_river;
+    }
+
+    bool Tile::GetIsRiver() const {
+        return m_is_river;
+    }
+
+    void Tile::SetIsLake(bool is_lake) {
+        m_is_lake = is_lake;
+    }
+
+    bool Tile::GetIsLake() const {
+        return m_is_lake;
+    }
+
+    void Tile::SetWaterLevel(float water_level) {
+        m_water_level = water_level;
+    }
+
+    float Tile::GetWaterLevel() const {
+        return m_water_level;
+    }
+
+    void Tile::SetFlowDirection(glm::ivec2 direction) {
+        m_flow_direction = direction;
+    }
+
+    glm::ivec2 Tile::GetFlowDirection() const {
+        return m_flow_direction;
+    }
+
+    void Tile::SetFlowAccumulation(float accumulation) {
+        m_flow_accumulation = accumulation;
+    }
+
+    float Tile::GetFlowAccumulation() const {
+        return m_flow_accumulation;
+    }
+
 }

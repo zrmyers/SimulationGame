@@ -9,7 +9,8 @@ namespace World {
     //! The type of overlay
     enum class OverlayType : uint8_t {
         PLATE_TECTONICS = 0,
-        HEIGHT_MAP = 1
+        HEIGHT_MAP = 1,
+        WATER_MAP = 2
     };
 
     class MapOverlay {
@@ -17,7 +18,6 @@ namespace World {
         public:
 
             static std::vector<uint8_t> GetOverlay(World& world, OverlayType overlayType);
-
 
         private:
 
@@ -34,5 +34,14 @@ namespace World {
             //! Returns a greyscale buffer of pixels, where rgb channels are used to indicate height. Height is normalized
             //! between black and white, where black is lowest elevation, and white is highest elevation.
             static std::vector<uint8_t> GetHeightMapOverlay(World& world);
+
+            //! Returns a colored buffer of pixels representing water and land features:
+            //! - Dark blue for ocean water
+            //! - Light blue for rivers
+            //! - Cyan for lakes
+            //! - Green for land
+            //!
+            //! Alpha channel is set to opaque.
+            static std::vector<uint8_t> GetWaterMapOverlay(World& world);
     };
 };

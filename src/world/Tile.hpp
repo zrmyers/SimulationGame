@@ -29,6 +29,25 @@ namespace World {
             void SetAbsoluteHeight(float height);
             float GetAbsoluteHeight() const;
 
+            // Water properties
+            void SetIsWater(bool is_water);
+            bool GetIsWater() const;
+
+            void SetIsRiver(bool is_river);
+            bool GetIsRiver() const;
+
+            void SetIsLake(bool is_lake);
+            bool GetIsLake() const;
+
+            void SetWaterLevel(float water_level);
+            float GetWaterLevel() const;
+
+            void SetFlowDirection(glm::ivec2 direction);
+            glm::ivec2 GetFlowDirection() const;
+
+            void SetFlowAccumulation(float accumulation);
+            float GetFlowAccumulation() const;
+
         private:
 
             World* m_p_world {nullptr};
@@ -36,6 +55,14 @@ namespace World {
             RegionId_t m_region_id {INVALID_REGION_ID};
             glm::vec2 m_center {0.0F, 0.0F};
             float m_height {0.0F};
-            bool m_is_edge { false };
+            bool m_is_edge {false};
+
+            // Water properties
+            bool m_is_water {false};
+            bool m_is_river {false};
+            bool m_is_lake {false};
+            float m_water_level {0.0F};
+            glm::ivec2 m_flow_direction {INT32_MAX, INT32_MAX};  // Direction of water flow
+            float m_flow_accumulation {0.0F};  // Accumulated water volume
     };
 }

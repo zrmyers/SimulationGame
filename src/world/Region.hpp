@@ -41,6 +41,13 @@ namespace World {
             void SetAbsoluteHeight(float height);
             float GetAbsoluteHeight() const;
 
+            // Water properties
+            void SetIsOcean(bool is_ocean);
+            bool GetIsOcean() const;
+
+            void SetHasRiver(bool has_river);
+            bool GetHasRiver() const;
+
         private:
 
             //! Reference to world that region belongs to.
@@ -63,5 +70,11 @@ namespace World {
 
             //! Whether the region is part of subduction zone.
             bool m_has_subduction {false};
+
+            //! Whether the region is ocean (below ocean level)
+            bool m_is_ocean {false};
+
+            //! Whether the region contains river(s)
+            bool m_has_river {false};
     };
 }

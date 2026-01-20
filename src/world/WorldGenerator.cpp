@@ -20,6 +20,7 @@ std::unique_ptr<World> WorldGenerator::Generate(const WorldParams& params) {
 
     Passes::RunTectonicsPass(*p_world, params);
     Passes::RunElevationPass(*p_world, params);
+    Passes::RunHydrologyPass(*p_world, params);
 
     return p_world;
 }

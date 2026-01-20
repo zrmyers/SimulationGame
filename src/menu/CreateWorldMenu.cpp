@@ -61,7 +61,7 @@ void CreateWorldMenu::Activate() {
         m_p_style,
         overlaySelection,
         "Overlay",
-        {"Tectonic Plates", "Height Map"},
+        {"Tectonic Plates", "Height Map", "Water Map"},
         static_cast<size_t>(m_selected_overlay),
         [this](size_t selection){
             this->SetOverlay(static_cast<World::OverlayType>(selection));

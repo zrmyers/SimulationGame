@@ -17,6 +17,8 @@ namespace World {
                 return GetPlateTectonicsOverlay(world);
             case OverlayType::HEIGHT_MAP:
                 return GetHeightMapOverlay(world);
+            case OverlayType::WATER_MAP:
+                return GetWaterMapOverlay(world);
             default:
                 // Return black overlay for unknown types
                 Extent_t size = world.GetSize();
@@ -138,6 +140,48 @@ namespace World {
             buffer[pixel_idx + 1] = pixel_value;      // Green
             buffer[pixel_idx + 2] = pixel_value;      // Blue
             buffer[pixel_idx + 3] = 255;              // Alpha (opaque)
+        }
+
+        return buffer;
+    }
+
+    std::vector<uint8_t> MapOverlay::GetWaterMapOverlay(World& world) {
+        Extent_t size = world.GetSize();
+        size_t num_pixels = static_cast<size_t>(size.x) * static_cast<size_t>(size.y);
+
+        // RGBA buffer - 4 bytes per pixel
+        std::vector<uint8_t> buffer(num_pixels * 4);
+
+        const std::vector<Tile>& tiles = world.GetTiles();
+
+        // Process each tile
+        for (const auto& tile : tiles) {
+            TileId_t tile_id = tile.GetTileId();
+            Coordinate_t coord = world.TileIdToCoordinate(tile_id);
+            size_t pixel_idx = (static_cast<size_t>(coord.y) * static_cast<size_t>(size.x) + static_cast<size_t>(coord.x)) * 4;
+
+            glm::u8vec4 color;
+
+            // Determine color based on water features
+            if (tile.GetIsLake()) {
+                // Cyan for lakes
+                color = glm::u8vec4(0U, 255U, 255U, 255U);
+            } else if (tile.GetIsRiver()) {
+                // Light blue for rivers
+                color = glm::u8vec4(100U, 149U, 237U, 255U);  // Cornflower blue
+            } else if (tile.GetIsWater()) {
+                // Dark blue for ocean
+                color = glm::u8vec4(0U, 51U, 102U, 255U);  // Dark blue
+            } else {
+                // Green for land
+                color = glm::u8vec4(34U, 139U, 34U, 255U);  // Forest green
+            }
+
+            // Write RGBA values
+            buffer[pixel_idx + 0] = color.r;      // Red
+            buffer[pixel_idx + 1] = color.g;      // Green
+            buffer[pixel_idx + 2] = color.b;      // Blue
+            buffer[pixel_idx + 3] = color.a;      // Alpha (opaque)
         }
 
         return buffer;
