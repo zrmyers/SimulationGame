@@ -122,6 +122,7 @@ add_executable(${PROJECT_NAME}
     ./src/world/World.cpp
     ./src/world/WorldGenerator.cpp
     ./src/world/WorldParams.cpp
+    ./src/world/passes/ClimatePass.cpp
     ./src/world/passes/ElevationPass.cpp
     ./src/world/passes/HydrologyPass.cpp
     ./src/world/passes/TectonicsPass.cpp

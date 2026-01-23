@@ -44,6 +44,9 @@ namespace World {
             void SetPlates(std::vector<TectonicPlate>&& plates);
             void SetRegions(std::vector<Region>&& regions);
 
+            //! Set the ocean level
+            void SetOceanLevel(float level);
+
             //! Get the size of the world
             Extent_t GetSize() const;
 
@@ -71,6 +74,9 @@ namespace World {
             const std::vector<TectonicPlate>& GetPlates() const;
             std::vector<TectonicPlate>& GetPlates();
 
+            //! Get the ocean level
+            float GetOceanLevel() const;
+
         private:
 
             //! The x-y dimmension of the world.
@@ -84,5 +90,8 @@ namespace World {
 
             //! Set of all tectonic plates in the world.
             std::vector<TectonicPlate> m_plates;
+
+            //! Overall ocean level of the world.
+            float m_ocean_level;
     };
 }

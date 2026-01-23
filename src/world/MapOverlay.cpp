@@ -3,6 +3,7 @@
 #include "Region.hpp"
 #include "Tile.hpp"
 #include "TectonicPlate.hpp"
+#include <algorithm>
 #include <cstdint>
 #include <glm/fwd.hpp>
 #include <glm/vec4.hpp>
@@ -19,6 +20,8 @@ namespace World {
                 return GetHeightMapOverlay(world);
             case OverlayType::WATER_MAP:
                 return GetWaterMapOverlay(world);
+            case OverlayType::HEAT_MAP:
+                return GetHeatMapOverlay(world);
             default:
                 // Return black overlay for unknown types
                 Extent_t size = world.GetSize();
@@ -185,6 +188,72 @@ namespace World {
         }
 
         return buffer;
+    }
+
+    std::vector<uint8_t> MapOverlay::GetHeatMapOverlay(World& world) {
+
+        Extent_t size = world.GetSize();
+        size_t num_pixels = static_cast<size_t>(size.x) * static_cast<size_t>(size.y);
+
+        // RGBA buffer - 4 bytes per pixel
+        std::vector<uint8_t> buffer(num_pixels * 4);
+
+        const std::vector<Tile>& tiles = world.GetTiles();
+        const std::vector<Region>& regions = world.GetRegions();
+
+        glm::vec4 coldColor(0.0F, 0.0F, 1.0F, 1.0F);
+        glm::vec4 zeroColor(1.0F, 0.0F, 1.0F, 1.0F);
+        glm::vec4 hotColor(1.0F, 0.0F, 0.0F, 1.0F);
+
+        float minTemp = std::numeric_limits<float>::max();
+        float maxTemp = std::numeric_limits<float>::min();
+
+        for (const Region& region : regions) {
+
+            minTemp = std::min(region.GetTemperature(), minTemp);
+            maxTemp = std::max(region.GetTemperature(), maxTemp);
+        }
+
+        for (const Tile& tile : tiles) {
+
+            TileId_t tile_id = tile.GetTileId();
+            size_t pixel_idx = static_cast<size_t>(tile_id) * 4;
+
+            const Region& region = regions.at(tile.GetRegionId());
+
+            glm::vec4 color;
+
+            float temperature = region.GetTemperature();
+
+            if (temperature < 0.0F) {
+                // mix cold to zero
+                color = glm::mix(
+                    zeroColor,
+                    coldColor,
+                    std::clamp(temperature / minTemp, 0.0F, 1.0F));
+            }
+            else {
+                color = glm::mix(
+                    zeroColor,
+                    hotColor,
+                    std::clamp(temperature / maxTemp, 0.0F, 1.0F)
+                );
+            }
+
+            color *= 255.0F;
+            color = glm::clamp(color, 0.0F, 255.0F);
+
+            buffer.at(pixel_idx + 0) = static_cast<uint8_t>(color.r);
+            buffer.at(pixel_idx + 1) = static_cast<uint8_t>(color.g);
+            buffer.at(pixel_idx + 2) = static_cast<uint8_t>(color.b);
+            buffer.at(pixel_idx + 3) = static_cast<uint8_t>(color.a);
+        }
+
+        return buffer;
+    }
+
+    std::vector<uint8_t> MapOverlay::GetMoistureOverlay(World& world) {
+        return {};
     }
 
 }

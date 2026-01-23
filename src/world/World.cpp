@@ -98,6 +98,10 @@ namespace World {
         }
     }
 
+    void World::SetOceanLevel(float level) {
+        m_ocean_level = level;
+    }
+
     Extent_t World::GetSize() const {
         return m_size;
     }
@@ -148,6 +152,10 @@ namespace World {
 
     std::vector<TectonicPlate>& World::GetPlates() {
         return m_plates;
+    }
+
+    float World::GetOceanLevel() const {
+        return m_ocean_level;
     }
 
 }

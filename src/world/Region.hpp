@@ -45,8 +45,30 @@ namespace World {
             void SetIsOcean(bool is_ocean);
             bool GetIsOcean() const;
 
+            void SetIsWater(bool is_water);
+            bool GetIsWater() const;
+
+            void SetIsLake(bool is_lake);
+            bool GetIsLake() const;
+
+            void SetWaterLevel(float water_level);
+            float GetWaterLevel() const;
+
+            void SetFlowAccumulation(float accumulation);
+            float GetFlowAccumulation() const;
+
+            void SetFlowDirection(RegionId_t direction);
+            RegionId_t GetFlowDirection() const;
+
             void SetHasRiver(bool has_river);
             bool GetHasRiver() const;
+
+            // Climate properties
+            void SetTemperature(float temperature);
+            float GetTemperature() const;
+
+            void SetMoisture(float moisture);
+            float GetMoisture() const;
 
         private:
 
@@ -74,7 +96,28 @@ namespace World {
             //! Whether the region is ocean (below ocean level)
             bool m_is_ocean {false};
 
+            //! Whether the region contains water
+            bool m_is_water {false};
+
+            //! Whether the region is a lake
+            bool m_is_lake {false};
+
+            //! Water level of the region (for oceans and lakes)
+            float m_water_level {0.0F};
+
+            //! Flow accumulation from upstream regions
+            float m_flow_accumulation {1.0F};
+
+            //! Direction of water flow (to which region ID)
+            RegionId_t m_flow_direction {INVALID_REGION_ID};
+
             //! Whether the region contains river(s)
             bool m_has_river {false};
+
+            //! Temperature of the region in degrees Celsius
+            float m_temperature {0.0F};
+
+            //! Moisture level of the region (0-100)
+            float m_moisture {0.0F};
     };
 }

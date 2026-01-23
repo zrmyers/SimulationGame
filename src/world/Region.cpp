@@ -84,12 +84,68 @@ namespace World {
         return m_is_ocean;
     }
 
+    void Region::SetIsWater(bool is_water) {
+        m_is_water = is_water;
+    }
+
+    bool Region::GetIsWater() const {
+        return m_is_water;
+    }
+
+    void Region::SetIsLake(bool is_lake) {
+        m_is_lake = is_lake;
+    }
+
+    bool Region::GetIsLake() const {
+        return m_is_lake;
+    }
+
+    void Region::SetWaterLevel(float water_level) {
+        m_water_level = water_level;
+    }
+
+    float Region::GetWaterLevel() const {
+        return m_water_level;
+    }
+
+    void Region::SetFlowAccumulation(float accumulation) {
+        m_flow_accumulation = accumulation;
+    }
+
+    float Region::GetFlowAccumulation() const {
+        return m_flow_accumulation;
+    }
+
+    void Region::SetFlowDirection(RegionId_t direction) {
+        m_flow_direction = direction;
+    }
+
+    RegionId_t Region::GetFlowDirection() const {
+        return m_flow_direction;
+    }
+
     void Region::SetHasRiver(bool has_river) {
         m_has_river = has_river;
     }
 
     bool Region::GetHasRiver() const {
         return m_has_river;
+    }
+
+    void Region::SetTemperature(float temperature) {
+        m_temperature = temperature;
+    }
+
+    float Region::GetTemperature() const {
+        return m_temperature;
+    }
+
+    void Region::SetMoisture(float moisture) {
+        m_moisture = moisture;
+    }
+
+    float Region::GetMoisture() const {
+        return m_moisture;
     }
 
 }

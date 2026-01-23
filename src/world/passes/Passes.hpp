@@ -35,4 +35,13 @@ namespace World::Passes {
     //    g. Set water level for each water tile (ocean level or lake level)
     void RunHydrologyPass(World& world, const WorldParams& params);
 
+    // 4. Generate climate (temperature, moisture)
+    //    a. Assign temperatures based on proximity to poles and elevation.
+    //    b. Assign moisture based on proximity to water.
+    void RunClimatePass(World& world, const WorldParams& params);
+
+    // 5. Generate geological layers for each region, which determine availability of various resources
+    void MineralPass(World& world, const WorldParams& params);
+
+
 }

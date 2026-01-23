@@ -10,7 +10,9 @@ namespace World {
     enum class OverlayType : uint8_t {
         PLATE_TECTONICS = 0,
         HEIGHT_MAP = 1,
-        WATER_MAP = 2
+        WATER_MAP = 2,
+        HEAT_MAP = 3,
+        MOISTURE_MAP = 4
     };
 
     class MapOverlay {
@@ -43,5 +45,15 @@ namespace World {
             //!
             //! Alpha channel is set to opaque.
             static std::vector<uint8_t> GetWaterMapOverlay(World& world);
+
+            //! Returns a colored buffer of pixels where temperature values are interpolated between blue and red colors.
+            //! Temperatures greater than 0 Celsius are red.
+            //! Temperatures less than 0 Celsius are blue.
+            static std::vector<uint8_t> GetHeatMapOverlay(World& world);
+
+            //! Returns a colored buffer of pixels where moisture values are represented in grayscale.
+            //! Moisture of 0 is black.
+            //! Moisture of 100 is white.
+            static std::vector<uint8_t> GetMoistureOverlay(World& world);
     };
 };
