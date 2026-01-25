@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Biome.hpp"
 #include "TectonicPlate.hpp"
 #include <cstdint>
 #include <functional>
@@ -51,6 +52,9 @@ namespace World {
             void SetIsLake(bool is_lake);
             bool GetIsLake() const;
 
+            void SetIsMountain(bool is_mountain);
+            bool GetIsMountain() const;
+
             void SetWaterLevel(float water_level);
             float GetWaterLevel() const;
 
@@ -67,8 +71,14 @@ namespace World {
             void SetTemperature(float temperature);
             float GetTemperature() const;
 
+            void SetTemperatureVariance(float variance);
+            float GetTemperatureVariance() const;
+
             void SetMoisture(float moisture);
             float GetMoisture() const;
+
+            void SetBiome(BiomeType biome);
+            BiomeType GetBiome() const;
 
         private:
 
@@ -102,6 +112,9 @@ namespace World {
             //! Whether the region is a lake
             bool m_is_lake {false};
 
+            //! Whether the region is a mountain.
+            bool m_is_mountain {false};
+
             //! Water level of the region (for oceans and lakes)
             float m_water_level {0.0F};
 
@@ -117,7 +130,13 @@ namespace World {
             //! Temperature of the region in degrees Celsius
             float m_temperature {0.0F};
 
+            //! The variance in regional temperature. Added to average in summer, subtracted from average in winter.
+            float m_temperature_variance {0.0F};
+
             //! Moisture level of the region (0-100)
             float m_moisture {0.0F};
+
+            //! The Biome Assigned to the region
+            BiomeType m_biome {BiomeType::OCEAN};
     };
 }

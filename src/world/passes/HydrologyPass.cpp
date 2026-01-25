@@ -354,10 +354,6 @@ std::set<TileId_t> TraceRiverPathAStar(World& world, Coordinate_t start_coord, C
         }
 
         iterations--;
-
-        if (iterations < 0) {
-            std::cout << "Giving up on A*" << std::endl;
-        }
     }
 
     return result_path;  // Empty set if no path found

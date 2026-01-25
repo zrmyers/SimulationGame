@@ -41,7 +41,7 @@ class CreateWorldMenu : public Menu::IMenu {
         ECS::Entity m_sprite;
 
         std::unique_ptr<World::World> m_p_world;
-        World::OverlayType m_selected_overlay {World::OverlayType::PLATE_TECTONICS};
+        World::OverlayType m_selected_overlay {World::OverlayType::BIOME_MAP};
 
 };
 

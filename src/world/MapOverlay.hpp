@@ -12,7 +12,8 @@ namespace World {
         HEIGHT_MAP = 1,
         WATER_MAP = 2,
         HEAT_MAP = 3,
-        MOISTURE_MAP = 4
+        MOISTURE_MAP = 4,
+        BIOME_MAP = 5,
     };
 
     class MapOverlay {
@@ -55,5 +56,8 @@ namespace World {
             //! Moisture of 0 is black.
             //! Moisture of 100 is white.
             static std::vector<uint8_t> GetMoistureOverlay(World& world);
+
+            //! Returns a colored buffer of pixels where biome values are represented as colors
+            static std::vector<uint8_t> GetBiomeOverlay(World& world);
     };
 };

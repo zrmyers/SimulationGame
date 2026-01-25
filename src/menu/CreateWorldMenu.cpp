@@ -61,7 +61,7 @@ void CreateWorldMenu::Activate() {
         m_p_style,
         overlaySelection,
         "Overlay",
-        {"Tectonic Plates", "Height Map", "Water Map", "Heat Map"},
+        {"Tectonic Plates", "Height Map", "Water Map", "Heat Map", "Moisture Map", "Biome Map"},
         static_cast<size_t>(m_selected_overlay),
         [this](size_t selection){
             this->SetOverlay(static_cast<World::OverlayType>(selection));
@@ -100,7 +100,7 @@ void CreateWorldMenu::BuildCustomizationPanel(UI::Element& panelRoot) {
         widgetList,
         "World Size",
         {"Small (64x64)", "Medium (128x128)", "Large (256x256)", "Huge (512x512)"},
-        2, [this](size_t selection){
+        3, [this](size_t selection){
         this->m_world_parameters.SetDimension(64 << selection);
     });
 
@@ -109,7 +109,7 @@ void CreateWorldMenu::BuildCustomizationPanel(UI::Element& panelRoot) {
         m_p_style,
         widgetList,
         "Number of Continents",
-        {"2", "4", "8", "16"}, 2, [this](size_t selection){
+        {"2", "4", "8", "16"}, 3, [this](size_t selection){
         this->m_world_parameters.SetNumContinents(2 << selection);
     });
 
@@ -119,7 +119,7 @@ void CreateWorldMenu::BuildCustomizationPanel(UI::Element& panelRoot) {
         widgetList,
         "Percent Land",
         {"30%", "40%", "50%", "60%", "70%"},
-        0U,
+        1U,
         [this](size_t selection){
         this->m_world_parameters.SetPercentLand(30.0F + (10.0F * static_cast<float>(selection)));
     });

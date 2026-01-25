@@ -1,4 +1,5 @@
 #include "MapOverlay.hpp"
+#include "Biome.hpp"
 #include "World.hpp"
 #include "Region.hpp"
 #include "Tile.hpp"
@@ -22,6 +23,10 @@ namespace World {
                 return GetWaterMapOverlay(world);
             case OverlayType::HEAT_MAP:
                 return GetHeatMapOverlay(world);
+            case OverlayType::MOISTURE_MAP:
+                return GetMoistureOverlay(world);
+            case OverlayType::BIOME_MAP:
+                return GetBiomeOverlay(world);
             default:
                 // Return black overlay for unknown types
                 Extent_t size = world.GetSize();
@@ -253,7 +258,155 @@ namespace World {
     }
 
     std::vector<uint8_t> MapOverlay::GetMoistureOverlay(World& world) {
-        return {};
+        Extent_t size = world.GetSize();
+        size_t num_pixels = static_cast<size_t>(size.x) * static_cast<size_t>(size.y);
+
+        // RGBA buffer - 4 bytes per pixel
+        std::vector<uint8_t> buffer(num_pixels * 4);
+
+        const std::vector<Tile>& tiles = world.GetTiles();
+        const std::vector<Region>& regions = world.GetRegions();
+
+        glm::vec4 dryColor(1.0F, 0.0F, 0.0F, 1.0F);
+        glm::vec4 wetColor(0.0F, 0.0F, 1.0F, 1.0F);
+
+        float minMoisture = std::numeric_limits<float>::max();
+        float maxMoisture = std::numeric_limits<float>::min();
+
+        for (const Region& region : regions) {
+
+            minMoisture = std::min(region.GetTemperature(), minMoisture);
+            maxMoisture = std::max(region.GetTemperature(), maxMoisture);
+        }
+
+        for (const Tile& tile : tiles) {
+
+            TileId_t tile_id = tile.GetTileId();
+            size_t pixel_idx = static_cast<size_t>(tile_id) * 4;
+
+            const Region& region = regions.at(tile.GetRegionId());
+
+            glm::vec4 color;
+
+            float moisture = region.GetMoisture();
+
+            // mix cold to zero
+            color = glm::mix(
+                dryColor,
+                wetColor,
+                std::clamp(moisture / 100.0F, 0.0F, 1.0F));
+
+            color *= 255.0F;
+            color = glm::clamp(color, 0.0F, 255.0F);
+
+            buffer.at(pixel_idx + 0) = static_cast<uint8_t>(color.r);
+            buffer.at(pixel_idx + 1) = static_cast<uint8_t>(color.g);
+            buffer.at(pixel_idx + 2) = static_cast<uint8_t>(color.b);
+            buffer.at(pixel_idx + 3) = static_cast<uint8_t>(color.a);
+        }
+
+        return buffer;
+    }
+
+
+    std::vector<uint8_t> MapOverlay::GetBiomeOverlay(World& world) {
+        Extent_t size = world.GetSize();
+        size_t num_pixels = static_cast<size_t>(size.x) * static_cast<size_t>(size.y);
+
+        // RGBA buffer - 4 bytes per pixel
+        std::vector<uint8_t> buffer(num_pixels * 4);
+
+        const std::vector<Tile>& tiles = world.GetTiles();
+        const std::vector<Region>& regions = world.GetRegions();
+
+        for (const Tile& tile : tiles) {
+
+            TileId_t tile_id = tile.GetTileId();
+            size_t pixel_idx = static_cast<size_t>(tile_id) * 4;
+
+            const Region& region = regions.at(tile.GetRegionId());
+
+            glm::u8vec4 color;
+
+            if (tile.GetIsRiver()) {
+
+                if (region.GetBiome() == BiomeType::ICE_SHEET) {
+                    color = {189, 189, 189, 255};
+                }
+                else {
+                    color = glm::u8vec4(100U, 149U, 237U, 255U);  // Cornflower blue
+                }
+            }
+            else {
+
+                switch (region.GetBiome()) {
+
+                    case BiomeType::OCEAN:
+                        color = glm::u8vec4(0U, 51U, 102U, 255U);
+                        break;
+
+                    case BiomeType::LAKE:
+                        color = glm::u8vec4(0U, 255U, 255U, 255U);
+                        break;
+
+                    case BiomeType::TEMPERATE_FOREST:
+                        color = {143, 184, 20, 255};
+                        break;
+
+                    case BiomeType::TEMPERATE_SWAMP:
+                        color = {107, 137, 16, 255};
+                        break;
+
+                    case BiomeType::TROPICAL_RAINFOREST:
+                        color = {32, 164, 70, 255};
+                        break;
+
+                    case BiomeType::TROPICAL_SWAMP:
+                        color = {26, 129, 56, 255};
+                        break;
+
+                    case BiomeType::ARID_SHRUBLAND:
+                        color = {185, 121, 86, 255};
+                        break;
+
+                    case BiomeType::DESERT:
+                        color = {218, 192, 72, 255};
+                        break;
+
+                    case BiomeType::EXTREME_DESERT:
+                        color = {239, 228, 176, 255};
+                        break;
+
+                    case BiomeType::BOREAL_FOREST:
+                        color = {115, 108, 31, 255};
+                        break;
+
+                    case BiomeType::COLD_BOG:
+                        color = {130, 130, 130, 255};
+                        break;
+
+                    case BiomeType::TUNDRA:
+                        color = {177, 140, 123, 255};
+                        break;
+
+                    case BiomeType::ICE_SHEET:
+                        color = {255U, 255U, 255U, 255U};
+                        break;
+
+                    case BiomeType::SEA_ICE:
+                    case BiomeType::FROZEN_LAKE:
+                        color = {189, 189, 189, 255};
+                        break;
+                }
+            }
+
+            buffer.at(pixel_idx + 0) = color.r;
+            buffer.at(pixel_idx + 1) = color.g;
+            buffer.at(pixel_idx + 2) = color.b;
+            buffer.at(pixel_idx + 3) = color.a;
+        }
+
+        return buffer;
     }
 
 }

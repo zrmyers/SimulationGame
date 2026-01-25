@@ -114,7 +114,8 @@ void RunElevationPass(World& world, const WorldParams& params) {
                 // Add mountains. if ocean is meeting continental, should add subduction on oceanic side.
                 if (plate.GetIsContinental()) {
                     // create huge moutains
-                    baseHeight += 2000.0F * (1.0F + sample); // 0 to 2000 m
+                    baseHeight += 2000.0F * (1.0F + sample); // 0 to 2000
+                    region.SetIsMountain(true);
                 }
                 else {
                     // create huge mountains if oceanic-oceanic, otherwise add trenches if oceanic-continental due to subduction.
@@ -127,6 +128,7 @@ void RunElevationPass(World& world, const WorldParams& params) {
                     else {
 
                         baseHeight += 2000.0F * (1.0F + sample);
+                        region.SetIsMountain(true);
                     }
 
                 }

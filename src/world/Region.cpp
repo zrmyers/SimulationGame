@@ -100,6 +100,14 @@ namespace World {
         return m_is_lake;
     }
 
+    void Region::SetIsMountain(bool is_mountain) {
+        m_is_mountain = is_mountain;
+    }
+
+    bool Region::GetIsMountain() const {
+        return m_is_mountain;
+    }
+
     void Region::SetWaterLevel(float water_level) {
         m_water_level = water_level;
     }
@@ -140,6 +148,14 @@ namespace World {
         return m_temperature;
     }
 
+    void Region::SetTemperatureVariance(float variance) {
+        m_temperature_variance = variance;
+    }
+
+    float Region::GetTemperatureVariance() const {
+        return m_temperature_variance;
+    }
+
     void Region::SetMoisture(float moisture) {
         m_moisture = moisture;
     }
@@ -148,4 +164,11 @@ namespace World {
         return m_moisture;
     }
 
+    void Region::SetBiome(BiomeType biome) {
+        m_biome = biome;
+    }
+
+    BiomeType Region::GetBiome() const {
+        return m_biome;
+    }
 }
