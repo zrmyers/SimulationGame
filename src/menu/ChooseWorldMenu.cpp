@@ -63,13 +63,11 @@ void ChooseWorldMenu::Activate() {
     bottomBar.EmplaceChild<UI::Spacer>();
 
     AddButton(m_p_style, bottomBar, "Back", UI::ButtonState::ENABLED,
-        [this](){ m_p_manager->RequestChangeActiveMenu("ChooseCharacter"); });
+        [this](){ m_p_manager->ReturnToPreviousMenu(); });
 
     AddButton(m_p_style, bottomBar, "Start", UI::ButtonState::DISABLED,
         [this](){
-            Core::Logger::Info("Play requested for world: " + m_worlds.at(m_selected_world_index));
-            // Placeholder: switch to MainMenu (or start game) — replace with actual game start logic.
-            m_p_manager->RequestChangeActiveMenu("MainMenu");
+            Core::Logger::Info("Play requested for world: " + m_worlds.at(m_selected_world_index));;
         });
     AddButton(m_p_style, bottomBar, "Remove", m_worlds.empty()? UI::ButtonState::DISABLED : UI::ButtonState::ENABLED,
         [this](){

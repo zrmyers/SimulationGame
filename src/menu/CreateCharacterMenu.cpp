@@ -167,13 +167,13 @@ void CreateCharacterMenu::BuildFinalizationPanel(UI::Element& panelRoot) {
     UI::HorizontalLayout& characterManagement = layout.EmplaceChild<UI::HorizontalLayout>();
 
     AddButton(m_p_style, characterManagement, "Cancel", UI::ButtonState::ENABLED,
-        [p_menuManager](){p_menuManager->RequestChangeActiveMenu("ChooseCharacter");});
+        [p_menuManager](){p_menuManager->ReturnToPreviousMenu();});
     m_p_done_button = &AddButton(m_p_style, characterManagement, "Done", UI::ButtonState::DISABLED,
         [p_menuManager, this](){
             // save character to file
             this->SaveCharacter();
             // return to previous screen
-            p_menuManager->RequestChangeActiveMenu("ChooseCharacter");
+            p_menuManager->ReturnToPreviousMenu();
     });
 }
 

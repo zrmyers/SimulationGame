@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <stack>
 #include <string>
 #include <unordered_map>
 namespace Menu {
@@ -42,6 +43,15 @@ namespace Menu {
             //! Make any updates for frame.
             void Update();
 
+            //! Set title screen
+            void SetTitle(const std::string& name);
+
+            //! Return to previous screen.
+            void ReturnToPreviousMenu();
+
+            //! Return to title screen.
+            void ReturnToTitle();
+
         private:
 
             std::unordered_map<std::string, std::unique_ptr<IMenu>> m_menus;
@@ -49,6 +59,12 @@ namespace Menu {
             IMenu* m_p_active;
 
             IMenu* m_p_requested;
+
+            IMenu* m_p_title;
+
+            std::stack<IMenu*> m_stack;
+
+            bool m_request_prev {false};
     };
 
 }

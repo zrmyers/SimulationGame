@@ -4,6 +4,7 @@
 #include "core/Engine.hpp"
 #include "ecs/ECS.hpp"
 #include "components/Canvas.hpp"
+#include "menu/MenuUtilities.hpp"
 #include "ui/ButtonStyle.hpp"
 #include "ui/NineSlice.hpp"
 #include "ui/VerticalLayout.hpp"
@@ -41,7 +42,9 @@ void Menu::MainMenu::Activate() {
     verticalLayout.SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
 
     AddButton(m_p_style, verticalLayout, "Start", UI::ButtonState::ENABLED,
-        [p_menuManager](){p_menuManager->RequestChangeActiveMenu("ChooseCharacter");});
+        [p_menuManager](){p_menuManager->RequestChangeActiveMenu("ChooseWorld");});
+    AddButton(m_p_style, verticalLayout, "Create New World", UI::ButtonState::ENABLED,
+        [p_menuManager](){p_menuManager->RequestChangeActiveMenu("CreateWorld");});
     AddButton(m_p_style, verticalLayout, "Settings", UI::ButtonState::ENABLED,
         [p_menuManager](){p_menuManager->RequestChangeActiveMenu("Settings");});
     AddButton(m_p_style, verticalLayout, "Quit", UI::ButtonState::ENABLED,

@@ -69,7 +69,7 @@ void Menu::ChooseCharacterMenu::Activate() {
     UI::HorizontalLayout& characterManagement = vertical.EmplaceChild<UI::HorizontalLayout>();
     characterManagement.EmplaceChild<UI::Spacer>();
     AddButton(m_p_style, characterManagement, "Back", UI::ButtonState::ENABLED,
-        [p_menuManager](){p_menuManager->RequestChangeActiveMenu("MainMenu");});
+        [p_menuManager](){p_menuManager->ReturnToPreviousMenu();});
     AddButton(
         m_p_style,
         characterManagement,

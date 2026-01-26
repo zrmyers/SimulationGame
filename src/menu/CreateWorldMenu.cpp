@@ -151,7 +151,7 @@ void CreateWorldMenu::BuildNavigationPanel(UI::Element& panelRoot) {
     panelRoot.EmplaceChild<UI::Spacer>();
 
     AddButton(m_p_style, panelRoot, "Back", UI::ButtonState::ENABLED,
-        [this](){ m_p_manager->RequestChangeActiveMenu("ChooseWorld"); });
+        [this](){ m_p_manager->ReturnToPreviousMenu(); });
 
     AddButton(
         m_p_style,

@@ -83,7 +83,7 @@ void Menu::SettingsMenu::Activate() {
         .SetText("Back")
         .SetButtonState(UI::ButtonState::ENABLED)
         .SetOnClickCallback([p_menuManager](){
-            p_menuManager->RequestChangeActiveMenu("MainMenu");
+            p_menuManager->ReturnToPreviousMenu();
         })
         .SetFixedSize({256.0F, 96.0F})
         .SetLayoutMode(UI::LayoutMode::FIXED);
