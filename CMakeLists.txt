@@ -75,6 +75,7 @@ add_executable(${PROJECT_NAME}
     ./src/items/ItemCatalog.cpp
     ./src/json/Json.cpp
     ./src/math/Hash.cpp
+    ./src/math/NameGenerator.cpp
     ./src/math/PerlinNoise.cpp
     ./src/math/Voronoi.cpp
     ./src/menu/ChooseCharacterMenu.cpp

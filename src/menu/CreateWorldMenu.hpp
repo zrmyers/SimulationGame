@@ -30,6 +30,8 @@ class CreateWorldMenu : public Menu::IMenu {
         void GenerateWorld();
         void SetOverlay(World::OverlayType selection);
 
+        void SaveWorld();
+
         Core::Engine* m_p_engine;
         MenuManager* m_p_manager;
         std::shared_ptr<UI::Style> m_p_style;

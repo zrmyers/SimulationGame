@@ -4,6 +4,14 @@
 
 namespace World {
 
+    void WorldParams::SetName(const std::string& name) {
+        m_name = name;
+    }
+
+    const std::string& WorldParams::GetName() const {
+        return m_name;
+    }
+
     void WorldParams::SetSeedAscii(const std::string& seed) {
         m_seed_ascii = seed;
 

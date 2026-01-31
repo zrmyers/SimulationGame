@@ -17,6 +17,12 @@ namespace World {
 
         public:
 
+            //! Set the name of the world.
+            void SetName(const std::string& name);
+
+            //! Get the name of the world.
+            const std::string& GetName() const;
+
             //! Set the ASCII seed string
             void SetSeedAscii(const std::string& seed);
 
@@ -60,6 +66,9 @@ namespace World {
             int32_t CalculateNumRegions() const;
 
         private:
+
+            //! Name of the world.
+            std::string m_name;
 
             //! ASCII string, whose hash is used as seed for random number generator.
             std::string m_seed_ascii;

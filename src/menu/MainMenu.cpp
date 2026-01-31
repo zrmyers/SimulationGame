@@ -41,7 +41,7 @@ void Menu::MainMenu::Activate() {
     UI::VerticalLayout& verticalLayout = nineslice.EmplaceChild<UI::VerticalLayout>();
     verticalLayout.SetLayoutMode(UI::LayoutMode::FIT_TO_CHILDREN);
 
-    AddButton(m_p_style, verticalLayout, "Start", UI::ButtonState::ENABLED,
+    AddButton(m_p_style, verticalLayout, "New Adventure", UI::ButtonState::ENABLED,
         [p_menuManager](){p_menuManager->RequestChangeActiveMenu("ChooseWorld");});
     AddButton(m_p_style, verticalLayout, "Create New World", UI::ButtonState::ENABLED,
         [p_menuManager](){p_menuManager->RequestChangeActiveMenu("CreateWorld");});

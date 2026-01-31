@@ -15,6 +15,7 @@
 #include "sdl/SDL.hpp"
 #include "systems/RenderSystem.hpp"
 #include "ui/Button.hpp"
+#include "ui/ButtonStyle.hpp"
 #include "ui/Element.hpp"
 #include "ui/HorizontalLayout.hpp"
 #include "ui/Spacer.hpp"
@@ -87,6 +88,12 @@ void CreateWorldMenu::BuildCustomizationPanel(UI::Element& panelRoot) {
 
     UI::VerticalLayout& widgetList = background.EmplaceChild<UI::VerticalLayout>();
 
+    UI::TextInputBox& worldName = AddTextInputBox(m_p_style, widgetList, "World Name", "Enter Name", 32,
+        [this](const std::string& textStr) {
+            this->m_world_parameters.SetName(textStr);
+        }
+    );
+    worldName.OnTextInput("Random World Name");
     // Main world generation
     UI::TextInputBox& seedInput = AddTextInputBox(m_p_style, widgetList, "World Seed", "Enter Seed", 32,
         [this](const std::string& textStr){
@@ -160,6 +167,16 @@ void CreateWorldMenu::BuildNavigationPanel(UI::Element& panelRoot) {
         UI::ButtonState::ENABLED,
         [this](){this->GenerateWorld();});
 
+    AddButton(
+        m_p_style,
+        panelRoot,
+        "Done",
+        UI::ButtonState::DISABLED,
+        [this](){
+            this->SaveWorld();
+            m_p_manager->ReturnToPreviousMenu();
+    });
+
     panelRoot.EmplaceChild<UI::Spacer>();
 }
 
@@ -215,5 +232,11 @@ void CreateWorldMenu::SetOverlay(World::OverlayType selection) {
 
     m_selected_overlay = selection;
 }
+
+}
+
+
+void Menu::CreateWorldMenu::SaveWorld() {
+
 
 }
