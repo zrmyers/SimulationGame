@@ -61,15 +61,25 @@ TextInputBox::TextInputBox()
         // Stop processing text input
         if (button == UI::MouseButtonID::MOUSE_LEFT && (m_state == TextInputState::FOCUSED)) {
             m_processing_input = true;
+            m_p_caret->SetVisible(true);
+            m_last_blink_toggle_time_sec = Core::Engine::GetInstance().GetElapsedTimeSec();
         }
     });
 
     SetTextInputCallback([this](const std::string& text){
-        InsertText(text);
+        bool isHandled = false;
+        if (m_processing_input) {
+            InsertText(text);
+            isHandled = true;
+        }
+        return isHandled;
     });
 
     SetKeyboardInputCallback([this](const SDL_KeyboardEvent& event) {
-        this->HandleKeyboardInput(event);
+        if (m_processing_input) {
+            this->HandleKeyboardInput(event);
+        }
+        return m_processing_input;
     });
 }
 
@@ -91,6 +101,10 @@ TextInputBox& TextInputBox::SetMaxCharacters(uint16_t max_chars) {
 TextInputBox& TextInputBox::SetTextValueChangedCallback(TextValueChangeCallback callback) {
     m_text_value_change_callback = std::move(callback);
     return *this;
+}
+
+bool TextInputBox::IsTextInputEnabled() const {
+    return m_processing_input;
 }
 
 TextInputBox& TextInputBox::SetTextInputState(TextInputState state) {
@@ -145,26 +159,7 @@ TextInputBox& TextInputBox::SetTextInputState(TextInputState state) {
 
 void TextInputBox::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) {
 
-    // Get the window for text input
-    SDL::Window& window = registry.GetSystem<Systems::RenderSystem>().GetWindow();
-    bool textInputActive = window.IsTextInputActive();
     Core::Engine& engine = Core::Engine::GetInstance();
-
-    if (m_processing_input && !textInputActive) {
-
-        // Start SDL text input
-        window.StartTextInput();
-
-        m_p_caret->SetVisible(true);
-        m_last_blink_toggle_time_sec = engine.GetElapsedTimeSec();
-    }
-    else if (!m_processing_input && textInputActive) {
-
-        // Stop SDL text input
-        window.StopTextInput();
-
-        m_p_caret->SetVisible(false);
-    }
 
     // Handle caret blinking
     if (m_processing_input) {
@@ -178,6 +173,7 @@ void TextInputBox::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize,
                 if (!CheckCollision(mousePos)) {
                     // Clicked outside text input box, stop processing input
                     m_processing_input = false;
+                    m_p_caret->SetVisible(false);
                     SetTextInputState(TextInputState::ENABLED);
                     break;
                 }

@@ -1,9 +1,11 @@
+#include <algorithm>
 #/**
  * @file Element.cpp
  * @brief Implementation of base UI element behaviors (layout, input handling).
  */
 
 #include "Element.hpp"
+#include "TextInputBox.hpp"
 #include <glm/common.hpp>
 
 UI::Element& UI::Element::SetOrigin(glm::vec2 origin) {
@@ -198,8 +200,7 @@ bool UI::Element::OnTextInput(const std::string& text) {
     }
 
     if (m_text_input_callback && !isHandled) {
-        m_text_input_callback(text);
-        isHandled = true;
+        isHandled = m_text_input_callback(text);
     }
 
     return isHandled;
@@ -216,8 +217,7 @@ bool UI::Element::OnKeyboardInput(const SDL_KeyboardEvent& event) {
     }
 
     if (m_keyboard_input_callback && !isHandled) {
-        m_keyboard_input_callback(event);
-        isHandled = true;
+        isHandled = m_keyboard_input_callback(event);
     }
 
     return isHandled;
@@ -298,6 +298,13 @@ UI::Element& UI::Element::SetTextInputCallback(TextInputCallback_t callback) {
 UI::Element& UI::Element::SetKeyboardInputCallback(KeyboardInputCallback_t callback) {
     m_keyboard_input_callback = std::move(callback);
     return *this;
+}
+
+bool UI::Element::IsTextInputEnabled() const {
+    return std::any_of(m_children.begin(), m_children.end(),
+    [](const std::unique_ptr<UI::Element>& element){
+        return element->IsTextInputEnabled();
+    });
 }
 
 void UI::Element::SetDirty() {

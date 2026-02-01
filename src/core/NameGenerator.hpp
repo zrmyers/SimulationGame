@@ -4,11 +4,14 @@
 #include <string>
 #include <unordered_map>
 
-namespace Math {
+namespace Core {
 
 class NameGenerator {
 
     public:
+
+        //! @brief Load a name generator with given training data.
+        static NameGenerator Load(const std::string& filepath, const std::string& name_type);
 
         //! @brief Constructor for the name generator.
         NameGenerator(int32_t order, uint32_t seed);

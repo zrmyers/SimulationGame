@@ -19,7 +19,7 @@ include (cmake/CPM.cmake)
 set(CPM_SOURCE_CACHE "./cpm-cache")
 
 CPMAddPackage(
-    URI "gh:libsdl-org/SDL#release-3.2.26"
+    URI "gh:libsdl-org/SDL#release-3.4.0"
 )
 CPMAddPackage(
     URI "gh:libsdl-org/SDL_ttf#release-3.2.2"
@@ -65,6 +65,7 @@ add_executable(${PROJECT_NAME}
     ./src/core/Environment.cpp
     ./src/core/Filesystem.cpp
     ./src/core/Logger.cpp
+    ./src/core/NameGenerator.cpp
     ./src/core/Settings.cpp
     ./src/core/String.cpp
     ./src/gltf/GLTF.cpp
@@ -75,7 +76,6 @@ add_executable(${PROJECT_NAME}
     ./src/items/ItemCatalog.cpp
     ./src/json/Json.cpp
     ./src/math/Hash.cpp
-    ./src/math/NameGenerator.cpp
     ./src/math/PerlinNoise.cpp
     ./src/math/Voronoi.cpp
     ./src/menu/ChooseCharacterMenu.cpp

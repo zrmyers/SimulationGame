@@ -93,13 +93,14 @@ void CreateWorldMenu::BuildCustomizationPanel(UI::Element& panelRoot) {
             this->m_world_parameters.SetName(textStr);
         }
     );
-    worldName.OnTextInput("Random World Name");
+    worldName.InsertText(m_p_engine->GetNameGenerator("Regions").Generate(32U));
+
     // Main world generation
     UI::TextInputBox& seedInput = AddTextInputBox(m_p_style, widgetList, "World Seed", "Enter Seed", 32,
         [this](const std::string& textStr){
         this->m_world_parameters.SetSeedAscii(textStr);
     });
-    seedInput.OnTextInput("Coffee");
+    seedInput.InsertText("Coffee");
 
     // Configure World Size (Tiles)
     AddSliderSelection(

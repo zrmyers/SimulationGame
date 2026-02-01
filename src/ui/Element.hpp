@@ -59,8 +59,8 @@ namespace UI {
 
     using HoverCallback_t = std::function<void(void)>;
     using MouseButtonCallback_t = std::function<void(MouseButtonID)>;
-    using TextInputCallback_t = std::function<void(const std::string&)>;
-    using KeyboardInputCallback_t = std::function<void(const SDL_KeyboardEvent&)>;
+    using TextInputCallback_t = std::function<bool(const std::string&)>;
+    using KeyboardInputCallback_t = std::function<bool(const SDL_KeyboardEvent&)>;
 
     /**
      * @class Element
@@ -236,6 +236,12 @@ namespace UI {
             Element& SetMouseButtonReleaseCallback(MouseButtonCallback_t callback);
             Element& SetTextInputCallback(TextInputCallback_t callback);
             Element& SetKeyboardInputCallback(KeyboardInputCallback_t callback);
+
+            /**
+             * @brief Check if any child TextInputBox elements have input processing enabled.
+             * @return True if any child TextInputBox is processing input, false otherwise.
+             */
+            virtual bool IsTextInputEnabled() const;
 
             // Used by child elements to make it clear that graphics need to be updated.
             void SetDirty();

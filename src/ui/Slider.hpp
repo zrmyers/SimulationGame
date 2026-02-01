@@ -57,6 +57,19 @@ namespace UI {
             Slider& SetValueChangedCallback(SliderValueChangeCallback callback);
 
             /**
+             * @brief Set the maximum number of characters for the value label.
+             * @param max_chars Maximum character count.
+             * @return Reference to this Slider.
+             */
+            Slider& SetMaxLabelCharacters(uint8_t max_chars);
+
+            /**
+             * @brief Set max fixed width for the slide track.
+             * @param width Maximum slider track width in pixels.
+             * @return Reference to this Slider.
+             */
+            Slider& SetMaxSliderWidth(float width);
+            /**
              * @brief Set the visual state of the slider (e.g., focused/enabled).
              * @param state SliderState to apply.
              * @return Reference to this Slider.
@@ -70,21 +83,6 @@ namespace UI {
              * @param depth Draw order depth.
              */
             void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) override;
-
-            /**
-             * @brief Set the maximum number of characters for the value label.
-             * @param max_chars Maximum character count.
-             * @return Reference to this Slider.
-             */
-            Slider& SetMaxLabelCharacters(uint8_t max_chars);
-
-            /*
-             * @brief Set max fixed width for the slide track.
-             * @param width Maximum slider track width in pixels.
-             * @return Reference to this Slider.
-             */
-            Slider& SetMaxSliderWidth(float width);
-
 
         private:
 

@@ -133,6 +133,14 @@ void Systems::GuiSystem::UpdateCursor() {
 void Systems::GuiSystem::ProcessCanvas(Components::Canvas& canvas, const std::vector<SDL_Event>& events) {
 
     SDL::Window& window = GetEngine().GetEcsRegistry().GetSystem<Systems::RenderSystem>().GetWindow();
+    bool textInputActive = window.IsTextInputActive();
+    bool needTextInput = canvas.IsTextInputEnabled();
+    if (needTextInput && !textInputActive) {
+        window.StartTextInput();
+    }
+    else if (!needTextInput && textInputActive) {
+        window.StopTextInput();
+    }
 
     // process events
     for (const SDL_Event& event : events) {

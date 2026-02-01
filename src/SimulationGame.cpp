@@ -1,10 +1,5 @@
 #include "SimulationGame.hpp"
 #include "components/Camera.hpp"
-#include "components/Canvas.hpp"
-#include "components/Renderable.hpp"
-#include "components/Text.hpp"
-#include "components/Transform.hpp"
-#include "core/AssetLoader.hpp"
 #include "core/IGame.hpp"
 #include "core/Logger.hpp"
 #include "ecs/ECS.hpp"
@@ -14,40 +9,20 @@
 #include "menu/CreateWorldMenu.hpp"
 #include "menu/MainMenu.hpp"
 #include "menu/SettingsMenu.hpp"
-#include "sdl/TTF.hpp"
 #include "systems/GuiSystem.hpp"
-#include "systems/RenderSystem.hpp"
 #include <SDL3/SDL_gpu.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/scalar_constants.hpp>
-#include <iomanip>
 #include <memory>
-#include <sstream>
 #include <string>
-
-#include "systems/TextSystem.hpp"
 
 SimulationGame::SimulationGame(Core::Engine& engine)
     : Core::IGame(engine) {
     Core::Logger::Info("Initializing Game.");
     ECS::Registry& registry = engine.GetEcsRegistry();
-    Systems::RenderSystem& renderer = registry.GetSystem<Systems::RenderSystem>();
-    Systems::TextSystem& textRenderer = registry.GetSystem<Systems::TextSystem>();
     Systems::GuiSystem& guiSystem = registry.GetSystem<Systems::GuiSystem>();
-
-    m_p_font = textRenderer.CreateFont(
-        "Oblegg-Regular.otf", 50.0F, true, TTF_HORIZONTAL_ALIGN_CENTER);
-
-    // setup text object
-    m_text_entity = ECS::Entity(registry);
-    m_text_entity.EmplaceComponent<Components::Transform>();
-    Components::Text& text = m_text_entity.EmplaceComponent<Components::Text>();
-    text.m_p_font = m_p_font;
-    text.m_color = glm::vec4(0.0F, 1.0F, 0.0F, 1.0F);
-    text.m_p_text = m_p_font->CreateText("Hello\n12345");
-    text.m_layer = Components::RenderLayer::LAYER_3D_OPAQUE;
 
     // setup camera object
     m_camera_entity = ECS::Entity(registry);
@@ -55,6 +30,7 @@ SimulationGame::SimulationGame(Core::Engine& engine)
 
     guiSystem.SetCursor("/cursor.png", true);
 
+    engine.AddNameGenerator("Regions", "names.json");
     InitializeGUI();
 }
 

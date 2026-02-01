@@ -54,6 +54,12 @@ namespace UI {
             TextInputBox& SetTextValueChangedCallback(TextValueChangeCallback callback);
 
             /**
+             * @brief Get whether this text input box is currently processing input.
+             * @return True if the text input box is processing input, false otherwise.
+             */
+            bool IsTextInputEnabled() const override;
+
+            /**
              * @brief Update Graphics entities for this text input box.
              * @param registry ECS registry used for rendering components.
              * @param screenSize The full screen resolution in pixels.
@@ -61,14 +67,13 @@ namespace UI {
              */
             void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) override;
 
-        private:
-
             /**
              * @brief Insert text at the current caret position.
              * @note This updates the displayed text and moves the caret to the end of the inserted text.
              * @param text Text to insert.
              */
             void InsertText(const std::string& text);
+        private:
 
             /**
              * @brief Handle keyboard input events for text editing.

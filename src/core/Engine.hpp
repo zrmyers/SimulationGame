@@ -4,10 +4,12 @@
 #include <exception>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "AssetLoader.hpp"
 #include "Environment.hpp"
 #include "IGame.hpp"
+#include "NameGenerator.hpp"
 #include "Settings.hpp"
 #include "sdl/SDL.hpp"
 #include "ecs/ECS.hpp"
@@ -86,6 +88,11 @@ namespace Core {
 
             void RequestShutdown();
 
+            //! Add a name generator to the engine
+            void AddNameGenerator(const std::string& name_type, const std::string& name_file);
+
+            //! Get a name generator.
+            NameGenerator& GetNameGenerator(const std::string& name_type);
         private:
 
             //! update the delta time.
@@ -117,6 +124,9 @@ namespace Core {
 
             //! Latest events
             std::vector<SDL_Event> m_events;
+
+            //! Name generator
+            std::unordered_map<std::string, std::unique_ptr<NameGenerator>> m_name_generator;
 
             //! The latest delta frame time, in seconds.
             float m_delta_time_sec;

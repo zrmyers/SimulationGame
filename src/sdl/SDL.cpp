@@ -8,6 +8,7 @@
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_oldnames.h>
+#include <SDL3/SDL_properties.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_timer.h>
@@ -15,6 +16,7 @@
 #include <SDL3_image/SDL_image.h>
 #include <stdexcept>
 #include <sstream>
+#include <string>
 #include <utility>
 
 #include "core/Engine.hpp"
@@ -283,6 +285,16 @@ SDL::GpuDevice::GpuDevice(SDL_GPUShaderFormat format, bool debug, const char* dr
     if (m_p_gpu == nullptr) {
         throw Error("SDL_CreateGPUDevice() failed!");
     }
+
+    SDL_PropertiesID properties = SDL_GetGPUDeviceProperties(m_p_gpu);
+
+    const char* p_name = SDL_GetStringProperty(properties, SDL_PROP_GPU_DEVICE_NAME_STRING, "Unknown Device");
+    const char* p_driver = SDL_GetStringProperty(properties, SDL_PROP_GPU_DEVICE_DRIVER_INFO_STRING, "Unknown Driver");
+    const char* p_version = SDL_GetStringProperty(properties, SDL_PROP_GPU_DEVICE_DRIVER_VERSION_STRING, "Unknown Version");
+
+    Core::Logger::Info(std::string("gpu device: " + std::string(p_name)));
+    Core::Logger::Info(std::string("gpu driver: " + std::string(p_driver)));
+    Core::Logger::Info(std::string("gpu driver version: " + std::string(p_version)));
 }
 
 SDL::GpuDevice::GpuDevice(GpuDevice&& other) noexcept

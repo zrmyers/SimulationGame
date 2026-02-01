@@ -18,13 +18,7 @@ class SimulationGame : public Core::IGame {
 
         void InitializeGUI();
 
-        std::shared_ptr<Graphics::Font> m_p_font;
-        ECS::Entity m_text_entity;
-
         ECS::Entity m_camera_entity;
 
-        float m_rotateAngle{0.0F};
-
         Menu::MenuManager m_menu_manager;
-
 };

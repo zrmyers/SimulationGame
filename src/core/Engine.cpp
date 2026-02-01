@@ -8,7 +8,9 @@
 #include <SDL3/SDL_timer.h>
 #include <SDL3/SDL_video.h>
 #include <glslang/Public/ShaderLang.h>
+#include <stdexcept>
 #include <string>
+#include "NameGenerator.hpp"
 #include "Settings.hpp"
 #include "sdl/SDL.hpp"
 
@@ -116,6 +118,24 @@ const std::vector<SDL_Event>& Core::Engine::GetEvents() {
 
 void Core::Engine::RequestShutdown() {
     m_keep_running = false;
+}
+
+void Core::Engine::AddNameGenerator(
+    const std::string& name_type, const std::string& name_file) {
+
+    std::string path = m_assetLoader.GetDataDir() + "/" + name_file;
+    
+    m_name_generator[name_type] = 
+        std::make_unique<NameGenerator>(NameGenerator::Load(path, "Regions"));
+
+}
+
+Core::NameGenerator& Core::Engine::GetNameGenerator(const std::string& name_type) {
+    auto nameGenIter = m_name_generator.find(name_type);
+    if (nameGenIter != m_name_generator.end()) {
+        return *nameGenIter->second;
+    }
+    throw std::runtime_error("Could not find name generator of type " + name_type);
 }
 
 void Core::Engine::UpdateDeltaTimeSec() {

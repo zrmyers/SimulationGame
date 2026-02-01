@@ -1,8 +1,25 @@
 #include "NameGenerator.hpp"
 #include <cstdint>
+#include <cstdlib>
+#include <fstream>
+#include <nlohmann/json.hpp>
 #include <random>
 
-namespace Math {
+namespace Core {
+
+NameGenerator NameGenerator::Load(const std::string& filepath, const std::string& name_type) {
+
+    std::random_device rand;
+    NameGenerator generator(2U, rand());
+
+    // train the generator
+    std::ifstream nameFile(filepath);
+    nlohmann::json object = nlohmann::json::parse(nameFile);
+
+    std::vector<std::string> trainingData = object[name_type];
+    generator.Train(trainingData);
+    return generator;
+}
 
 NameGenerator::NameGenerator(int32_t order, uint32_t seed)
     : m_order(order)
@@ -16,7 +33,7 @@ void NameGenerator::Train(const std::vector<std::string>& names) {
         std::string padded = m_start + name + '$';
         size_t numKeys = padded.length() - m_order; // number of keys generated from name
 
-        for (size_t keyIndex = 0; keyIndex < numKeys; numKeys++) {
+        for (size_t keyIndex = 0; keyIndex < numKeys; keyIndex++) {
             std::string key = padded.substr(keyIndex, m_order);
             m_chains[key].push_back(padded[keyIndex + m_order]);
         }
@@ -37,7 +54,7 @@ std::string NameGenerator::Generate(size_t max_characters) {
             break;
         }
 
-        std::uniform_int_distribution<uint32_t> choiceDistribution(0U, chooseFrom.size());
+        std::uniform_int_distribution<uint32_t> choiceDistribution(0U, chooseFrom.size() - 1);
         char next = chooseFrom.at(choiceDistribution(m_generator));
 
         if (next == '$') {
