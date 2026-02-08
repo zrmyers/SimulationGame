@@ -6,6 +6,9 @@
 #include "ChooseWorldMenu.hpp"
 #include "MenuUtilities.hpp"
 #include "components/Canvas.hpp"
+#include "components/Renderable.hpp"
+#include "components/Sprite.hpp"
+#include "components/Transform.hpp"
 #include "ui/Button.hpp"
 #include "ui/ButtonStyle.hpp"
 #include "ui/HorizontalLayout.hpp"
@@ -14,6 +17,11 @@
 #include "ui/VerticalLayout.hpp"
 #include "core/Logger.hpp"
 #include "world/WorldSave.hpp"
+#include "world/MapOverlay.hpp"
+#include "graphics/Texture2D.hpp"
+#include "sdl/SDL.hpp"
+#include "systems/RenderSystem.hpp"
+#include <glm/ext/vector_int2.hpp>
 
 namespace Menu {
 ChooseWorldMenu::ChooseWorldMenu(Core::Engine& engine, MenuManager& manager, std::shared_ptr<UI::Style> p_style)
@@ -87,9 +95,11 @@ void ChooseWorldMenu::Activate() {
 
 void ChooseWorldMenu::Deactivate() {
     m_entity = ECS::Entity();
+    m_sprite = ECS::Entity();
     m_worlds.clear();
     m_selected_world_index = 0U;
     m_p_world_name_element = nullptr;
+    m_p_world = nullptr;
 }
 
 
@@ -98,7 +108,54 @@ void ChooseWorldMenu::SelectWorld(size_t worldIndex) {
         return;
     }
     m_selected_world_index = worldIndex;
-    m_p_world_name_element->SetTextString(m_worlds.at(m_selected_world_index));
+
+    const std::string& worldName = m_worlds.at(m_selected_world_index);
+    m_p_world_name_element->SetTextString(worldName);
+
+    // Load preview image of world.
+    m_p_world = World::LoadWorldFromFile(worldName);
+
+    if (m_p_world) {
+        uint32_t width = m_p_world->GetParameters().GetDimension();
+        uint32_t height = width;
+
+        // Get the biome overlay pixels
+        std::vector<uint8_t> pixels = World::MapOverlay::GetOverlay(*m_p_world, World::OverlayType::BIOME_MAP);
+
+        Systems::RenderSystem& renderSystem = m_p_engine->GetEcsRegistry().GetSystem<Systems::RenderSystem>();
+        SDL_GPUSamplerCreateInfo samplerInfo = {};
+        samplerInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+        samplerInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+        samplerInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+        samplerInfo.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR;
+        samplerInfo.enable_anisotropy = true;
+        samplerInfo.max_anisotropy = 16;
+        samplerInfo.mag_filter = SDL_GPU_FILTER_LINEAR;
+        samplerInfo.min_filter = SDL_GPU_FILTER_LINEAR;
+
+        // Create sampler
+        std::shared_ptr<SDL::GpuSampler> p_sampler = std::make_shared<SDL::GpuSampler>(
+            renderSystem.CreateSampler(samplerInfo));
+
+        std::shared_ptr<Graphics::Texture2D> texture = std::make_shared<Graphics::Texture2D>(
+            *m_p_engine,
+            std::move(p_sampler),
+            width,
+            height,
+            true);
+
+        texture->LoadImageData(pixels, width, height);
+
+        // Create the sprite entity for the preview
+        m_sprite = ECS::Entity(m_p_engine->GetEcsRegistry());
+
+        Components::Sprite& sprite = m_sprite.EmplaceComponent<Components::Sprite>();
+        sprite.texture = texture;
+        sprite.layer = Components::RenderLayer::LAYER_3D_OPAQUE;
+
+        m_sprite.EmplaceComponent<Components::Transform>()
+            .Translate({0.0F, 0.0F, -1.0F});
+    }
 }
 
 void ChooseWorldMenu::SelectWorld(bool next) {

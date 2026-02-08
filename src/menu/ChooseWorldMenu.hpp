@@ -5,8 +5,10 @@
 #include "ecs/ECS.hpp"
 #include "ui/Style.hpp"
 #include "ui/TextElement.hpp"
+#include "world/World.hpp"
 #include <vector>
 #include <string>
+#include <memory>
 
 namespace Menu {
 
@@ -30,11 +32,13 @@ class ChooseWorldMenu : public Menu::IMenu {
         std::shared_ptr<UI::Style> m_p_style;
 
         ECS::Entity m_entity;
+        ECS::Entity m_sprite;
 
         UI::TextElement* m_p_world_name_element {nullptr};
 
         size_t m_selected_world_index{0U};
         std::vector<std::string> m_worlds;
+        std::unique_ptr<World::World> m_p_world;
 };
 
 }

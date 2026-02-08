@@ -10,8 +10,37 @@
 #include "Biome.hpp"
 #include "core/Filesystem.hpp"
 #include "world/TectonicPlate.hpp"
+#include <cstring>
 
 namespace World {
+
+static constexpr uint8_t WORLD_FILE_VERSION = 1;
+
+// Binary serialization helpers
+template<typename T>
+static void WriteBinary(std::ofstream& stream, const T& value) {
+    stream.write(reinterpret_cast<const char*>(&value), sizeof(T));
+}
+
+template<typename T>
+static T ReadBinary(std::ifstream& stream) {
+    T value;
+    stream.read(reinterpret_cast<char*>(&value), sizeof(T));
+    return value;
+}
+
+static void WriteString(std::ofstream& stream, const std::string& str) {
+    uint32_t length = str.length();
+    WriteBinary(stream, length);
+    stream.write(str.c_str(), length);
+}
+
+static std::string ReadString(std::ifstream& stream) {
+    uint32_t length = ReadBinary<uint32_t>(stream);
+    std::string str(length, '\0');
+    stream.read(&str[0], length);
+    return str;
+}
 
 static std::string GetWorldsDirectory() {
     std::string worldsDir = Core::Engine::GetInstance().GetUserSaveDir() + "/worlds/";
@@ -25,164 +54,144 @@ static std::string CreateWorldDirectory(const std::string& worldName) {
     return worldDir;
 }
 
-static nlohmann::json ParamsToJson(const WorldParams& params) {
-
-    nlohmann::json paramsData;
-
-    paramsData["name"] = params.GetName();
-    paramsData["seed_ascii"] = params.GetSeedAscii();
-    paramsData["dimension"] = params.GetDimension();
-    paramsData["num_continents"] = params.GetNumContinents();
-    paramsData["percent_land"] = params.GetPercentLand();
-    paramsData["region_size"] = params.GetRegionSize();
-
-    return paramsData;
+// Binary serialization functions
+static void WriteParamsToBinary(std::ofstream& stream, const WorldParams& params) {
+    WriteString(stream, params.GetName());
+    WriteString(stream, params.GetSeedAscii());
+    WriteBinary(stream, params.GetDimension());
+    WriteBinary(stream, params.GetNumContinents());
+    WriteBinary(stream, params.GetPercentLand());
+    WriteBinary(stream, params.GetRegionSize());
 }
 
-static WorldParams ParamsFromJson(const nlohmann::json& paramData) {
-
+static WorldParams ReadParamsFromBinary(std::ifstream& stream) {
     WorldParams params;
-    params.SetName(paramData["name"].get<std::string>());
-    params.SetSeedAscii(paramData["seed_ascii"].get<std::string>());
-    params.SetDimension(paramData["dimension"].get<int>());
-    params.SetNumContinents(paramData["num_continents"].get<int>());
-    params.SetPercentLand(paramData["percent_land"].get<float>());
-    params.SetRegionSize(paramData["region_size"].get<int>());
-
+    params.SetName(ReadString(stream));
+    params.SetSeedAscii(ReadString(stream));
+    params.SetDimension(ReadBinary<size_t>(stream));
+    params.SetNumContinents(ReadBinary<size_t>(stream));
+    params.SetPercentLand(ReadBinary<float>(stream));
+    params.SetRegionSize(ReadBinary<size_t>(stream));
     return params;
 }
 
-static nlohmann::json PlateToJson(const TectonicPlate& plate) {
-    nlohmann::json plateData;
+static void WritePlateToBinary(std::ofstream& stream, const TectonicPlate& plate) {
+    WriteBinary(stream, plate.GetVelocity().x);
+    WriteBinary(stream, plate.GetVelocity().y);
+    WriteBinary(stream, plate.GetIsContinental());
+    WriteBinary(stream, plate.GetAbsoluteHeight());
+    WriteBinary(stream, plate.GetCentroid().x);
+    WriteBinary(stream, plate.GetCentroid().y);
 
-    plateData["velocity"] = {plate.GetVelocity().x, plate.GetVelocity().y};
-    plateData["is_continental"] = plate.GetIsContinental();
-    plateData["absolute_height"] = plate.GetAbsoluteHeight();
-    plateData["centroid"] = {plate.GetCentroid().x, plate.GetCentroid().y};
-
-    for (const auto& boundary : plate.GetBoundaries()) {
-        std::string boundaryTypeStr;
-        switch (boundary.second) {
-            case PlateBoundaryType::NONE:
-                boundaryTypeStr = "NONE";
-                break;
-            case PlateBoundaryType::TRANSFORM:
-                boundaryTypeStr = "TRANSFORM";
-                break;
-            case PlateBoundaryType::DIVERGENT:
-                boundaryTypeStr = "DIVERGENT";
-                break;
-            case PlateBoundaryType::CONVERGENT:
-                boundaryTypeStr = "CONVERGENT";
-                break;
-        }
-
-        plateData["boundaries"][std::to_string(boundary.first)] = boundaryTypeStr;
+    const auto& boundaries = plate.GetBoundaries();
+    WriteBinary(stream, static_cast<uint32_t>(boundaries.size()));
+    for (const auto& boundary : boundaries) {
+        WriteBinary(stream, boundary.first);
+        WriteBinary(stream, static_cast<uint8_t>(boundary.second));
     }
-    return plateData;
 }
 
-static TectonicPlate PlateFromJson(const nlohmann::json& plateData, World& world) {
-    TectonicPlate plate(
-        world,
-        glm::vec2(plateData["centroid"][0].get<float>(), plateData["centroid"][1].get<float>()));
+static TectonicPlate ReadPlateFromBinary(std::ifstream& stream, World& world) {
+    float velX = ReadBinary<float>(stream);
+    float velY = ReadBinary<float>(stream);
+    bool isContinental = ReadBinary<bool>(stream);
+    float absoluteHeight = ReadBinary<float>(stream);
+    float centroidX = ReadBinary<float>(stream);
+    float centroidY = ReadBinary<float>(stream);
 
-    plate.SetVelocity(glm::vec2(plateData["velocity"][0].get<float>(), plateData["velocity"][1].get<float>()));
+    TectonicPlate plate(world, glm::vec2(centroidX, centroidY));
+    plate.SetVelocity(glm::vec2(velX, velY));
+    plate.SetIsContinental(isContinental);
+    plate.SetAbsoluteHeight(absoluteHeight);
 
-    plate.SetIsContinental(plateData["is_continental"].get<bool>());
-    plate.SetAbsoluteHeight(plateData["absolute_height"].get<float>());
-    for (const auto& boundary : plateData["boundaries"].items()) {
-        int neighborPlateId = std::stoi(boundary.key());
-        std::string boundaryTypeStr = boundary.value().get<std::string>();
-        PlateBoundaryType boundaryType = PlateBoundaryType::NONE;
-        if (boundaryTypeStr == "NONE") {
-            boundaryType = PlateBoundaryType::NONE;
-        } else if (boundaryTypeStr == "TRANSFORM") {
-            boundaryType = PlateBoundaryType::TRANSFORM;
-        } else if (boundaryTypeStr == "DIVERGENT") {
-            boundaryType = PlateBoundaryType::DIVERGENT;
-        } else if (boundaryTypeStr == "CONVERGENT") {
-            boundaryType = PlateBoundaryType::CONVERGENT;
-        } else {
-            throw std::runtime_error("Invalid plate boundary type: " + boundaryTypeStr);
-        }
-        plate.AddBoundary(neighborPlateId, boundaryType);
+    uint32_t boundaryCount = ReadBinary<uint32_t>(stream);
+    for (uint32_t i = 0; i < boundaryCount; ++i) {
+        int neighborPlateId = ReadBinary<int>(stream);
+        uint8_t boundaryTypeByte = ReadBinary<uint8_t>(stream);
+        plate.AddBoundary(neighborPlateId, static_cast<PlateBoundaryType>(boundaryTypeByte));
     }
 
     return plate;
 }
 
-static nlohmann::json RegionToJson(const Region& region) {
-    nlohmann::json regionData;
+static void WriteRegionToBinary(std::ofstream& stream, const Region& region) {
+    WriteBinary(stream, region.GetPlateId());
+    WriteBinary(stream, region.GetCentroid().x);
+    WriteBinary(stream, region.GetCentroid().y);
 
-    regionData["plate_id"] = region.GetPlateId();
-    regionData["centroid"] = {region.GetCentroid().x, region.GetCentroid().y};
-    regionData["neighbors"] = region.GetNeighbors();
-    regionData["is_boundary"] = region.GetIsBoundary();
-    regionData["has_subduction"] = region.GetHasSubduction();
-    regionData["absolute_height"] = region.GetAbsoluteHeight();
-    regionData["is_ocean"] = region.GetIsOcean();
-    regionData["is_water"] = region.GetIsWater();
-    regionData["is_lake"] = region.GetIsLake();
-    regionData["is_mountain"] = region.GetIsMountain();
-    regionData["water_level"] = region.GetWaterLevel();
-    regionData["flow_accumulation"] = region.GetFlowAccumulation();
-    regionData["flow_direction"] = region.GetFlowDirection();
-    regionData["has_river"] = region.GetHasRiver();
-    regionData["temperature"] = region.GetTemperature();
-    regionData["temperature_variance"] = region.GetTemperatureVariance();
-    regionData["moisture"] = region.GetMoisture();
-    regionData["biome"] = BiomeTypeToString(region.GetBiome());
+    const auto& neighbors = region.GetNeighbors();
+    WriteBinary(stream, static_cast<uint32_t>(neighbors.size()));
+    for (RegionId_t neighbor : neighbors) {
+        WriteBinary(stream, neighbor);
+    }
 
-    return regionData;
+    WriteBinary(stream, region.GetIsBoundary());
+    WriteBinary(stream, region.GetHasSubduction());
+    WriteBinary(stream, region.GetAbsoluteHeight());
+    WriteBinary(stream, region.GetIsOcean());
+    WriteBinary(stream, region.GetIsWater());
+    WriteBinary(stream, region.GetIsLake());
+    WriteBinary(stream, region.GetIsMountain());
+    WriteBinary(stream, region.GetWaterLevel());
+    WriteBinary(stream, region.GetFlowAccumulation());
+    WriteBinary(stream, region.GetFlowDirection());
+    WriteBinary(stream, region.GetHasRiver());
+    WriteBinary(stream, region.GetTemperature());
+    WriteBinary(stream, region.GetTemperatureVariance());
+    WriteBinary(stream, region.GetMoisture());
+    WriteString(stream, BiomeTypeToString(region.GetBiome()));
 }
 
-static Region RegionFromJson(const nlohmann::json& regionData, World& world) {
-    Region region(
-        world,
-        glm::vec2(regionData["centroid"][0].get<float>(), regionData["centroid"][1].get<float>()),
-        regionData["neighbors"].get<std::vector<RegionId_t>>());
-    region.SetPlateId(regionData["plate_id"].get<PlateId_t>());
-    region.SetHasSubduction(regionData["has_subduction"].get<bool>());
-    region.SetAbsoluteHeight(regionData["absolute_height"].get<float>());
-    region.SetIsOcean(regionData["is_ocean"].get<bool>());
-    region.SetIsWater(regionData["is_water"].get<bool>());
-    region.SetIsLake(regionData["is_lake"].get<bool>());
-    region.SetIsMountain(regionData["is_mountain"].get<bool>());
-    region.SetWaterLevel(regionData["water_level"].get<float>());
-    region.SetFlowAccumulation(regionData["flow_accumulation"].get<float>());
-    region.SetFlowDirection(regionData["flow_direction"].get<RegionId_t>());
-    region.SetHasRiver(regionData["has_river"].get<bool>());
-    region.SetTemperature(regionData["temperature"].get<float>());
-    region.SetTemperatureVariance(regionData["temperature_variance"].get<float>());
-    region.SetMoisture(regionData["moisture"].get<float>());
-    region.SetBiome(StringToBiomeType(regionData["biome"].get<std::string>()));
+static Region ReadRegionFromBinary(std::ifstream& stream, World& world) {
+    PlateId_t plateId = ReadBinary<PlateId_t>(stream);
+    float centroidX = ReadBinary<float>(stream);
+    float centroidY = ReadBinary<float>(stream);
+
+    uint32_t neighborCount = ReadBinary<uint32_t>(stream);
+    std::vector<RegionId_t> neighbors(neighborCount);
+    for (uint32_t i = 0; i < neighborCount; ++i) {
+        neighbors[i] = ReadBinary<RegionId_t>(stream);
+    }
+
+    Region region(world, glm::vec2(centroidX, centroidY), std::move(neighbors));
+    region.SetPlateId(plateId);
+    region.SetIsBoundary(ReadBinary<bool>(stream));
+    region.SetHasSubduction(ReadBinary<bool>(stream));
+    region.SetAbsoluteHeight(ReadBinary<float>(stream));
+    region.SetIsOcean(ReadBinary<bool>(stream));
+    region.SetIsWater(ReadBinary<bool>(stream));
+    region.SetIsLake(ReadBinary<bool>(stream));
+    region.SetIsMountain(ReadBinary<bool>(stream));
+    region.SetWaterLevel(ReadBinary<float>(stream));
+    region.SetFlowAccumulation(ReadBinary<float>(stream));
+    region.SetFlowDirection(ReadBinary<RegionId_t>(stream));
+    region.SetHasRiver(ReadBinary<bool>(stream));
+    region.SetTemperature(ReadBinary<float>(stream));
+    region.SetTemperatureVariance(ReadBinary<float>(stream));
+    region.SetMoisture(ReadBinary<float>(stream));
+    region.SetBiome(StringToBiomeType(ReadString(stream)));
     return region;
 }
 
-static nlohmann::json TileToJson(const Tile& tile) {
-    nlohmann::json tileData;
-
-    tileData["region_id"] = tile.GetRegionId();
-    tileData["is_edge"] = tile.GetIsEdgeTile();
-    tileData["absolute_height"] = tile.GetAbsoluteHeight();
-    tileData["is_water"] = tile.GetIsWater();
-    tileData["is_river"] = tile.GetIsRiver();
-    tileData["is_lake"] = tile.GetIsLake();
-    tileData["water_level"] = tile.GetWaterLevel();
-
-    return tileData;
+static void WriteTileToBinary(std::ofstream& stream, const Tile& tile) {
+    WriteBinary(stream, tile.GetRegionId());
+    WriteBinary(stream, tile.GetIsEdgeTile());
+    WriteBinary(stream, tile.GetAbsoluteHeight());
+    WriteBinary(stream, tile.GetIsWater());
+    WriteBinary(stream, tile.GetIsRiver());
+    WriteBinary(stream, tile.GetIsLake());
+    WriteBinary(stream, tile.GetWaterLevel());
 }
 
-static void TileFromJson(const nlohmann::json& tileData, World& world, TileId_t tileId) {
+static void ReadTileFromBinary(std::ifstream& stream, World& world, TileId_t tileId) {
     Tile& tile = world.GetTile(tileId);
-    tile.SetRegionId(tileData["region_id"].get<RegionId_t>());
-    tile.SetIsEdgeTile(tileData["is_edge"].get<bool>());
-    tile.SetAbsoluteHeight(tileData["absolute_height"].get<float>());
-    tile.SetIsWater(tileData["is_water"].get<bool>());
-    tile.SetIsRiver(tileData["is_river"].get<bool>());
-    tile.SetIsLake(tileData["is_lake"].get<bool>());
-    tile.SetWaterLevel(tileData["water_level"].get<float>());
+    tile.SetRegionId(ReadBinary<RegionId_t>(stream));
+    tile.SetIsEdgeTile(ReadBinary<bool>(stream));
+    tile.SetAbsoluteHeight(ReadBinary<float>(stream));
+    tile.SetIsWater(ReadBinary<bool>(stream));
+    tile.SetIsRiver(ReadBinary<bool>(stream));
+    tile.SetIsLake(ReadBinary<bool>(stream));
+    tile.SetWaterLevel(ReadBinary<float>(stream));
 }
 
 void SaveWorldToFile(const World& world) {
@@ -190,67 +199,82 @@ void SaveWorldToFile(const World& world) {
     const std::string worldName = world.GetParameters().GetName();
     std::string worldDir = CreateWorldDirectory(worldName);
 
-    Core::Engine& engine = Core::Engine::GetInstance();
-    std::ofstream filestream(worldDir + "/world.json");
-    nlohmann::json worldData;
+    std::ofstream filestream(worldDir + "/world.bin", std::ios::binary);
+
+    // Write magic number and version for validation
+    filestream.write("WSAV", 4);
+    uint8_t version = WORLD_FILE_VERSION;
+    WriteBinary(filestream, version);
 
     // save parameters
-    worldData["parameters"] = ParamsToJson(world.GetParameters());
+    WriteParamsToBinary(filestream, world.GetParameters());
 
     // save plates
-    worldData["plates"] = nlohmann::json::array();
+    uint32_t plateCount = world.GetPlates().size();
+    WriteBinary(filestream, plateCount);
     for (const TectonicPlate& plate : world.GetPlates()) {
-        worldData["plates"].push_back(PlateToJson(plate));
+        WritePlateToBinary(filestream, plate);
     }
 
     // save regions
-    worldData["regions"] = nlohmann::json::array();
+    uint32_t regionCount = world.GetRegions().size();
+    WriteBinary(filestream, regionCount);
     for (const Region& region : world.GetRegions()) {
-        worldData["regions"].push_back(RegionToJson(region));
+        WriteRegionToBinary(filestream, region);
     }
 
     // save tiles
-    worldData["tiles"] = nlohmann::json::array();
+    uint32_t tileCount = world.GetTiles().size();
+    WriteBinary(filestream, tileCount);
     for (const Tile& tile : world.GetTiles()) {
-        worldData["tiles"].push_back(TileToJson(tile));
+        WriteTileToBinary(filestream, tile);
     }
-
-    filestream << worldData.dump(4);
 }
 
 std::unique_ptr<World> LoadWorldFromFile(const std::string& world_name) {
 
     std::string worldDir = GetWorldsDirectory() + world_name;
-    std::ifstream filestream(worldDir + "/world.json");
+    std::ifstream filestream(worldDir + "/world.bin", std::ios::binary);
     if (!filestream.is_open()) {
-        throw std::runtime_error("Failed to open world file: " + worldDir + "/world.json");
+        throw std::runtime_error("Failed to open world file: " + worldDir + "/world.bin");
     }
 
-    nlohmann::json worldData;
-    filestream >> worldData;
+    // Verify magic number and version
+    char magic[4];
+    filestream.read(magic, 4);
+    if (std::strncmp(magic, "WSAV", 4) != 0) {
+        throw std::runtime_error("Invalid world save file format");
+    }
+    uint8_t version = ReadBinary<uint8_t>(filestream);
+    if (version != WORLD_FILE_VERSION) {
+        throw std::runtime_error("Unsupported world save version");
+    }
 
-    std::unique_ptr<World> world = std::make_unique<World>(ParamsFromJson(worldData["parameters"]));
+    // Load parameters
+    std::unique_ptr<World> world = std::make_unique<World>(ReadParamsFromBinary(filestream));
 
     // Load plates
+    uint32_t plateCount = ReadBinary<uint32_t>(filestream);
     std::vector<TectonicPlate> plates;
-    plates.reserve(worldData["plates"].size());
-    for (const auto& plateData : worldData["plates"]) {
-        plates.push_back(PlateFromJson(plateData, *world));
+    plates.reserve(plateCount);
+    for (uint32_t i = 0; i < plateCount; ++i) {
+        plates.push_back(ReadPlateFromBinary(filestream, *world));
     }
     world->SetPlates(std::move(plates));
 
     // Load Regions
+    uint32_t regionCount = ReadBinary<uint32_t>(filestream);
     std::vector<Region> regions;
-    regions.reserve(worldData["regions"].size());
-    for (const auto& regionData : worldData["regions"]) {
-        regions.push_back(RegionFromJson(regionData, *world));
+    regions.reserve(regionCount);
+    for (uint32_t i = 0; i < regionCount; ++i) {
+        regions.push_back(ReadRegionFromBinary(filestream, *world));
     }
+    world->SetRegions(std::move(regions), false);
 
     // Load Tiles
-    TileId_t tileId = 0;
-    for (const auto& tileData : worldData["tiles"]) {
-        TileFromJson(tileData, *world, tileId);
-        tileId++;
+    uint32_t tileCount = ReadBinary<uint32_t>(filestream);
+    for (uint32_t tileId = 0; tileId < tileCount; ++tileId) {
+        ReadTileFromBinary(filestream, *world, tileId);
     }
 
     return world;

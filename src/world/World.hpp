@@ -46,7 +46,7 @@ namespace World {
 
             //! Set plates
             void SetPlates(std::vector<TectonicPlate>&& plates);
-            void SetRegions(std::vector<Region>&& regions);
+            void SetRegions(std::vector<Region>&& regions, bool updateTiles = true);
 
             //! Set the ocean level
             void SetOceanLevel(float level);
