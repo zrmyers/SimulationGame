@@ -31,11 +31,21 @@ SimulationGame::SimulationGame(Core::Engine& engine)
     guiSystem.SetCursor("/cursor.png", true);
 
     engine.AddNameGenerator("Regions", "names.json");
+    engine.AddNameGenerator("MaleFirstNames", "names.json");
+    engine.AddNameGenerator("FemaleFirstNames", "names.json");
     InitializeGUI();
 }
 
 void SimulationGame::Update() {
     m_menu_manager.Update();
+}
+
+void SimulationGame::SetWorld(std::unique_ptr<World::World>&& p_world) {
+    m_p_world = std::move(p_world);
+}
+
+World::World* SimulationGame::GetWorld() {
+    return m_p_world.get();
 }
 
 void SimulationGame::InitializeGUI() {
@@ -59,6 +69,6 @@ void SimulationGame::InitializeGUI() {
     m_menu_manager.AddMenu("ChooseWorld", std::move(p_chooseWorld));
     m_menu_manager.AddMenu("CreateWorld", std::move(p_createWorld));
     m_menu_manager.AddMenu("CreateCharacter", std::move(p_createCharacter));
-
+    m_menu_manager.SetTitle("MainMenu");
     m_menu_manager.RequestChangeActiveMenu("MainMenu");
 }

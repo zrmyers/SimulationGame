@@ -5,6 +5,7 @@
 
 #include "ChooseWorldMenu.hpp"
 #include "MenuUtilities.hpp"
+#include "SimulationGame.hpp"
 #include "components/Canvas.hpp"
 #include "components/Renderable.hpp"
 #include "components/Sprite.hpp"
@@ -75,9 +76,10 @@ void ChooseWorldMenu::Activate() {
     AddButton(m_p_style, bottomBar, "Back", UI::ButtonState::ENABLED,
         [this](){ m_p_manager->ReturnToPreviousMenu(); });
 
-    AddButton(m_p_style, bottomBar, "Start", UI::ButtonState::DISABLED,
+    AddButton(m_p_style, bottomBar, "Start", m_worlds.empty()? UI::ButtonState::DISABLED : UI::ButtonState::ENABLED,
         [this](){
-            Core::Logger::Info("Play requested for world: " + m_worlds.at(m_selected_world_index));;
+            m_p_engine->GetGameInstance<SimulationGame>().SetWorld(std::move(m_p_world));
+            m_p_manager->RequestChangeActiveMenu("ChooseCharacter");
         });
     AddButton(m_p_style, bottomBar, "Remove", m_worlds.empty()? UI::ButtonState::DISABLED : UI::ButtonState::ENABLED,
         [this](){

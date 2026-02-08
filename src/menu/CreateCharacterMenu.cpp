@@ -14,6 +14,7 @@
 #include "ui/Element.hpp"
 #include "ui/HorizontalLayout.hpp"
 #include "ui/Spacer.hpp"
+#include "ui/TextInputBox.hpp"
 #include "ui/VerticalLayout.hpp"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_mouse.h>
@@ -77,7 +78,6 @@ void CreateCharacterMenu::Activate() {
         }
     });
 
-
     // populate canvas with ui elements
     UI::VerticalLayout& mainVertical = canvas.EmplaceChild<UI::VerticalLayout>();
     mainVertical.EmplaceChild<UI::Spacer>();
@@ -103,6 +103,7 @@ void CreateCharacterMenu::Deactivate() {
 
     m_entity = ECS::Entity();
 
+    m_p_character_name_element = nullptr;
     m_p_done_button = nullptr;
 }
 
@@ -157,13 +158,14 @@ void CreateCharacterMenu::BuildFinalizationPanel(UI::Element& panelRoot) {
     UI::Element& background = Menu::AddBackground(m_p_style, panelRoot);
     UI::VerticalLayout& layout = background.EmplaceChild<UI::VerticalLayout>();
     UI::HorizontalLayout& nameInputLayout = layout.EmplaceChild<UI::HorizontalLayout>();
-    Menu::AddTextInputBox(
+    UI::TextInputBox& textbox = Menu::AddTextInputBox(
         m_p_style,
         nameInputLayout,
         "Name",
         "Enter Name",
         16,
         [this](const std::string& name){this->SetName(name);});
+    m_p_character_name_element = &textbox;
     UI::HorizontalLayout& characterManagement = layout.EmplaceChild<UI::HorizontalLayout>();
 
     AddButton(m_p_style, characterManagement, "Cancel", UI::ButtonState::ENABLED,
@@ -175,6 +177,14 @@ void CreateCharacterMenu::BuildFinalizationPanel(UI::Element& panelRoot) {
             // return to previous screen
             p_menuManager->ReturnToPreviousMenu();
     });
+
+
+    if (GetCharacterSex()) {
+        textbox.InsertText(m_p_engine->GetNameGenerator("MaleFirstNames").Generate(12U));
+    }
+    else {
+        textbox.InsertText(m_p_engine->GetNameGenerator("FemaleFirstNames").Generate(12U));
+    }
 }
 
 void CreateCharacterMenu::AddMaterialCustomizer(UI::Element& root, const Creature::Material& material, const std::string& fieldName, SelectionChangeCallback_t callback) {
@@ -214,6 +224,17 @@ void CreateCharacterMenu::SetCharacterSex(bool is_male) {
     creature.m_material_instance = std::move(oldCreature.m_material_instance);
     creature.m_attachments = std::move(oldCreature.m_attachments);
     creature.m_name = std::move(oldCreature.m_name);
+
+    if (m_p_character_name_element != nullptr) {
+        if (is_male) {
+            m_p_character_name_element->SetTextString(
+                m_p_engine->GetNameGenerator("MaleFirstNames").Generate(12U));
+        }
+        else {
+            m_p_character_name_element->SetTextString(
+                m_p_engine->GetNameGenerator("FemaleFirstNames").Generate(12U));
+        }
+    }
 }
 
 bool CreateCharacterMenu::GetCharacterSex() {

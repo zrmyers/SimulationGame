@@ -68,6 +68,12 @@ namespace UI {
             void UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize, Depth_t depth) override;
 
             /**
+             * @brief Replace test in the text box with new text.
+             * @param text New text to set.
+             */
+            void SetTextString(const std::string& text);
+
+            /**
              * @brief Insert text at the current caret position.
              * @note This updates the displayed text and moves the caret to the end of the inserted text.
              * @param text Text to insert.

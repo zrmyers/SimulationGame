@@ -75,7 +75,10 @@ void Menu::ChooseCharacterMenu::Activate() {
         characterManagement,
         "Start",
         m_character_files.empty()? UI::ButtonState::DISABLED : UI::ButtonState::ENABLED,
-        [p_menuManager](){p_menuManager->RequestChangeActiveMenu("ChooseWorld");});
+        [p_menuManager](){
+            Core::Logger::Info("Starting game");
+            p_menuManager->ReturnToTitle();
+        });
     AddButton(
         m_p_style,
         characterManagement,

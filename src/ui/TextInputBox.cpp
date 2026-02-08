@@ -198,6 +198,33 @@ void TextInputBox::UpdateGraphics(ECS::Registry& registry, glm::vec2 screenSize,
     }
 }
 
+void TextInputBox::SetTextString(const std::string& text) {
+
+    m_user_text = text;
+    if (m_user_text.empty()) {
+        m_p_text_element->SetTextString(m_default_text);
+    }
+    else {
+        m_p_text_element->SetTextString(m_user_text);
+    }
+
+    // Move caret to end of text
+    m_caret_position = m_user_text.length();
+
+    // Update caret display position
+    float caretOffsetX = 0.0F;
+    if (m_caret_position > 0) {
+
+        glm::vec2 stringSize = m_p_text_element->MeasureStringSize(m_user_text);
+        caretOffsetX = stringSize.x;
+    }
+    m_p_caret->SetOffsetPosition({caretOffsetX - 5.0F, 0.0F});
+
+    if (m_text_value_change_callback) {
+        m_text_value_change_callback(m_user_text);
+    }
+}
+
 void TextInputBox::InsertText(const std::string& text) {
     if (m_p_text_element != nullptr) {
         if (m_user_text.length() + text.length() <= m_max_characters) {

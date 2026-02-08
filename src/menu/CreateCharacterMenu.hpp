@@ -7,6 +7,8 @@
 #include "ecs/ECS.hpp"
 #include "ui/Element.hpp"
 #include "ui/Style.hpp"
+#include "ui/TextElement.hpp"
+#include "ui/TextInputBox.hpp"
 #include <memory>
 
 namespace Menu {
@@ -66,6 +68,7 @@ class CreateCharacterMenu : public Menu::IMenu {
         glm::vec2 m_prev_position;
         glm::mat4 m_original_transform;
 
+        UI::TextInputBox* m_p_character_name_element {nullptr};
         UI::Button* m_p_done_button;
 };
 

@@ -1,4 +1,5 @@
 #include "PlayerCharacter.hpp"
+#include "SimulationGame.hpp"
 #include "core/Engine.hpp"
 #include <fstream>
 #include <list>
@@ -15,11 +16,21 @@
 
 namespace Character {
 
+static std::string GetCurrentWorldDirectory() {
+    Core::Engine& engine = Core::Engine::GetInstance();
+    SimulationGame& game = engine.GetGameInstance<SimulationGame>();
+    if (game.GetWorld() == nullptr) {
+        throw Core::EngineException("No world is currently loaded.");
+    }
+    std::string worldName = game.GetWorld()->GetParameters().GetName();
+    return engine.GetUserSaveDir() + "/worlds/" + worldName + "/";
+}
+
 ECS::Entity LoadCharacterFromFile(const std::string& filename) {
 
     Core::Engine& engine = Core::Engine::GetInstance();
     ECS::Entity characterEntity = ECS::Entity(engine.GetEcsRegistry());
-    std::ifstream filestream(engine.GetUserSaveDir() + "/" + filename);
+    std::ifstream filestream(GetCurrentWorldDirectory() + "/" + filename);
 
     nlohmann::json styleData = nlohmann::json::parse(filestream);
 
@@ -82,7 +93,7 @@ ECS::Entity LoadCharacterFromFile(const std::string& filename) {
 
 void SaveCharacterToFile(const std::string& filename, const ECS::Entity& character) {
     Core::Engine& engine = Core::Engine::GetInstance();
-    std::ofstream filestream(engine.GetUserSaveDir() + "/" + filename);
+    std::ofstream filestream(GetCurrentWorldDirectory() + "/" + filename);
     Systems::InventorySystem& inventorySystem = engine.GetEcsRegistry().GetSystem<Systems::InventorySystem>();
     nlohmann::json characterData;
 
@@ -141,7 +152,7 @@ std::vector<std::string> GetSavedCharacterFiles() {
     std::vector<std::string> characterFiles;
     Core::Engine& engine = Core::Engine::GetInstance();
 
-    for (const auto& entry : std::filesystem::directory_iterator(engine.GetUserSaveDir())) {
+    for (const auto& entry : std::filesystem::directory_iterator(GetCurrentWorldDirectory())) {
         if (entry.is_regular_file()) {
             std::string filepath = entry.path().string();
             if (Core::EndsWith(filepath,".player.json")) {
