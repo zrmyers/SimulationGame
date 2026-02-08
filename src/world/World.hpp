@@ -8,6 +8,7 @@
 #include "Region.hpp"
 #include "TectonicPlate.hpp"
 #include "Tile.hpp"
+#include "WorldParams.hpp"
 
 namespace World {
 
@@ -18,7 +19,10 @@ namespace World {
 
         public:
 
-            World(Extent_t size);
+            World(const WorldParams& params);
+
+            //! @brief Get Parameters
+            const WorldParams& GetParameters() const;
 
             //! @brief Convert a world coordinate to a tile ID.
             //!
@@ -79,8 +83,8 @@ namespace World {
 
         private:
 
-            //! The x-y dimmension of the world.
-            Extent_t m_size;
+            //! World Parameters
+            WorldParams m_params;
 
             //! Set of all tiles in the world
             std::vector<Tile> m_tiles;

@@ -52,6 +52,9 @@ namespace World {
             void SetAbsoluteHeight(float height);
             float GetAbsoluteHeight() const;
 
+
+            const std::unordered_map<PlateId_t, PlateBoundaryType>& GetBoundaries() const;
+
         private:
 
             //! Reference to world that region belongs to.

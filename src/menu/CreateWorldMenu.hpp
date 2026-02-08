@@ -3,6 +3,7 @@
 #include "MenuManager.hpp"
 #include "core/Engine.hpp"
 #include "ecs/ECS.hpp"
+#include "ui/Button.hpp"
 #include "ui/Element.hpp"
 #include "ui/Style.hpp"
 #include <memory>
@@ -44,6 +45,8 @@ class CreateWorldMenu : public Menu::IMenu {
 
         std::unique_ptr<World::World> m_p_world;
         World::OverlayType m_selected_overlay {World::OverlayType::BIOME_MAP};
+
+        UI::Button* m_p_done_button {nullptr};
 
 };
 

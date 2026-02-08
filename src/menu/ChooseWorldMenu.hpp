@@ -19,6 +19,7 @@ class ChooseWorldMenu : public Menu::IMenu {
         void Activate() override;
         void Deactivate() override;
 
+        void SelectWorld(size_t worldIndex);
         void SelectWorld(bool next);
 
         void DeleteSelectedWorld();

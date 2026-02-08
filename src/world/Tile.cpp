@@ -75,20 +75,4 @@ namespace World {
         return m_water_level;
     }
 
-    void Tile::SetFlowDirection(glm::ivec2 direction) {
-        m_flow_direction = direction;
-    }
-
-    glm::ivec2 Tile::GetFlowDirection() const {
-        return m_flow_direction;
-    }
-
-    void Tile::SetFlowAccumulation(float accumulation) {
-        m_flow_accumulation = accumulation;
-    }
-
-    float Tile::GetFlowAccumulation() const {
-        return m_flow_accumulation;
-    }
-
 }

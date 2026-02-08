@@ -21,7 +21,6 @@
 #include "ui/Spacer.hpp"
 #include "ui/TextInputBox.hpp"
 #include "ui/VerticalLayout.hpp"
-#include "world/World.hpp"
 #include "world/WorldGenerator.hpp"
 #include <SDL3/SDL_gpu.h>
 #include <cstddef>
@@ -30,7 +29,8 @@
 #include <string>
 #include <vector>
 #include "world/MapOverlay.hpp"
-#include "math/PerlinNoise.hpp"
+#include "world/WorldSave.hpp"
+#include "core/SeedWords.hpp"
 
 namespace Menu {
 
@@ -78,6 +78,7 @@ void CreateWorldMenu::Deactivate() {
     m_sprite = ECS::Entity();
     m_p_world = nullptr;
     m_selected_overlay = World::OverlayType::PLATE_TECTONICS;
+    m_p_done_button = nullptr;
 }
 
 
@@ -100,7 +101,7 @@ void CreateWorldMenu::BuildCustomizationPanel(UI::Element& panelRoot) {
         [this](const std::string& textStr){
         this->m_world_parameters.SetSeedAscii(textStr);
     });
-    seedInput.InsertText("Coffee");
+    seedInput.InsertText(Core::SeedWords::ChooseRandomSeedWord());
 
     // Configure World Size (Tiles)
     AddSliderSelection(
@@ -168,7 +169,7 @@ void CreateWorldMenu::BuildNavigationPanel(UI::Element& panelRoot) {
         UI::ButtonState::ENABLED,
         [this](){this->GenerateWorld();});
 
-    AddButton(
+    m_p_done_button = &AddButton(
         m_p_style,
         panelRoot,
         "Done",
@@ -186,6 +187,8 @@ void CreateWorldMenu::GenerateWorld() {
     m_p_world = std::move(World::WorldGenerator::Generate(m_world_parameters));
 
     SetOverlay(m_selected_overlay);
+
+    m_p_done_button->SetButtonState(UI::ButtonState::ENABLED);
 }
 
 void CreateWorldMenu::SetOverlay(World::OverlayType selection) {
@@ -239,5 +242,5 @@ void CreateWorldMenu::SetOverlay(World::OverlayType selection) {
 
 void Menu::CreateWorldMenu::SaveWorld() {
 
-
+    World::SaveWorldToFile( *m_p_world);
 }

@@ -42,12 +42,6 @@ namespace World {
             void SetWaterLevel(float water_level);
             float GetWaterLevel() const;
 
-            void SetFlowDirection(glm::ivec2 direction);
-            glm::ivec2 GetFlowDirection() const;
-
-            void SetFlowAccumulation(float accumulation);
-            float GetFlowAccumulation() const;
-
         private:
 
             World* m_p_world {nullptr};
@@ -62,7 +56,5 @@ namespace World {
             bool m_is_river {false};
             bool m_is_lake {false};
             float m_water_level {0.0F};
-            glm::ivec2 m_flow_direction {INT32_MAX, INT32_MAX};  // Direction of water flow
-            float m_flow_accumulation {0.0F};  // Accumulated water volume
     };
 }

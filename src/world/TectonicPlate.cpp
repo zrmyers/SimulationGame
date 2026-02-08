@@ -54,6 +54,10 @@ namespace World {
         return m_height;
     }
 
+    const std::unordered_map<PlateId_t, PlateBoundaryType>& TectonicPlate::GetBoundaries() const {
+        return m_boundaries;
+    }
+
     PlateBoundaryType DeterminePlateBoundaryType(const TectonicPlate& plate1, const TectonicPlate& plate2,
                                                   float divergence_threshold) {
         // Get the positions and velocities

@@ -2,9 +2,7 @@
 
 #include <cstdint>
 #include <glm/vec4.hpp>
-#include <limits>
-#include <queue>
-#include <unordered_map>
+#include <string>
 
 namespace World {
 
@@ -26,4 +24,9 @@ namespace World {
         SEA_ICE,
         FROZEN_LAKE
     };
+
+    static constexpr size_t BIOME_TYPE_COUNT = static_cast<size_t>(BiomeType::FROZEN_LAKE) + 1;
+
+    std::string BiomeTypeToString(BiomeType biome);
+    BiomeType StringToBiomeType(const std::string& biomeStr);
 }

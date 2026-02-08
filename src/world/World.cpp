@@ -8,20 +8,29 @@
 
 namespace World {
 
-    World::World(Extent_t size) : m_size(size) {
+    World::World(const WorldParams& params)
+        : m_params(params) {
+
+        Extent_t extent = params.GetWorldExtent();
         // Initialize tiles
-        size_t total_tiles = static_cast<size_t>(size.x) * static_cast<size_t>(size.y);
+        size_t total_tiles = static_cast<size_t>(extent.x) * static_cast<size_t>(extent.y);
         for (size_t i = 0; i < total_tiles; ++i) {
             m_tiles.emplace_back(*this, static_cast<TileId_t>(i));
         }
     }
 
+    const WorldParams& World::GetParameters() const {
+        return m_params;
+    }
+
     TileId_t World::CoordinateToTileId(Coordinate_t coordinate) const {
-        return (coordinate.y * m_size.x) + coordinate.x;
+
+        return (coordinate.y * m_params.GetWorldExtent().x) + coordinate.x;
     }
 
     Coordinate_t World::TileIdToCoordinate(TileId_t tile_id) const {
-        return Coordinate_t{tile_id % m_size.x, tile_id / m_size.x};
+
+        return Coordinate_t{tile_id % m_params.GetWorldExtent().x, tile_id / m_params.GetWorldExtent().x};
     }
 
     glm::vec2 World::CoordinateToPosition(Coordinate_t coordinate) const { // NOLINT may want to configure scale.
@@ -76,7 +85,7 @@ namespace World {
             Coordinate_t coordinate = TileIdToCoordinate(tile_idx);
 
             // check eastern and southern neighbors
-            if (coordinate.x + 1 < m_size.x) {
+            if (coordinate.x + 1 < m_params.GetWorldExtent().x) {
                 TileId_t tileB_idx = CoordinateToTileId({coordinate.x + 1, coordinate.y});
                 Tile& tileB = m_tiles.at(tileB_idx);
 
@@ -86,7 +95,7 @@ namespace World {
                 }
             }
 
-            if (coordinate.y + 1 < m_size.y) {
+            if (coordinate.y + 1 < m_params.GetWorldExtent().y) {
                 TileId_t tileB_idx = CoordinateToTileId({coordinate.x, coordinate.y + 1});
                 Tile& tileB = m_tiles.at(tileB_idx);
 
@@ -103,31 +112,31 @@ namespace World {
     }
 
     Extent_t World::GetSize() const {
-        return m_size;
+        return m_params.GetWorldExtent();
     }
 
     Tile& World::GetTile(TileId_t tile_id) {
-        return m_tiles[tile_id];
+        return m_tiles.at(tile_id);
     }
 
     const Tile& World::GetTile(TileId_t tile_id) const {
-        return m_tiles[tile_id];
+        return m_tiles.at(tile_id);
     }
 
     Region& World::GetRegion(RegionId_t region_id) {
-        return m_regions[region_id];
+        return m_regions.at(region_id);
     }
 
     const Region& World::GetRegion(RegionId_t region_id) const {
-        return m_regions[region_id];
+        return m_regions.at(region_id);
     }
 
     TectonicPlate& World::GetPlate(PlateId_t plate_id) {
-        return m_plates[plate_id];
+        return m_plates.at(plate_id);
     }
 
     const TectonicPlate& World::GetPlate(PlateId_t plate_id) const {
-        return m_plates[plate_id];
+        return m_plates.at(plate_id);
     }
 
     const std::vector<Tile>& World::GetTiles() const {

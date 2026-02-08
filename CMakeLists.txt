@@ -67,6 +67,7 @@ add_executable(${PROJECT_NAME}
     ./src/core/Logger.cpp
     ./src/core/NameGenerator.cpp
     ./src/core/Settings.cpp
+    ./src/core/SeedWords.cpp
     ./src/core/String.cpp
     ./src/gltf/GLTF.cpp
     ./src/graphics/Font.cpp
@@ -120,9 +121,11 @@ add_executable(${PROJECT_NAME}
     ./src/world/Region.cpp
     ./src/world/TectonicPlate.cpp
     ./src/world/Tile.cpp
+    ./src/world/Biome.cpp
     ./src/world/World.cpp
     ./src/world/WorldGenerator.cpp
     ./src/world/WorldParams.cpp
+    ./src/world/WorldSave.cpp
     ./src/world/passes/ClimatePass.cpp
     ./src/world/passes/ElevationPass.cpp
     ./src/world/passes/HydrologyPass.cpp

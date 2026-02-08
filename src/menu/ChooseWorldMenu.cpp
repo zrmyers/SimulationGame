@@ -13,6 +13,7 @@
 #include "ui/TextElement.hpp"
 #include "ui/VerticalLayout.hpp"
 #include "core/Logger.hpp"
+#include "world/WorldSave.hpp"
 
 namespace Menu {
 ChooseWorldMenu::ChooseWorldMenu(Core::Engine& engine, MenuManager& manager, std::shared_ptr<UI::Style> p_style)
@@ -27,6 +28,7 @@ void ChooseWorldMenu::Activate() {
     m_entity = ECS::Entity(registry);
 
     m_selected_world_index = 0U;
+    m_worlds = World::GetSavedWorlds();
 
     Components::Canvas& canvas = m_entity.EmplaceComponent<Components::Canvas>();
     canvas.SetRenderMode(Components::Canvas::RenderMode::SCREEN);
@@ -79,6 +81,8 @@ void ChooseWorldMenu::Activate() {
         });
 
     bottomBar.EmplaceChild<UI::Spacer>();
+
+    SelectWorld(m_selected_world_index);
 }
 
 void ChooseWorldMenu::Deactivate() {
@@ -89,15 +93,71 @@ void ChooseWorldMenu::Deactivate() {
 }
 
 
+void ChooseWorldMenu::SelectWorld(size_t worldIndex) {
+    if (worldIndex >= m_worlds.size()) {
+        return;
+    }
+    m_selected_world_index = worldIndex;
+    m_p_world_name_element->SetTextString(m_worlds.at(m_selected_world_index));
+}
+
 void ChooseWorldMenu::SelectWorld(bool next) {
 
-    (void) next;
+    // Determine which character to select
+    if (next) {
+
+        if (m_selected_world_index + 1 >= m_worlds.size()) {
+            m_selected_world_index = 0U;
+        }
+        else {
+            m_selected_world_index++;
+        }
+    }
+    else {
+        if (m_selected_world_index == 0U) {
+            m_selected_world_index = m_worlds.size() - 1;
+        }
+        else {
+            m_selected_world_index--;
+        }
+    }
+    SelectWorld(m_selected_world_index);
 }
 
 
 void ChooseWorldMenu::DeleteSelectedWorld() {
 
+    // Delete the file
+    World::DeleteWorld(m_worlds.at(m_selected_world_index));
 
+    // update the file list.
+    std::vector<std::string> updatedCharacterFiles;
+    updatedCharacterFiles.reserve(m_worlds.size());
+    for (size_t index = 0U; index < m_worlds.size(); index++) {
+
+        if (index != m_selected_world_index) {
+
+            updatedCharacterFiles.push_back(std::move(m_worlds.at(index)));
+        }
+    }
+    m_worlds = std::move(updatedCharacterFiles);
+
+    if (m_worlds.empty()) {
+
+        // Need to reset all buttons to disabled state. Maybe we can cheat and deactivate then reactivate menu
+        Deactivate();
+        Activate();
+    }
+    else {
+        // choose the next character
+        if (m_selected_world_index >= m_worlds.size()) {
+
+            m_selected_world_index = m_worlds.size() - 1U;
+        }
+
+        // Select the character
+        SelectWorld(m_selected_world_index);
+    }
 }
 
 }
